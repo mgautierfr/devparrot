@@ -7,8 +7,8 @@ class Workspace(object):
 		self.currentView = TextView()
 		self.container.add(self.currentView.container)
 
-	def set_currentDocument(self, textFile):
-		self.currentView.set_document(textFile)
+	def set_currentDocument(self, document):
+		self.currentView.set_document(document)
 
 	def get_currentDocument(self):
 		return self.currentView.get_document()

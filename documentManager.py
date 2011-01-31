@@ -1,8 +1,7 @@
 
-from document import Document
 from file import TextFile
 
-class DocumentManager(Document):
+class DocumentManager(object):
 	def __init__(self, session):
 		self.session = session
 		self.documents = {}

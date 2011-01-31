@@ -53,7 +53,7 @@ class MainWindow(object):
 		self.window.add(vbox)
 		self.entry = gtk.Entry()
 		vbox.add(self.entry)
-		vbox.child_set_property(self.entry,  "expand",False)
+		vbox.child_set_property(self.entry, "expand", False)
 		self.workspaceContainer = gtk.VBox()
 		vbox.add(self.workspaceContainer)
 		
