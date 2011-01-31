@@ -3,7 +3,7 @@ import gtk
 
 class TextView(object):
 	def __init__(self):
-		self.document = None
+		self.document = None 
 
 		self.container = gtk.VBox()
 		self.label = gtk.Label()
@@ -31,5 +31,5 @@ class TextView(object):
 		self.textview.set_buffer(document)
 		self.label.set_text(document.get_title())
 		self.path_changed_connection = self.document.connect('path-changed', self.on_path_changed)
-
+		
 

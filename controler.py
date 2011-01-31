@@ -31,16 +31,27 @@ class Controler(object):
 			exec 'self.%(command)s(%(args)s)'%{'command':command,'args':'commands[1:]'}
 
 	def com_save(self, args=[]):
-		if not self.session.get_currentDocument():
+		fileToSave = None
+		currentDocument = self.session.get_currentDocument()
+
+		if not currentDocument:
 			return
+
 		if len(args)>=1:
 			fileToSave = os.path.abspath(args[0])
-		else:
-			fileToSave = self.session.get_currentDocument().get_path()
+
+		if not currentDocument.get_path():
 			if not fileToSave:
 				fileToSave = self.helper.ask_filenameSave("Save")
+			if not fileToSave:
+				return
+			currentDocument.set_path(fileToSave)
+		else:
+			if fileToSave:
+				currentDocument = self.session.get_documentManager().get_file(fileToSave)
 
-		self.session.get_currentDocument().write_to(fileToSave)
+		currentDocument.write()
+		self.session.get_workspace().set_currentDocument(currentDocument)
 				
 	def com_new(self, args=[]):
 		f = self.session.get_documentManager().new_file()

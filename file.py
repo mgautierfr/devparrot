@@ -67,15 +67,15 @@ class TextFile(gtk.TextBuffer):
 		else:
 			self.set_text("")
 
-	def write_to(self, path):
+	def write(self):
+		if not self.path : return 
 		text = self.get_text(self.get_start_iter(), self.get_end_iter())
 		
 		try :
-			fileOut = open(path, 'w')
+			fileOut = open(self.path, 'w')
 			fileOut.write(text)
 			fileOut.close()
 			self.set_modified(False)
-			self.set_path(path)
 		except:
 			sys.stderr.write("Error while writing file %s\n"%path)
 
