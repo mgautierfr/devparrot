@@ -14,7 +14,8 @@ class TextFile(gtk.TextBuffer):
 	}
 	__gsignals__ = {
 		'path-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-		                    (gobject.TYPE_STRING,))
+		                    (gobject.TYPE_STRING,)),
+		'file-saved'   : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,())
 	}
 
 	def __init__(self, path = None):
@@ -76,6 +77,7 @@ class TextFile(gtk.TextBuffer):
 			fileOut.write(text)
 			fileOut.close()
 			self.set_modified(False)
+			self.emit('file-saved')
 		except:
 			sys.stderr.write("Error while writing file %s\n"%path)
 
