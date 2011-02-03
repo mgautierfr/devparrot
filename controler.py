@@ -1,5 +1,5 @@
 
-from file import TextFile
+from textFile import TextFile
 import os
 
 class Controler(object):

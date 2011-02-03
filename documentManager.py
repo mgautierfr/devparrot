@@ -1,6 +1,6 @@
 
 import gtk,gobject
-from file import TextFile
+from textFile import TextFile
 
 class DocumentManager(gtk.ListStore):
 	def __init__(self, session):
