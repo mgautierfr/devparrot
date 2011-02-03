@@ -68,10 +68,6 @@ class MainWindow(object):
 		self.window.add_accel_group(self.accelGroup)
 	
 		self.entry.add_accelerator('grab-focus', self.accelGroup, *gtk.accelerator_parse("<Control>Return") , accel_flags = 0)
-		self.accelGroup.connect_group(*gtk.accelerator_parse("<Control>s"), accel_flags=0, callback = self.on_accel)
-		self.accelGroup.connect_group(*gtk.accelerator_parse("<Control>o"), accel_flags=0, callback = self.on_accel)
-		self.accelGroup.connect_group(*gtk.accelerator_parse("<Control>n"), accel_flags=0, callback = self.on_accel)
-		self.accelGroup.connect_group(*gtk.accelerator_parse("<Control>q"), accel_flags=0, callback = self.on_accel)
 
 		self.window.show_all()
 		self.helper = MainWindow.Helper(self.window)
