@@ -1,26 +1,27 @@
 
+import gtk,gobject
 from file import TextFile
 
-class DocumentManager(object):
+class DocumentManager(gtk.ListStore):
 	def __init__(self, session):
+		gtk.ListStore.__init__(self,gobject.TYPE_STRING,gobject.TYPE_PYOBJECT)
 		self.session = session
-		self.documents = []
 
 	def get_file(self, path):
-		for document in self.documents:
+		for title,document in self:
 			if document.path == path:
 				return document
 		f = TextFile(path)
-		self.documents.insert(0,f)
+		self.prepend([f.get_title(),f])
 		return f
 			
 
 	def new_file(self):
 		f = TextFile()
-		self.documents.insert(0,f)
+		self.prepend([f.get_title(),f])
 		return f
 	
 	def __str__(self):
 		return "Open Files\n[\n%(openfiles)s\n]"%{
-			'openfiles' : "\n".join([str(doc) for doc in self.documents])
+			'openfiles' : "\n".join([str(doc) for (title,doc) in self])
 		}

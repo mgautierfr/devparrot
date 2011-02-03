@@ -13,6 +13,7 @@ class CodeCollab(object):
 	def __init__(self):
 		self.mainWindow = MainWindow()
 		self.session = Session(self.mainWindow.workspaceContainer)
+		self.mainWindow.documentListView.set_document(self.session.get_documentManager())
 		self.controler = Controler(self.session, self.mainWindow)
 
 if __name__ == "__main__":

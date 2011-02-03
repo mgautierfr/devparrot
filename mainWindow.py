@@ -2,6 +2,8 @@
 
 import gtk
 
+import documentListView
+
 
 class MainWindow(object):
 	class Helper:
@@ -49,13 +51,18 @@ class MainWindow(object):
 	def __init__(self):
 		self.window = gtk.Window()
 		self.window.connect('destroy', gtk.main_quit)
+		self.window.set_default_size(800,600)
 		vbox = gtk.VBox()
 		self.window.add(vbox)
 		self.entry = gtk.Entry()
 		vbox.add(self.entry)
 		vbox.child_set_property(self.entry, "expand", False)
+		hpaned = gtk.HPaned()
+		vbox.add(hpaned)
+		self.documentListView = documentListView.DocumentListView()
+		hpaned.add(self.documentListView)
 		self.workspaceContainer = gtk.VBox()
-		vbox.add(self.workspaceContainer)
+		hpaned.add(self.workspaceContainer)
 
 		self.accelGroup = gtk.AccelGroup()
 		self.window.add_accel_group(self.accelGroup)
