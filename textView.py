@@ -23,7 +23,10 @@ class TextView(object):
 		return self.document
 
 	def on_path_changed(self, path, userData=None):
-		self.label.set_text(self.document.get_path())
+		if self.document.get_path():
+			self.label.set_text(self.document.get_path())
+		else:
+			self.label.set_text(self.document.get_title())
 
 	def set_bold(self, sourceGadget, bold):
 		att = pango.AttrList()
@@ -42,7 +45,10 @@ class TextView(object):
 			self.signalConnections = {}
 		self.document = document
 		self.textview.set_buffer(document)
-		self.label.set_text(document.get_path())
+		if document.get_path():
+			self.label.set_text(document.get_path())
+		else:
+			self.label.set_text(document.get_title())
 		self.signalConnections['path-changed'] = self.document.connect('path-changed', self.on_path_changed)
 		self.signalConnections['changed'] = self.document.connect('changed', self.set_bold, True)
 		self.signalConnections['file-saved'] = self.document.connect('file-saved', self.set_bold, False)
