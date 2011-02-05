@@ -27,7 +27,6 @@ class TextFile(gtk.TextBuffer):
 			self.path = None
 			self.filename = "NewFile%d"%TextFile.newFileNumber
 			TextFile.newFileNumber += 1
-		self.load()
 
 	def get_title(self):
 		return self.filename
@@ -69,14 +68,16 @@ class TextFile(gtk.TextBuffer):
 			self.set_text("")
 
 	def write(self):
-		if not self.path : return 
+		if not self.path : return
+		self.writeTo(self.path)
+		self.set_modified(False)
+
+	def writeTo(self, path):
 		text = self.get_text(self.get_start_iter(), self.get_end_iter())
-		
 		try :
-			fileOut = open(self.path, 'w')
+			fileOut = open(path, 'w')
 			fileOut.write(text)
 			fileOut.close()
-			self.set_modified(False)
 			self.emit('file-saved')
 		except:
 			sys.stderr.write("Error while writing file %s\n"%path)

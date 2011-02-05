@@ -7,13 +7,21 @@ class DocumentManager(gtk.ListStore):
 		gtk.ListStore.__init__(self,gobject.TYPE_STRING,gobject.TYPE_PYOBJECT)
 		self.session = session
 
-	def get_file(self, path):
+	def get_file(self, path, autoOpen = True):
 		for title,document in self:
 			if document.path == path:
 				return document
-		f = TextFile(path)
-		self.prepend([f.get_title(),f])
-		return f
+		if autoOpen :
+			f = TextFile(path)
+			self.prepend([f.get_title(),f])
+			return f
+		return None
+
+	def del_file(self, document):
+		it = self.get_iter_first()
+		while(self.get_value(it,1).get_path() != document.get_path()):
+			it.get_next()
+		del self[it]
 			
 
 	def new_file(self):

@@ -9,17 +9,30 @@ def save(session, helper, args=[]):
 	fileToSave = None
 	currentDocument = session.get_currentDocument()
 	if not currentDocument:
-		return
+		return False
 	if len(args)>=1:
 		fileToSave = os.path.abspath(args[0])
 
-	if not currentDocument.get_path():
-		if not fileToSave:
-			fileToSave = helper.ask_filenameSave("Save")
+	if currentDocument.get_path() and not fileToSave:
+		currentDocument.write()
+		return True
+
+	if not currentDocument.get_path() and not fileToSave:
+		fileToSave = helper.ask_filenameSave("Save")
 	if not fileToSave:
-		return
-	currentDocument.set_path(fileToSave)
-	currentDocument.write()
+		return False
+
+	newDocument = session.get_documentManager().get_file(fileToSave, False)
+	if newDocument:
+		currentDocument.writeTo(fileToSave)
+		newDocument.load()
+		session.get_workspace().set_currentDocument(newDocument)
+		session.get_documentManager().del_file(currentDocument)
+	else:
+		currentDocument.set_path(fileToSave)
+		currentDocument.write()
+
+	return True
 #	currentDocument = session.get_documentManager().get_file(fileToSave)
 #	session.get_workspace().set_currentDocument(currentDocument)
 
@@ -42,6 +55,7 @@ def open(session, helper, args=[]):
 	if not fileToOpen : return
 
 	f = session.get_documentManager().get_file(fileToOpen)
+	f.load()
 	session.get_workspace().set_currentDocument(f)
 
 @Action()
