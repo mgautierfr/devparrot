@@ -2,10 +2,13 @@
 import gtk,gobject
 from textFile import TextFile
 
+import mainWindow
+
 class DocumentManager(gtk.ListStore):
 	def __init__(self, session):
 		gtk.ListStore.__init__(self,gobject.TYPE_STRING,gobject.TYPE_PYOBJECT)
 		self.session = session
+		mainWindow.documentListView.set_document(self)
 
 	def get_file(self, path, autoOpen = True):
 		for title,document in self:

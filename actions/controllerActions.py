@@ -4,10 +4,12 @@ from actionDef import Action
 import gtk
 import os
 
+import controler, mainWindow
+
 @Action(accelerator=gtk.accelerator_parse("<Control>s"))
-def save(session, helper, args=[]):
+def save(args=[]):
 	fileToSave = None
-	currentDocument = session.get_currentDocument()
+	currentDocument = controler.currentSession.get_currentDocument()
 	if not currentDocument:
 		return False
 	if len(args)>=1:
@@ -18,47 +20,45 @@ def save(session, helper, args=[]):
 		return True
 
 	if not currentDocument.get_path() and not fileToSave:
-		fileToSave = helper.ask_filenameSave("Save")
+		fileToSave = mainWindow.Helper().ask_filenameSave("Save")
 	if not fileToSave:
 		return False
 
-	newDocument = session.get_documentManager().get_file(fileToSave, False)
+	newDocument = controler.currentSession.get_documentManager().get_file(fileToSave, False)
 	if newDocument:
 		currentDocument.writeTo(fileToSave)
 		newDocument.load()
-		session.get_workspace().set_currentDocument(newDocument)
-		session.get_documentManager().del_file(currentDocument)
+		controler.currentSession.get_workspace().set_currentDocument(newDocument)
+		controler.currentSession.get_documentManager().del_file(currentDocument)
 	else:
 		currentDocument.set_path(fileToSave)
 		currentDocument.write()
 
 	return True
-#	currentDocument = session.get_documentManager().get_file(fileToSave)
-#	session.get_workspace().set_currentDocument(currentDocument)
 
 @Action(accelerator=gtk.accelerator_parse("<Control>n"))
-def new(session, helper, args=[]):
-	f = session.get_documentManager().new_file()
-	session.get_workspace().set_currentDocument(f)
+def new(args=[]):
+	f = controler.currentSession.get_documentManager().new_file()
+	controler.currentSession.get_workspace().set_currentDocument(f)
 
 @Action()
-def debug(session, helper, args=[]):
-	print session.get_documentManager()
+def debug(args=[]):
+	print controler.currentSession.get_documentManager()
 
 @Action(accelerator=gtk.accelerator_parse("<Control>o"))
-def open(session, helper, args=[]):
+def open(args=[]):
 	fileToOpen = None
 	if len(args)>=1:
 		fileToOpen = os.path.abspath(args[0])
 	if not fileToOpen:
-		fileToOpen = helper.ask_filenameOpen("Open a file")
+		fileToOpen = mainWindow.Helper().ask_filenameOpen("Open a file")
 	if not fileToOpen : return
 
-	f = session.get_documentManager().get_file(fileToOpen)
+	f = controler.currentSession.get_documentManager().get_file(fileToOpen)
 	f.load()
-	session.get_workspace().set_currentDocument(f)
+	controler.currentSession.get_workspace().set_currentDocument(f)
 
 @Action()
-def quit(session, helper, args=[]):
+def quit(args=[]):
 	import gtk
 	gtk.main_quit()

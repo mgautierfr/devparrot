@@ -2,96 +2,104 @@
 
 import gtk
 
-import documentListView
+from documentListView import DocumentListView
 
 
-class MainWindow(object):
-	class Helper:
-		def __init__(self, window):
-			self.window = window
-
-		def ask_questionYesNo(self, title, message):
-			dialog = gtk.MessageDialog(self.window,
-			                           gtk.DIALOG_MODAL | gtk.DESTROY_WITH_PARENT,
-			                           gtk.MESSAGE_QUESTION,
-			                           gtk.BUTTONS_YES_NO,
-			                           message)
-			dialog.set_title(title)
-			response = dialog.run()
-			dialog.destroy()
-			return (response==gtk.RESPONSE_YES)
-
-		def ask_filenameSave(self, title):
-			chooser = gtk.FileChooserDialog(title,
-			                                self.window,
-			                                gtk.FILE_CHOOSER_ACTION_SAVE,
-			                                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-			                                 gtk.STOCK_SAVE, gtk.RESPONSE_OK))
-	
-			response = None
-			if chooser.run() == gtk.RESPONSE_OK:
-				response = chooser.get_filename()
-			chooser.destroy()
-		
-			return response
-
-		def ask_filenameOpen(self, title):
-			chooser = gtk.FileChooserDialog(title,
-			                                self.window,
-			                                gtk.FILE_CHOOSER_ACTION_OPEN,
-			                                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-			                                 gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-
-			response = None
-			if chooser.run() == gtk.RESPONSE_OK:
-				response = chooser.get_filename()
-			chooser.destroy()
-			return response
-
+class Helper:
 	def __init__(self):
-		self.window = gtk.Window()
-		self.window.connect('destroy', gtk.main_quit)
-		self.window.set_default_size(800,600)
-		vbox = gtk.VBox()
-		self.window.add(vbox)
-		self.entry = gtk.Entry()
-		vbox.add(self.entry)
-		vbox.child_set_property(self.entry, "expand", False)
-		hpaned = gtk.HPaned()
-		vbox.add(hpaned)
-		self.documentListView = documentListView.DocumentListView()
-		hpaned.add(self.documentListView)
-		self.workspaceContainer = gtk.VBox()
-		hpaned.add(self.workspaceContainer)
+		global window
+		self.window = window
 
-		self.accelGroup = gtk.AccelGroup()
-		self.window.add_accel_group(self.accelGroup)
+	def ask_questionYesNo(self, title, message):
+		dialog = gtk.MessageDialog(self.window,
+		                           gtk.DIALOG_MODAL | gtk.DESTROY_WITH_PARENT,
+		                           gtk.MESSAGE_QUESTION,
+		                           gtk.BUTTONS_YES_NO,
+		                           message)
+		dialog.set_title(title)
+		response = dialog.run()
+		dialog.destroy()
+		return (response==gtk.RESPONSE_YES)
+
+	def ask_filenameSave(self, title):
+		chooser = gtk.FileChooserDialog(title,
+		                                self.window,
+		                                gtk.FILE_CHOOSER_ACTION_SAVE,
+		                                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+		                                 gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+
+		response = None
+		if chooser.run() == gtk.RESPONSE_OK:
+			response = chooser.get_filename()
+		chooser.destroy()
 	
-		self.entry.add_accelerator('grab-focus', self.accelGroup, *gtk.accelerator_parse("<Control>Return") , accel_flags = 0)
+		return response
 
-		self.window.show_all()
-		self.helper = MainWindow.Helper(self.window)
-		
-		pass
+	def ask_filenameOpen(self, title):
+		chooser = gtk.FileChooserDialog(title,
+		                                self.window,
+		                                gtk.FILE_CHOOSER_ACTION_OPEN,
+		                                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+		                                 gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+		response = None
+		if chooser.run() == gtk.RESPONSE_OK:
+			response = chooser.get_filename()
+		chooser.destroy()
+		return response
 
-	def on_accel(self,accel_group, acceleratable, keyval, modifier):
-		if (keyval, modifier) == gtk.accelerator_parse("<Control>s"):
-			self.entry.set_text("save")
-			self.entry.activate()
-			return True
-		if (keyval, modifier) == gtk.accelerator_parse("<Control>o"):
-			self.entry.set_text("open")
-			self.entry.activate()
-			return True
-		if (keyval, modifier) == gtk.accelerator_parse("<Control>n"):
-			self.entry.set_text("new")
-			self.entry.activate()
-			return True
-		if (keyval, modifier) == gtk.accelerator_parse("<Control>q"):
-			self.entry.set_text("quit")
-			self.entry.activate()
-			return True
-		return False
+window = None
+entry = None
+documentListView = None
+workspaceContainer = None
+accelGroup = None
 
-	def get_helper(self):
-		return self.helper
+
+def init():
+	global window
+	global entry
+	global documentListView
+	global workspaceContainer
+	global accelGroup
+	window = gtk.Window()
+	window.connect('destroy', gtk.main_quit)
+	window.set_default_size(800,600)
+	vbox = gtk.VBox()
+	window.add(vbox)
+	entry = gtk.Entry()
+	vbox.add(entry)
+	vbox.child_set_property(entry, "expand", False)
+	hpaned = gtk.HPaned()
+	vbox.add(hpaned)
+	documentListView = DocumentListView()
+	hpaned.add(documentListView)
+	workspaceContainer = gtk.VBox()
+	hpaned.add(workspaceContainer)
+
+	accelGroup = gtk.AccelGroup()
+	window.add_accel_group(accelGroup)
+	
+	entry.add_accelerator('grab-focus', accelGroup, *gtk.accelerator_parse("<Control>Return") , accel_flags = 0)
+
+	window.show_all()
+	
+
+def on_accel(accel_group, acceleratable, keyval, modifier):
+	global entry
+	if (keyval, modifier) == gtk.accelerator_parse("<Control>s"):
+		entry.set_text("save")
+		entry.activate()
+		return True
+	if (keyval, modifier) == gtk.accelerator_parse("<Control>o"):
+		entry.set_text("open")
+		entry.activate()
+		return True
+	if (keyval, modifier) == gtk.accelerator_parse("<Control>n"):
+		entry.set_text("new")
+		entry.activate()
+		return True
+	if (keyval, modifier) == gtk.accelerator_parse("<Control>q"):
+		entry.set_text("quit")
+		entry.activate()
+		return True
+	return False
+

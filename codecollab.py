@@ -6,15 +6,15 @@ import sys
 
 
 from session import Session
-from mainWindow import MainWindow
-from controler import Controler
+
+import mainWindow
+import controler
 
 class CodeCollab(object):
 	def __init__(self):
-		self.mainWindow = MainWindow()
-		self.session = Session(self.mainWindow.workspaceContainer)
-		self.mainWindow.documentListView.set_document(self.session.get_documentManager())
-		self.controler = Controler(self.session, self.mainWindow)
+		mainWindow.init()
+		controler.init()
+		self.session = Session()
 
 if __name__ == "__main__":
 	app = CodeCollab()
