@@ -3,7 +3,7 @@
 class Action:
 	actionList = {}
 
-	def callback(accel_group, acceleratable, keyval, modifier):
+	def callback(self, accel_group, acceleratable, keyval, modifier):
 		return self.run([])
 		
 	def __init__(self, accelerator=None):
