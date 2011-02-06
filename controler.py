@@ -1,8 +1,9 @@
 
 from textFile import TextFile
 
-import actions.controllerActions
-import actions.actionDef
+
+from actions import Action
+
 import os
 
 import mainWindow
@@ -19,7 +20,7 @@ def set_session(session):
 	currentSession = session
 
 def connect_actions():
-	for (name, action) in actions.actionDef.Action.actionList.items():
+	for (name, action) in Action.actionList.items():
 		if action.accelerator :
 			mainWindow.accelGroup.connect_group(action.accelerator[0], action.accelerator[1],
 			                                    accel_flags=0,
@@ -30,8 +31,8 @@ def on_entry_activate(sourceWidget, userData=None):
 	sourceWidget.set_text('')
 
 def get_command(commandStr=''):
-	if commandStr in actions.actionDef.Action.actionList :
-		return actions.actionDef.Action.actionList[commandStr]
+	if commandStr in Action.actionList :
+		return Action.actionList[commandStr]
 	return None
 		
 def interprete(cmdline):

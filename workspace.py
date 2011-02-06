@@ -13,3 +13,6 @@ class Workspace(object):
 
 	def get_currentDocument(self):
 		return self.currentView.get_document()
+
+	def get_currentView(self):
+		return self.currentView
