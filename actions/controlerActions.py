@@ -24,7 +24,7 @@ def save(args=[]):
 	if not fileToSave:
 		return False
 
-	newDocument = controler.currentSession.get_documentManager().get_file(fileToSave, False)
+	(newDocument, newOne) = controler.currentSession.get_documentManager().get_file(fileToSave, False)
 	if newDocument:
 		currentDocument.writeTo(fileToSave)
 		newDocument.load()
@@ -54,9 +54,10 @@ def open(args=[]):
 		fileToOpen = mainWindow.Helper().ask_filenameOpen("Open a file")
 	if not fileToOpen : return
 
-	f = controler.currentSession.get_documentManager().get_file(fileToOpen)
-	f.load()
-	controler.currentSession.get_workspace().set_currentDocument(f)
+	(doc, newOne) = controler.currentSession.get_documentManager().get_file(fileToOpen)
+	if newOne:
+		doc.load()
+	controler.currentSession.get_workspace().set_currentDocument(doc)
 
 @Action()
 def quit(args=[]):

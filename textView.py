@@ -37,7 +37,7 @@ class TextView(object):
 		self.label.set_attributes(att)
 
 	def set_document(self, document):
-		if self.document == document:
+		if self.document and self.document == document:
 			return
 		if self.document :
 			for (key,connect) in self.signalConnections.items():
@@ -49,6 +49,7 @@ class TextView(object):
 			self.label.set_text(document.get_path())
 		else:
 			self.label.set_text(document.get_title())
+		self.set_bold(None, document.get_modified())
 		self.signalConnections['path-changed'] = self.document.connect('path-changed', self.on_path_changed)
 		self.signalConnections['changed'] = self.document.connect('changed', self.set_bold, True)
 		self.signalConnections['file-saved'] = self.document.connect('file-saved', self.set_bold, False)

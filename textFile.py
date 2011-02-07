@@ -20,6 +20,7 @@ class TextFile(gtk.TextBuffer):
 
 	def __init__(self, path = None):
 		gtk.TextBuffer.__gobject_init__(self)
+		self.rowReference = None
 		if path:
 			self.path = path
 			self.filename = os.path.basename(path)
@@ -27,6 +28,18 @@ class TextFile(gtk.TextBuffer):
 			self.path = None
 			self.filename = "NewFile%d"%TextFile.newFileNumber
 			TextFile.newFileNumber += 1
+
+	def get_rowReference(self):
+		return self.rowReference
+	
+	def __eq__(self, other):
+		if self.path and other.path :
+			return self.path == other.path
+		else:
+			return self.filename == other.filename
+
+	def set_rowReference(self, rowReference):
+		self.rowReference = rowReference
 
 	def get_title(self):
 		return self.filename
