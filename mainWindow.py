@@ -74,6 +74,7 @@ def init():
 	hpaned.add(documentListView)
 	workspaceContainer = gtk.VBox()
 	hpaned.add(workspaceContainer)
+	hpaned.props.position = 200
 
 	accelGroup = gtk.AccelGroup()
 	window.add_accel_group(accelGroup)

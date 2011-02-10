@@ -42,6 +42,16 @@ def new(args=[]):
 	controler.currentSession.get_workspace().set_currentDocument(f)
 
 @Action()
+def switch(args=[]):
+	if len(args)==0:
+		return False
+	path = args[0]
+	docManager = controler.currentSession.get_documentManager()
+	document = docManager.get_value(docManager.get_iter(path), 0)
+	controler.currentSession.get_workspace().set_currentDocument(document)
+
+
+@Action()
 def debug(args=[]):
 	print controler.currentSession.get_documentManager()
 

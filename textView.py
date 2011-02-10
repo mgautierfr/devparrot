@@ -9,6 +9,7 @@ class TextView(object):
 		self.label = gtk.Label()
 		self.label.set_selectable(True)
 		self.label.set_alignment(0, 0.5)
+		self.label.props.can_focus = False
 		self.scrolledwindow = gtk.ScrolledWindow()
 		self.textview = gtk.TextView()
 		self.scrolledwindow.add(self.textview)
