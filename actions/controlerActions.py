@@ -89,3 +89,11 @@ def open(args=[]):
 def quit(args=[]):
 	import gtk
 	gtk.main_quit()
+
+@Action()
+def split(args=[]):
+	controler.currentSession.get_workspace().get_currentViewContainer().split(0)
+
+@Action()
+def vsplit(args=[]):
+	controler.currentSession.get_workspace().get_currentViewContainer().split(1)
