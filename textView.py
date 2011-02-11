@@ -18,6 +18,7 @@ class TextView(object):
 
 		self.container.child_set_property(self.label, "expand", False)
 		self.container.show_all()
+		self.container.props.sensitive = False
 		self.signalConnections = {}
 
 	def get_document(self):
@@ -38,21 +39,27 @@ class TextView(object):
 		self.label.set_attributes(att)
 
 	def set_document(self, document):
-		if self.document and self.document == document:
+		if self.document and document and self.document == document:
 			return
 		if self.document :
 			for (key,connect) in self.signalConnections.items():
 				self.document.disconnect(connect)
 			self.signalConnections = {}
 		self.document = document
-		self.textview.set_buffer(document)
-		if document.get_path():
-			self.label.set_text(document.get_path())
+		if self.document:
+			self.textview.set_buffer(document)
+			self.container.props.sensitive = True
+			if document.get_path():
+				self.label.set_text(document.get_path())
+			else:
+				self.label.set_text(document.get_title())
+			self.set_bold(None, document.get_modified())
+			self.signalConnections['path-changed'] = self.document.connect('path-changed', self.on_path_changed)
+			self.signalConnections['changed'] = self.document.connect('changed', self.set_bold, True)
+			self.signalConnections['file-saved'] = self.document.connect('file-saved', self.set_bold, False)
 		else:
-			self.label.set_text(document.get_title())
-		self.set_bold(None, document.get_modified())
-		self.signalConnections['path-changed'] = self.document.connect('path-changed', self.on_path_changed)
-		self.signalConnections['changed'] = self.document.connect('changed', self.set_bold, True)
-		self.signalConnections['file-saved'] = self.document.connect('file-saved', self.set_bold, False)
-		
+			self.textview.set_buffer(gtk.TextBuffer())
+			self.container.props.sensitive = False
+			self.label.set_text("")
+			self.set_bold(None, False)
 

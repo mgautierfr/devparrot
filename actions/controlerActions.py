@@ -50,6 +50,22 @@ def switch(args=[]):
 	document = docManager.get_value(docManager.get_iter(path), 0)
 	controler.currentSession.get_workspace().set_currentDocument(document)
 
+@Action()
+def close(args=[]):
+	if len(args)==0:
+		return False
+	path = args[0]
+	docManager = controler.currentSession.get_documentManager()
+	document = docManager.get_value(docManager.get_iter(path), 0)
+	docManager.del_file(document)
+	if document == controler.currentSession.get_workspace().get_currentDocument():
+		docToDisplay = None
+		try :
+			docToDisplay = docManager.get_value(docManager.get_iter("0"), 0)
+		except ValueError:
+			pass
+		controler.currentSession.get_workspace().set_currentDocument(docToDisplay)
+
 
 @Action()
 def debug(args=[]):
