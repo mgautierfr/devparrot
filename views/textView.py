@@ -1,5 +1,6 @@
 
 import gtk,pango
+import gtksourceview2
 
 class TextView(gtk.Frame):
 	def __init__(self):
@@ -12,7 +13,7 @@ class TextView(gtk.Frame):
 		self.label.props.can_focus = False
 		self.scrolledwindow = gtk.ScrolledWindow()
 		self.scrolledwindow.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
-		self.textview = gtk.TextView()
+		self.textview = gtksourceview2.View()
 		self.scrolledwindow.add(self.textview)
 		self.add(self.scrolledwindow)
 		self.set_label_widget(self.label)

@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
 import gtk, gobject
+import gtksourceview2
 import os,sys
 
-class TextFile(gtk.TextBuffer):
+class TextFile(gtksourceview2.Buffer):
 	newFileNumber = 0
 	__gproperties__ = {
 		'path' : ( gobject.TYPE_STRING,
@@ -19,7 +20,7 @@ class TextFile(gtk.TextBuffer):
 	}
 
 	def __init__(self, path = None):
-		gtk.TextBuffer.__gobject_init__(self)
+		gtksourceview2.Buffer.__gobject_init__(self)
 		self.rowReference = None
 		if path:
 			self.path = path
@@ -52,6 +53,12 @@ class TextFile(gtk.TextBuffer):
 			self.path = path
 			self.filename = os.path.basename(path)
 			self.emit('path-changed', self.path)
+		if self.path:
+			languageManager = gtksourceview2.LanguageManager()
+			language = languageManager.guess_language(self.path, None)
+			if language:
+				self.set_highlight_syntax(True)
+				self.set_language(language)
 
 	def do_get_property(self, property):
 		if property.name == 'path':
