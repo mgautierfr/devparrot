@@ -11,6 +11,7 @@ class TextView(gtk.Frame):
 		self.label.set_alignment(0, 0.5)
 		self.label.props.can_focus = False
 		self.scrolledwindow = gtk.ScrolledWindow()
+		self.scrolledwindow.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
 		self.textview = gtk.TextView()
 		self.scrolledwindow.add(self.textview)
 		self.add(self.scrolledwindow)

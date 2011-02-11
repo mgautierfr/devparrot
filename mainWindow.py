@@ -71,7 +71,10 @@ def init():
 	hpaned = gtk.HPaned()
 	vbox.add(hpaned)
 	documentListView = DocumentListView()
-	hpaned.add(documentListView)
+	scrolledWin = gtk.ScrolledWindow()
+	scrolledWin.set_policy(gtk.POLICY_NEVER,gtk.POLICY_AUTOMATIC)
+	hpaned.add(scrolledWin)
+	scrolledWin.add(documentListView)
 	workspaceContainer = gtk.VBox()
 	hpaned.add(workspaceContainer)
 	hpaned.props.position = 200
