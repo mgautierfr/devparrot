@@ -22,11 +22,11 @@ class TextFile(gtksourceview2.Buffer):
 	def __init__(self, path = None):
 		gtksourceview2.Buffer.__gobject_init__(self)
 		self.rowReference = None
+		self.path = None
 		if path:
-			self.path = path
+			self.set_path(path)
 			self.filename = os.path.basename(path)
 		else:
-			self.path = None
 			self.filename = "NewFile%d"%TextFile.newFileNumber
 			TextFile.newFileNumber += 1
 
