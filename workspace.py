@@ -6,7 +6,8 @@ import mainWindow
 
 class Workspace(ViewContainer):
 	def __init__(self):
-		ViewContainer.__init__(self, TextView())
+		TextView.current = TextView()
+		ViewContainer.__init__(self, TextView.current)
 		mainWindow.workspaceContainer.add(self)
 
 	def set_currentDocument(self, document):
@@ -16,8 +17,8 @@ class Workspace(ViewContainer):
 		return self.get_currentView().get_document()
 
 	def get_currentView(self):
-		return self.get_focused_view()
+		return TextView.current
 
 	def get_currentViewContainer(self):
-		return self.get_focusedViewContainer()
+		return TextView.current.get_parentContainer()
 

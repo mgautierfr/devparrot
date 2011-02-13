@@ -97,3 +97,7 @@ def split(args=[]):
 @Action()
 def vsplit(args=[]):
 	controler.currentSession.get_workspace().get_currentViewContainer().split(1)
+
+@Action()
+def unsplit(args=[]):
+	controler.currentSession.get_workspace().get_currentViewContainer().unsplit()

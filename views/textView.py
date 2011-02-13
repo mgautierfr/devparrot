@@ -3,9 +3,11 @@ import gtk,pango
 import gtksourceview2
 
 class TextView(gtk.Frame):
+	current = None
 	def __init__(self):
 		gtk.Frame.__init__(self)
-		self.document = None 
+		self.document = None
+		self.parentContainer = None 
 
 		self.label = gtk.Label()
 		self.label.set_selectable(True)
@@ -27,10 +29,26 @@ class TextView(gtk.Frame):
 		self.props.sensitive = False
 
 		self.signalConnections = {}
-	
+		
+		self.connect("set-focus-child", self.on_set_focus_child)
+		
+	def clone(self):
+		new = TextView()
+		new.set_document(self.document)
+		return new
+		
+	def on_set_focus_child(self, container, widget):
+		if widget:
+			TextView.current = container
 
 	def get_document(self):
 		return self.document
+		
+	def get_parentContainer(self):
+		return self.parentContainer
+		
+	def set_parentContainer(self, container):
+		self.parentContainer = container
 
 	def on_path_changed(self, path, userData=None):
 		if self.document.get_path():
