@@ -1,5 +1,3 @@
-
-
 import gtk
 
 from documentListView import DocumentListView

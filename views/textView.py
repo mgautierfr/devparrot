@@ -31,6 +31,7 @@ class TextView(gtk.Frame):
 		self.signalConnections = {}
 		
 		self.connect("set-focus-child", self.on_set_focus_child)
+		self.connect("grab-focus", self.on_grab_focus)
 		
 	def clone(self):
 		new = TextView()
@@ -40,6 +41,9 @@ class TextView(gtk.Frame):
 	def on_set_focus_child(self, container, widget):
 		if widget:
 			TextView.current = container
+			
+	def on_grab_focus(self, widget):
+		self.textview.grab_focus()
 
 	def get_document(self):
 		return self.document

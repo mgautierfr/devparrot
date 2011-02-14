@@ -29,6 +29,7 @@ def connect_actions():
 def on_entry_activate(sourceWidget, userData=None):
 	interprete(sourceWidget.get_text())
 	sourceWidget.set_text('')
+	currentSession.get_workspace().get_currentView().grab_focus()
 
 def get_command(commandStr=''):
 	if commandStr in Action.actionList :
