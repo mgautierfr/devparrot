@@ -1,6 +1,8 @@
 
 import gtk,pango
 
+import controler
+
 class DocumentListView(gtk.TreeView):
 	def __init__(self):
 		gtk.TreeView.__init__(self)
@@ -19,10 +21,18 @@ class DocumentListView(gtk.TreeView):
 		self.props.can_focus = False
 		cellDocumentRenderer.props.sensitive = True
 		self.document = None
-		self.connect("button-press-event", self.discard, None)
+		self.get_selection().set_mode(gtk.SELECTION_SINGLE)
+		self.connect("button-press-event", self.switch_to_document, None)
 
-	def discard(self, widget, event, user_data=None):
-		return True
+
+	def switch_to_document(self, widget, event, user_data=None):
+		if event.type == gtk.gdk._2BUTTON_PRESS:
+			selection = widget.get_selection()
+			select = selection.get_selected()
+			if select:
+				(model, iter) = select
+				document = model.get_value(iter, 0)
+				controler.currentSession.get_workspace().set_currentDocument(document)
 
 	def cellDocumentSetter(self, column, cell, model, iter, user_data=None):
 		document = model.get_value(iter, 0)
