@@ -33,12 +33,14 @@ class Helper:
 	
 		return response
 
-	def ask_filenameOpen(self, title):
+	def ask_filenameOpen(self, title, currentFolder):
 		chooser = gtk.FileChooserDialog(title,
 		                                self.window,
 		                                gtk.FILE_CHOOSER_ACTION_OPEN,
 		                                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
 		                                 gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+		if currentFolder:
+			chooser.set_current_folder(currentFolder)
 		response = None
 		if chooser.run() == gtk.RESPONSE_OK:
 			response = chooser.get_filename()

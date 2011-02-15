@@ -77,7 +77,13 @@ def open(args=[]):
 	if len(args)>=1 and args[0]:
 		fileToOpen = os.path.abspath(args[0])
 	if not fileToOpen:
-		fileToOpen = mainWindow.Helper().ask_filenameOpen("Open a file")
+		path = None
+		currentDoc = controler.currentSession.get_workspace().get_currentDocument()
+		if currentDoc:
+			path = currentDoc.get_path()
+			if path:
+				path = os.path.dirname(path)
+		fileToOpen = mainWindow.Helper().ask_filenameOpen("Open a file", path)
 	if not fileToOpen : return
 
 	(doc, newOne) = controler.currentSession.get_documentManager().get_file(fileToOpen)
