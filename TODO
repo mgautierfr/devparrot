@@ -1,0 +1,18 @@
+***** TODO ******
+
+# close action:
+ - if no args, close current document,
+ - manage multiview when close
+ 
+#open action:
+ - open a file with a line number
+
+# action entry :
+ - have a default action
+ - focus textview after action  DONE
+ 
+# text view:
+ - search
+ - goto line
+ 
+# inotify for opened file
