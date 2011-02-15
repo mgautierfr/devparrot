@@ -29,6 +29,8 @@ class TextFile(gtksourceview2.Buffer):
 		else:
 			self.filename = "NewFile%d"%TextFile.newFileNumber
 			TextFile.newFileNumber += 1
+		self.connect("mark-set", self.on_mark_set)
+		self.search_tag = self.create_tag(background="yellow")
 
 	def get_rowReference(self):
 		return self.rowReference
@@ -106,5 +108,26 @@ class TextFile(gtksourceview2.Buffer):
 		if self.get_path():
 			return self.get_path()
 		return "None"
+
+	def on_mark_set(self, textbuffer, iter, textmark):
+		if textmark.get_name() in ['insert', 'selection_bound']:
+			if textbuffer.get_has_selection():
+				select = textbuffer.get_selection_bounds()
+				if select:
+					start_select , stop_select = select 
+					text = textbuffer.get_text(start_select , stop_select)
+					self.apply_tag_on_text(self.search_tag, text)
+
+	def apply_tag_on_text(self, tag, text):
+		start, end = self.get_bounds()
+		self.remove_tag(tag, start,end)
+
+		if text:
+			res = start.forward_search(text, gtk.TEXT_SEARCH_TEXT_ONLY)
+			while res:
+				match_start, match_end = res
+				self.apply_tag(tag, match_start, match_end)
+				res = match_end.forward_search(text, gtk.TEXT_SEARCH_TEXT_ONLY)
+
 
 gobject.type_register(TextFile)
