@@ -74,7 +74,7 @@ def debug(args=[]):
 @Action(accelerator=gtk.accelerator_parse("<Control>o"))
 def open(args=[]):
 	fileToOpen = None
-	if len(args)>=1 and args[]:
+	if len(args)>=1 and args[0]:
 		fileToOpen = os.path.abspath(args[0])
 	if not fileToOpen:
 		fileToOpen = mainWindow.Helper().ask_filenameOpen("Open a file")
