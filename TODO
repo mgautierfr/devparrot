@@ -1,7 +1,7 @@
 ***** TODO ******
 
 # close action:
- - if no args, close current document,
+ - if no args, close current document, DONE
  - manage multiview when close
  
 #open action:

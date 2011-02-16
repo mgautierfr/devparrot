@@ -52,11 +52,12 @@ def switch(args=[]):
 
 @Action()
 def close(args=[]):
-	if len(args)==0:
-		return False
-	path = args[0]
 	docManager = controler.currentSession.get_documentManager()
-	document = docManager.get_value(docManager.get_iter(path), 0)
+	if len(args)==0 or not args[0]:
+		document = controler.currentSession.get_currentDocument()
+	else:
+		path = args[0]
+		document = docManager.get_value(docManager.get_iter(path), 0)
 	docManager.del_file(document)
 	if document == controler.currentSession.get_workspace().get_currentDocument():
 		docToDisplay = None
