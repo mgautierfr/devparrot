@@ -100,11 +100,13 @@ def quit(args=[]):
 
 @Action()
 def split(args=[]):
-	controler.currentSession.get_workspace().get_currentViewContainer().split(0)
+	from views.viewContainer import ViewContainer
+	controler.currentSession.get_workspace().get_currentViewContainer().split(ViewContainer.Horizontal)
 
 @Action()
 def vsplit(args=[]):
-	controler.currentSession.get_workspace().get_currentViewContainer().split(1)
+	from views.viewContainer import ViewContainer
+	controler.currentSession.get_workspace().get_currentViewContainer().split(ViewContainer.Vertical)
 
 @Action()
 def unsplit(args=[]):
