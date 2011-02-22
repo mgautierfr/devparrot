@@ -8,7 +8,7 @@
  - manage multiview when close
  
 #open action:
- - open a file with a line number
+ - open a file with a line number DONE
 
 # action entry :
  - have a default action

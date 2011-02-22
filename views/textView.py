@@ -1,5 +1,5 @@
 
-import gtk,pango
+import gtk,pango,glib
 import gtksourceview2
 
 class TextView(gtk.Frame):
@@ -106,7 +106,10 @@ class TextView(gtk.Frame):
 			self.textview.scroll_to_iter(foundIter, 0.2)
 
 	def goto_line(self, line):
+		def callback(it):
+			self.textview.scroll_to_iter(it, 0.2)
+			return False
 		line_iter = self.document.get_iter_at_line(line)
 		self.document.select_range(line_iter,line_iter)
-		self.textview.scroll_to_iter(line_iter, 0.2)
+		glib.idle_add(callback, line_iter)
 

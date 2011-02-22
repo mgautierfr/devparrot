@@ -76,10 +76,21 @@ def debug(args=[]):
 def open(args=[]):
 	def open_a_file(fileToOpen):
 		if not fileToOpen: return
+		lineToGo = None
+		# if path doesn't exist and we have a line marker, lets go to that line
+		if not os.path.exists(fileToOpen):
+			parts = fileToOpen.split(':')
+			if len(parts) == 2:
+				fileToOpen = parts[0]
+				try :
+					lineToGo= int(parts[1])
+				except: pass
 		(doc, newOne) = controler.currentSession.get_documentManager().get_file(fileToOpen)
 		if newOne:
 			doc.load()
 		controler.currentSession.get_workspace().set_currentDocument(doc)
+		if lineToGo:
+			controler.currentSession.get_workspace().get_currentView().goto_line(lineToGo-1)
 
 	if len(args)>=1:
 		for fileToOpen in args:
