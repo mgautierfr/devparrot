@@ -120,3 +120,12 @@ def search(args=[]):
 @Action(accelerator=gtk.accelerator_parse("F3"))
 def next(args=[]):
 	controler.currentSession.get_workspace().get_currentView().next_search()
+
+@Action()
+def goto(args=[]):
+	if len(args) and args[0]:
+		try :
+			line = int(args[0])
+			controler.currentSession.get_workspace().get_currentView().goto_line(line-1)
+		except:
+			pass

@@ -13,6 +13,6 @@
  
 # text view:
  - search DONE
- - goto line
+ - goto line DONE
  
 # inotify for opened file

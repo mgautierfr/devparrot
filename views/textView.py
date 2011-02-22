@@ -105,3 +105,8 @@ class TextView(gtk.Frame):
 		if foundIter:
 			self.textview.scroll_to_iter(foundIter, 0.2)
 
+	def goto_line(self, line):
+		line_iter = self.document.get_iter_at_line(line)
+		self.document.select_range(line_iter,line_iter)
+		self.textview.scroll_to_iter(line_iter, 0.2)
+
