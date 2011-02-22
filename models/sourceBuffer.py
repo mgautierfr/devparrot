@@ -36,7 +36,10 @@ class SourceBuffer(gtksourceview2.Buffer):
 				if select:
 					start_select , stop_select = select 
 					text = textbuffer.get_text(start_select , stop_select)
-					self.apply_tag_on_text(self.search_tag, text)
+					if len(text) >1 :
+						self.apply_tag_on_text(self.highlight_tag, text)
+					else:
+						self.apply_tag_on_text(self.highlight_tag, None)
 
 	def apply_tag_on_text(self, tag, text):
 		start, end = self.get_bounds()
