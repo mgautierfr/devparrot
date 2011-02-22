@@ -12,7 +12,7 @@
  - focus textview after action  DONE
  
 # text view:
- - search
+ - search DONE
  - goto line
  
 # inotify for opened file

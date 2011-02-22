@@ -111,3 +111,12 @@ def vsplit(args=[]):
 @Action()
 def unsplit(args=[]):
 	controler.currentSession.get_workspace().get_currentViewContainer().unsplit()
+
+@Action()
+def search(args=[]):
+	if len(args) and args[0]:
+		controler.currentSession.get_workspace().get_currentView().start_search(args[0])
+
+@Action(accelerator=gtk.accelerator_parse("F3"))
+def next(args=[]):
+	controler.currentSession.get_workspace().get_currentView().next_search()

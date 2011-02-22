@@ -93,3 +93,15 @@ class TextView(gtk.Frame):
 			self.label.set_text("")
 			self.set_bold(None, False)
 
+	def start_search(self, text):
+		if not self.document: return
+		foundIter = self.document.start_search(text)
+		if foundIter:
+			self.textview.scroll_to_iter(foundIter, 0.2)
+
+	def next_search(self):
+		if not self.document: return
+		foundIter = self.document.next_search()
+		if foundIter:
+			self.textview.scroll_to_iter(foundIter, 0.2)
+
