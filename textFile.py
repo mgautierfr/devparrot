@@ -84,7 +84,9 @@ class TextFile(gtksourceview2.Buffer):
 				text = fileIn.read()
 				fileIn.close()
 
+				self.begin_not_undoable_action()
 				self.set_text(text)
+				self.end_not_undoable_action()
 				self.set_modified(False)
 			except:
 				sys.stderr.write("Error while loading file %s\n"%self.filename)

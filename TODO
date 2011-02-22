@@ -1,7 +1,7 @@
 ***** TODO ******
 
 # known bugs:
- - load of file can be undo
+ - load of file can be undo FIXED
 
 # close action:
  - if no args, close current document, DONE
