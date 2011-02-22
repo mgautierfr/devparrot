@@ -22,9 +22,7 @@ class DocumentManager(gtk.ListStore):
 		self.force_redraw(source)
 
 	def get_file(self, path, autoOpen = True):
-		print "looking for path", path
 		for (document,) in self:
-			print "checking doc", document.path
 			if document.path == path:
 				return (document, False)
 		if autoOpen :
@@ -55,7 +53,6 @@ class DocumentManager(gtk.ListStore):
 			'file-saved' : doc.connect('file-saved', self.on_event)
 		}
 		self.append([doc])
-		print len(self)
 		doc.set_rowReference(gtk.TreeRowReference(self,len(self)-1))
 		return doc
 	

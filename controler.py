@@ -4,7 +4,7 @@ from textFile import TextFile
 
 from actions import Action
 
-import os
+import os,sys
 
 import mainWindow
 
@@ -40,6 +40,7 @@ def interprete(cmdline):
 	commands = cmdline.split(' ')
 	command = get_command(commands[0])
 	if command :
-		print "running",command.name
 		command.run(commands[1:])
+	else:
+		sys.stderr.write("can't found command named %s\n"%commands[0])
 
