@@ -59,8 +59,11 @@ class TextView(gtk.Frame):
 			self.label.set_text(self.document.get_path())
 		else:
 			self.label.set_text(self.document.get_title())
+			
+	def on_modified_changed(self, buffer):
+		self.set_bold(buffer.get_modified())
 
-	def set_bold(self, sourceGadget, bold):
+	def set_bold(self, bold):
 		att = pango.AttrList()
 		att.insert(pango.AttrWeight(pango.WEIGHT_BOLD if bold else pango.WEIGHT_NORMAL,
 		                            start_index=0,
@@ -72,21 +75,21 @@ class TextView(gtk.Frame):
 		if self.document and document and self.document == document:
 			return
 		if self.document :
-			for (key,connect) in self.signalConnections.items():
-				self.document.disconnect(connect)
+			for (key,(obj,connect)) in self.signalConnections.items():
+				obj.disconnect(connect)
 			self.signalConnections = {}
 		self.document = document
 		if self.document:
-			self.textview.set_buffer(document)
+			self.model = document.get_model("text")
+			self.textview.set_buffer(self.model)
 			self.props.sensitive = True
 			if document.get_path():
 				self.label.set_text(document.get_path())
 			else:
 				self.label.set_text(document.get_title())
-			self.set_bold(None, document.get_modified())
-			self.signalConnections['path-changed'] = self.document.connect('path-changed', self.on_path_changed)
-			self.signalConnections['changed'] = self.document.connect('changed', self.set_bold, True)
-			self.signalConnections['file-saved'] = self.document.connect('file-saved', self.set_bold, False)
+			self.set_bold( self.model.get_modified())
+			self.signalConnections['path-changed'] = (self.document, self.document.connect('path-changed', self.on_path_changed) )
+			self.signalConnections['modified-changed'] = (self.model, self.model.connect('modified-changed', self.on_modified_changed) )
 		else:
 			self.textview.set_buffer(gtk.TextBuffer())
 			self.props.sensitive = False

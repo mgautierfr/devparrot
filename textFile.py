@@ -1,41 +1,40 @@
 #!/usr/bin/python
 
 import gtk, gobject
-import gtksourceview2
 import os,sys
 
-class TextFile(gtksourceview2.Buffer):
-	newFileNumber = 0
-	__gproperties__ = {
-		'path' : ( gobject.TYPE_STRING,
-	                   'Path of the file',
-	                   'The absolute path of the file',
-	                   None,
-		           gobject.PARAM_READWRITE)
-	}
+from fileDocument import FileDocument
+from models.sourceBuffer import SourceBuffer
+
+class TextFile(FileDocument):
 	__gsignals__ = {
-		'path-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-		                    (gobject.TYPE_STRING,)),
-		'file-saved'   : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,())
+		'language-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+		                    (gobject.TYPE_STRING,))
 	}
+	__models__ = {
+		"text" : SourceBuffer
+	}
+	newFileNumber = 0
 
 	def __init__(self, path = None):
-		gtksourceview2.Buffer.__gobject_init__(self)
+		FileDocument.__init__(self)
 		self.rowReference = None
 		self.path = None
+		self.language = None
 		if path:
 			self.set_path(path)
-			self.filename = os.path.basename(path)
 		else:
 			self.filename = "NewFile%d"%TextFile.newFileNumber
 			TextFile.newFileNumber += 1
-		self.connect("mark-set", self.on_mark_set)
-		self.search_tag = self.create_tag(background="yellow")
 
 	def get_rowReference(self):
 		return self.rowReference
 	
 	def __eq__(self, other):
+		if self.path and not other.path:
+			return False
+		if not self.path and other.path:
+			return False
 		if self.path and other.path :
 			return self.path == other.path
 		else:
@@ -45,89 +44,22 @@ class TextFile(gtksourceview2.Buffer):
 		self.rowReference = rowReference
 
 	def get_title(self):
-		return self.filename
-
-	def get_path(self):
-		return self.path
+		if self.get_path():
+			return os.path.basename(self.get_path())
+		else:
+			return self.filename
+		
+	def load(self):
+		self.get_model('text').load_from_document()
+		
+	def write(self):
+		self.get_model('text').save_to_document()
 
 	def set_path(self, path):
-		if self.path != path:
-			self.path = path
-			self.filename = os.path.basename(path)
-			self.emit('path-changed', self.path)
-		if self.path:
-			languageManager = gtksourceview2.LanguageManager()
-			language = languageManager.guess_language(self.path, None)
-			if language:
-				self.set_highlight_syntax(True)
-				self.set_language(language)
-
-	def do_get_property(self, property):
-		if property.name == 'path':
-			return self.path
-		else:
-			raise AttributeError, 'unknown property %s' % property.name
-
-	def do_set_property(self, property, value):
-		if property.name == 'path':
-			self.path = value
-			self.filename = os.path.basename(path)
-		else:
-			raise AttributeError, 'unknown property %s' % property.name
-
-	def load(self):
-		if self.path and os.path.exists(self.path):
-			try:
-				fileIn = open(self.path, 'r')
-				text = fileIn.read()
-				fileIn.close()
-
-				self.set_text(text)
-				self.set_modified(False)
-			except:
-				sys.stderr.write("Error while loading file %s\n"%self.filename)
-		else:
-			self.set_text("")
-
-	def write(self):
-		if not self.path : return
-		self.writeTo(self.path)
-		self.set_modified(False)
-
-	def writeTo(self, path):
-		text = self.get_text(self.get_start_iter(), self.get_end_iter())
-		try :
-			fileOut = open(path, 'w')
-			fileOut.write(text)
-			fileOut.close()
-			self.emit('file-saved')
-		except:
-			sys.stderr.write("Error while writing file %s\n"%path)
-
-	def __str__(self):
-		if self.get_path():
-			return self.get_path()
-		return "None"
-
-	def on_mark_set(self, textbuffer, iter, textmark):
-		if textmark.get_name() in ['insert', 'selection_bound']:
-			if textbuffer.get_has_selection():
-				select = textbuffer.get_selection_bounds()
-				if select:
-					start_select , stop_select = select 
-					text = textbuffer.get_text(start_select , stop_select)
-					self.apply_tag_on_text(self.search_tag, text)
-
-	def apply_tag_on_text(self, tag, text):
-		start, end = self.get_bounds()
-		self.remove_tag(tag, start,end)
-
-		if text:
-			res = start.forward_search(text, gtk.TEXT_SEARCH_TEXT_ONLY)
-			while res:
-				match_start, match_end = res
-				self.apply_tag(tag, match_start, match_end)
-				res = match_end.forward_search(text, gtk.TEXT_SEARCH_TEXT_ONLY)
-
-
-gobject.type_register(TextFile)
+		import gtksourceview2
+		FileDocument.set_path(self, path)
+		languageManager = gtksourceview2.LanguageManager()
+		self.language = languageManager.guess_language(self.path, None)
+		if self.language:
+			self.get_model('text').set_highlight_syntax(True)
+			self.get_model('text').set_language(self.language)

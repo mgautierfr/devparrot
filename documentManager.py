@@ -19,7 +19,7 @@ class DocumentManager(gtk.ListStore):
 		self.force_redraw(source)
 
 	def on_event(self, source):
-		self.force_redraw(source)
+		self.force_redraw(source.get_document())
 
 	def get_file(self, path, autoOpen = True):
 		print "looking for path", path
@@ -31,8 +31,7 @@ class DocumentManager(gtk.ListStore):
 			doc = TextFile(path)
 			self.signalConnections[doc] = {
 				'path-changed' : doc.connect('path-changed', self.on_path_changed),
-				'changed' : doc.connect('changed', self.on_event),
-				'file-saved' : doc.connect('file-saved', self.on_event)
+				'modified-changed' : doc.get_model('text').connect('modified-changed', self.on_event)
 			}
 			self.append([doc])
 			doc.set_rowReference(gtk.TreeRowReference(self,len(self)-1))
@@ -51,8 +50,7 @@ class DocumentManager(gtk.ListStore):
 		doc = TextFile()
 		self.signalConnections[doc] = {
 			'path-changed' : doc.connect('path-changed', self.on_path_changed),
-			'changed' : doc.connect('changed', self.on_event),
-			'file-saved' : doc.connect('file-saved', self.on_event)
+			'modified-changed' : doc.get_model('text').connect('modified-changed', self.on_event),
 		}
 		self.append([doc])
 		print len(self)
