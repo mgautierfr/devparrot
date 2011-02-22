@@ -24,8 +24,9 @@ class SourceBuffer(gtksourceview2.Buffer):
 		self.end_not_undoable_action()
 		self.set_modified(False)
 	
-	def save_to_document(self):
-		self.document.set_content(self.get_text(self.get_start_iter(), self.get_end_iter()))
+	def save_to_document(self, document=None):
+		if not document : document = self.document
+		document.set_content(self.get_text(self.get_start_iter(), self.get_end_iter()))
 		self.set_modified(False)
 		
 	def on_mark_set(self, textbuffer, iter, textmark):

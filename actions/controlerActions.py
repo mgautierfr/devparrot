@@ -26,7 +26,8 @@ def save(args=[]):
 
 	(newDocument, newOne) = controler.currentSession.get_documentManager().get_file(fileToSave, False)
 	if newDocument:
-		currentDocument.writeTo(fileToSave)
+		# If the document is already opened change its content and delete the older one
+		currentDocument.get_model('text').save_to_document(newDocument)
 		newDocument.load()
 		controler.currentSession.get_workspace().set_currentDocument(newDocument)
 		controler.currentSession.get_documentManager().del_file(currentDocument)
