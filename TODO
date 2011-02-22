@@ -1,5 +1,8 @@
 ***** TODO ******
 
+# known bugs:
+ - load of file can be undo
+
 # close action:
  - if no args, close current document, DONE
  - manage multiview when close
