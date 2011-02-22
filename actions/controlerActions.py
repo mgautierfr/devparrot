@@ -74,23 +74,24 @@ def debug(args=[]):
 
 @Action(accelerator=gtk.accelerator_parse("<Control>o"))
 def open(args=[]):
-	fileToOpen = None
-	if len(args)>=1 and args[0]:
-		fileToOpen = os.path.abspath(args[0])
-	if not fileToOpen:
+	def open_a_file(fileToOpen):
+		if not fileToOpen: return
+		(doc, newOne) = controler.currentSession.get_documentManager().get_file(fileToOpen)
+		if newOne:
+			doc.load()
+		controler.currentSession.get_workspace().set_currentDocument(doc)
+
+	if len(args)>=1:
+		for fileToOpen in args:
+			open_a_file(fileToOpen)
+	else:
 		path = None
 		currentDoc = controler.currentSession.get_workspace().get_currentDocument()
 		if currentDoc:
 			path = currentDoc.get_path()
-			if path:
-				path = os.path.dirname(path)
+			if path: path = os.path.dirname(path)
 		fileToOpen = mainWindow.Helper().ask_filenameOpen("Open a file", path)
-	if not fileToOpen : return
-
-	(doc, newOne) = controler.currentSession.get_documentManager().get_file(fileToOpen)
-	if newOne:
-		doc.load()
-	controler.currentSession.get_workspace().set_currentDocument(doc)
+		open_a_file(fileToOpen)
 
 @Action()
 def quit(args=[]):
