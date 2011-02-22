@@ -74,23 +74,35 @@ def debug(args=[]):
 
 @Action(accelerator=gtk.accelerator_parse("<Control>o"))
 def open(args=[]):
-	fileToOpen = None
-	if len(args)>=1 and args[0]:
-		fileToOpen = os.path.abspath(args[0])
-	if not fileToOpen:
+	def open_a_file(fileToOpen):
+		if not fileToOpen: return
+		lineToGo = None
+		# if path doesn't exist and we have a line marker, lets go to that line
+		if not os.path.exists(fileToOpen):
+			parts = fileToOpen.split(':')
+			if len(parts) == 2:
+				fileToOpen = parts[0]
+				try :
+					lineToGo= int(parts[1])
+				except: pass
+		(doc, newOne) = controler.currentSession.get_documentManager().get_file(fileToOpen)
+		if newOne:
+			doc.load()
+		controler.currentSession.get_workspace().set_currentDocument(doc)
+		if lineToGo:
+			controler.currentSession.get_workspace().get_currentView().goto_line(lineToGo-1)
+
+	if len(args)>=1:
+		for fileToOpen in args:
+			open_a_file(fileToOpen)
+	else:
 		path = None
 		currentDoc = controler.currentSession.get_workspace().get_currentDocument()
 		if currentDoc:
 			path = currentDoc.get_path()
-			if path:
-				path = os.path.dirname(path)
+			if path: path = os.path.dirname(path)
 		fileToOpen = mainWindow.Helper().ask_filenameOpen("Open a file", path)
-	if not fileToOpen : return
-
-	(doc, newOne) = controler.currentSession.get_documentManager().get_file(fileToOpen)
-	if newOne:
-		doc.load()
-	controler.currentSession.get_workspace().set_currentDocument(doc)
+		open_a_file(fileToOpen)
 
 @Action()
 def quit(args=[]):
@@ -99,12 +111,32 @@ def quit(args=[]):
 
 @Action()
 def split(args=[]):
-	controler.currentSession.get_workspace().get_currentViewContainer().split(0)
+	from views.viewContainer import ViewContainer
+	controler.currentSession.get_workspace().get_currentViewContainer().split(ViewContainer.Horizontal)
 
 @Action()
 def vsplit(args=[]):
-	controler.currentSession.get_workspace().get_currentViewContainer().split(1)
+	from views.viewContainer import ViewContainer
+	controler.currentSession.get_workspace().get_currentViewContainer().split(ViewContainer.Vertical)
 
 @Action()
 def unsplit(args=[]):
 	controler.currentSession.get_workspace().get_currentViewContainer().unsplit()
+
+@Action()
+def search(args=[]):
+	if len(args) and args[0]:
+		controler.currentSession.get_workspace().get_currentView().start_search(args[0])
+
+@Action(accelerator=gtk.accelerator_parse("F3"))
+def next(args=[]):
+	controler.currentSession.get_workspace().get_currentView().next_search()
+
+@Action()
+def goto(args=[]):
+	if len(args) and args[0]:
+		try :
+			line = int(args[0])
+			controler.currentSession.get_workspace().get_currentView().goto_line(line-1)
+		except:
+			pass

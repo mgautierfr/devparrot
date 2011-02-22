@@ -1,5 +1,5 @@
 
-import gtk,pango
+import gtk,pango,glib
 import gtksourceview2
 
 class TextView(gtk.Frame):
@@ -95,4 +95,24 @@ class TextView(gtk.Frame):
 			self.props.sensitive = False
 			self.label.set_text("")
 			self.set_bold(None, False)
+
+	def start_search(self, text):
+		if not self.document: return
+		foundIter = self.model.start_search(text)
+		if foundIter:
+			self.textview.scroll_to_iter(foundIter, 0.2)
+
+	def next_search(self):
+		if not self.document: return
+		foundIter = self.model.next_search()
+		if foundIter:
+			self.textview.scroll_to_iter(foundIter, 0.2)
+
+	def goto_line(self, line):
+		def callback(it):
+			self.textview.scroll_to_iter(it, 0.2)
+			return False
+		line_iter = self.model.get_iter_at_line(line)
+		self.model.select_range(line_iter,line_iter)
+		glib.idle_add(callback, line_iter)
 

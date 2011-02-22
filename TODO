@@ -1,18 +1,21 @@
 ***** TODO ******
 
+# known bugs:
+ - load of file can be undo FIXED
+
 # close action:
  - if no args, close current document, DONE
  - manage multiview when close
  
 #open action:
- - open a file with a line number
+ - open a file with a line number DONE
 
 # action entry :
  - have a default action
  - focus textview after action  DONE
  
 # text view:
- - search
- - goto line
+ - search DONE
+ - goto line DONE
  
 # inotify for opened file

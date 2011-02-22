@@ -15,6 +15,9 @@ class CodeCollab(object):
 		mainWindow.init()
 		controler.init()
 		self.session = Session()
+		if len(sys.argv) > 1:
+			command = controler.get_command('open')
+			command.run(sys.argv[1:])
 
 if __name__ == "__main__":
 	app = CodeCollab()

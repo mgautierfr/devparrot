@@ -48,10 +48,10 @@ class TextFile(FileDocument):
 			return os.path.basename(self.get_path())
 		else:
 			return self.filename
-		
+
 	def load(self):
 		self.get_model('text').load_from_document()
-		
+
 	def write(self):
 		self.get_model('text').save_to_document()
 

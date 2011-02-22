@@ -63,6 +63,8 @@ def init():
 	window = gtk.Window()
 	window.connect('destroy', gtk.main_quit)
 	window.set_default_size(800,600)
+	window.set_icon_from_file("icon.png")
+	window.set_title("CodeCollab")
 	vbox = gtk.VBox()
 	window.add(vbox)
 	entry = gtk.Entry()
