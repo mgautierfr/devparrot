@@ -1,4 +1,5 @@
 import gtk
+import os
 
 from documentListView import DocumentListView
 
@@ -63,7 +64,9 @@ def init():
 	window = gtk.Window()
 	window.connect('destroy', gtk.main_quit)
 	window.set_default_size(800,600)
-	window.set_icon_from_file("icon.png")
+	icon_path = os.path.dirname(os.path.realpath(__file__))
+	icon_path = os.path.join(icon_path,"icon.png")
+	window.set_icon_from_file(icon_path)
 	window.set_title("CodeCollab")
 	vbox = gtk.VBox()
 	window.add(vbox)
