@@ -94,7 +94,7 @@ class TextView(gtk.Frame):
 			self.textview.set_buffer(gtk.TextBuffer())
 			self.props.sensitive = False
 			self.label.set_text("")
-			self.set_bold(None, False)
+			self.set_bold(False)
 
 	def start_search(self, text):
 		if not self.document: return

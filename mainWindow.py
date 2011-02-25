@@ -11,7 +11,7 @@ class Helper:
 
 	def ask_questionYesNo(self, title, message):
 		dialog = gtk.MessageDialog(self.window,
-		                           gtk.DIALOG_MODAL | gtk.DESTROY_WITH_PARENT,
+		                           gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
 		                           gtk.MESSAGE_QUESTION,
 		                           gtk.BUTTONS_YES_NO,
 		                           message)

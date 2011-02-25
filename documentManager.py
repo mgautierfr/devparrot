@@ -2,7 +2,7 @@
 import gtk,gobject
 from textFile import TextFile
 
-import mainWindow
+import mainWindow, controler
 
 class DocumentManager(gtk.ListStore):
 	def __init__(self, session):
@@ -38,6 +38,8 @@ class DocumentManager(gtk.ListStore):
 
 	def del_file(self, document):
 		rowReference = document.get_rowReference()
+		if document.check_for_save():
+			controler.interprete('save')
 		for (key, (obj,connect)) in self.signalConnections[document].items():
 			obj.disconnect(connect)
 		del self.signalConnections[document]

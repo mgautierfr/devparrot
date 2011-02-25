@@ -54,6 +54,13 @@ class TextFile(FileDocument):
 
 	def write(self):
 		self.get_model('text').save_to_document()
+		
+	def check_for_save(self):
+		model = self.get_model('text')
+		if model.get_modified():
+			import mainWindow
+			return mainWindow.Helper().ask_questionYesNo("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.get_title()})
+		return False
 
 	def set_path(self, path):
 		import gtksourceview2
