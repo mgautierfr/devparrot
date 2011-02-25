@@ -28,8 +28,8 @@ class DocumentManager(gtk.ListStore):
 		if autoOpen :
 			doc = TextFile(path)
 			self.signalConnections[doc] = {
-				'path-changed' : doc.connect('path-changed', self.on_path_changed),
-				'modified-changed' : doc.get_model('text').connect('modified-changed', self.on_event)
+				'path-changed' : ( doc, doc.connect('path-changed', self.on_path_changed) ),
+				'modified-changed' : ( doc.get_model('text'), doc.get_model('text').connect('modified-changed', self.on_event) )
 			}
 			self.append([doc])
 			doc.set_rowReference(gtk.TreeRowReference(self,len(self)-1))
@@ -38,8 +38,8 @@ class DocumentManager(gtk.ListStore):
 
 	def del_file(self, document):
 		rowReference = document.get_rowReference()
-		for (key, connect) in self.signalConnections[document].items():
-			document.disconnect(connect)
+		for (key, (obj,connect)) in self.signalConnections[document].items():
+			obj.disconnect(connect)
 		del self.signalConnections[document]
 		self.remove(self.get_iter(rowReference.get_path()))
 			
@@ -47,8 +47,8 @@ class DocumentManager(gtk.ListStore):
 	def new_file(self):
 		doc = TextFile()
 		self.signalConnections[doc] = {
-			'path-changed' : doc.connect('path-changed', self.on_path_changed),
-			'modified-changed' : doc.get_model('text').connect('modified-changed', self.on_event),
+			'path-changed' : ( doc, doc.connect('path-changed', self.on_path_changed) ),
+			'modified-changed' : ( doc.get_model('text'), doc.get_model('text').connect('modified-changed', self.on_event) )
 		}
 		self.append([doc])
 		doc.set_rowReference(gtk.TreeRowReference(self,len(self)-1))
