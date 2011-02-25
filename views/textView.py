@@ -20,6 +20,7 @@ class TextView(gtk.Frame):
 		self.textview.set_highlight_current_line(True)
 		self.textview.set_show_line_numbers(True)
 		self.textview.set_smart_home_end(True)
+		self.textview.connect('focus-in-event',self.on_focus_in_event)
 		self.scrolledwindow.add(self.textview)
 		self.add(self.scrolledwindow)
 		self.set_label_widget(self.label)
@@ -41,6 +42,18 @@ class TextView(gtk.Frame):
 	def on_set_focus_child(self, container, widget):
 		if widget:
 			TextView.current = container
+
+	def on_focus_in_event(self, widget, event):
+		res = self.document.check_for_exteriorModification()
+		if res == None : return
+		if res:
+			import mainWindow
+			answer = mainWindow.Helper().ask_questionYesNo("File content changed",
+			                                                                                      "The content of file %s has changed.\nDo you want to reload it?"%self.document.get_title())
+			if answer:
+				self.document.load()
+			else:
+				self.document.init_timestamp()
 			
 	def on_grab_focus(self, widget):
 		self.textview.grab_focus()

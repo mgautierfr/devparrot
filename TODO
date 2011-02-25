@@ -18,4 +18,4 @@
  - search DONE
  - goto line DONE
  
-# inotify for opened file
+# check time of modification for opened file DONE

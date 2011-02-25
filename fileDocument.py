@@ -3,6 +3,7 @@ import gobject
 import os,sys
 
 from document import Document
+from datetime import datetime
 
 class FileDocument(Document, gobject.GObject):
 	__gproperties__ = {
@@ -52,10 +53,15 @@ class FileDocument(Document, gobject.GObject):
 			fileIn = open(self.path, 'r')
 			text = fileIn.read()
 			fileIn.close()
+			self.init_timestamp()
 		except:
 			sys.stderr.write("Error while loading file %s\n"%self.filename)
 		return text
-		
+
+	def init_timestamp(self):
+		if self.path:
+			self.timestamp = os.stat(self.path).st_mtime
+
 	def set_content(self, content):
 		if not self.path:
 			return
@@ -65,6 +71,12 @@ class FileDocument(Document, gobject.GObject):
 			fileOut.close()
 		except:
 			sys.stderr.write("Error while writing file %s\n"%self.path)
+
+	def check_for_exteriorModification(self):
+		if not self.path : return None
+		if not self.timestamp: return False
+		modif = os.stat(self.path).st_mtime
+		return  modif > self.timestamp
 
 	def __str__(self):
 		if self.get_path():
