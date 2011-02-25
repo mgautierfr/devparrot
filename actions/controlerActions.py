@@ -6,36 +6,37 @@ import os
 
 import controler, mainWindow
 
-@Action(accelerator=gtk.accelerator_parse("<Control>s"))
-def save(args=[]):
-	fileToSave = None
-	currentDocument = controler.currentSession.get_currentDocument()
-	if not currentDocument:
-		return False
-	if len(args)>=1:
-		fileToSave = os.path.abspath(args[0])
-
-	if currentDocument.get_path() and not fileToSave:
-		currentDocument.write()
+def save_document(document, fileToSave=None):
+	if not document: return False
+	if document.get_path() and not fileToSave:
+		document.write()
 		return True
-
-	if not currentDocument.get_path() and not fileToSave:
+	if not document.get_path() and not fileToSave:
 		fileToSave = mainWindow.Helper().ask_filenameSave("Save")
+
 	if not fileToSave:
 		return False
 
 	(newDocument, newOne) = controler.currentSession.get_documentManager().get_file(fileToSave, False)
 	if newDocument:
 		# If the document is already opened change its content and delete the older one
-		currentDocument.get_model('text').save_to_document(newDocument)
+		document.get_model('text').save_to_document(newDocument)
 		newDocument.load()
 		controler.currentSession.get_workspace().set_currentDocument(newDocument)
-		controler.currentSession.get_documentManager().del_file(currentDocument)
+		controler.currentSession.get_documentManager().del_file(document)
 	else:
-		currentDocument.set_path(fileToSave)
-		currentDocument.write()
+		document.set_path(fileToSave)
+		document.write()
 
 	return True
+
+
+@Action(accelerator=gtk.accelerator_parse("<Control>s"))
+def save(args=[]):
+	if len(args)>=1:
+		return save_document(controler.currentSession.get_currentDocument(),os.path.abspath(args[0]))
+	else:
+		return save_document(controler.currentSession.get_currentDocument(), None)
 
 @Action(accelerator=gtk.accelerator_parse("<Control>n"))
 def new(args=[]):
@@ -50,15 +51,12 @@ def switch(args=[]):
 	docManager = controler.currentSession.get_documentManager()
 	document = docManager.get_value(docManager.get_iter(path), 0)
 	controler.currentSession.get_workspace().set_currentDocument(document)
-
-@Action()
-def close(args=[]):
+	
+	
+def close_document(document):
 	docManager = controler.currentSession.get_documentManager()
-	if len(args)==0 or not args[0]:
-		document = controler.currentSession.get_currentDocument()
-	else:
-		path = args[0]
-		document = docManager.get_value(docManager.get_iter(path), 0)
+	if document.check_for_save():
+			save_document(document)
 	docManager.del_file(document)
 	if document == controler.currentSession.get_workspace().get_currentDocument():
 		docToDisplay = None
@@ -67,7 +65,17 @@ def close(args=[]):
 		except ValueError:
 			pass
 		controler.currentSession.get_workspace().set_currentDocument(docToDisplay)
-
+		
+		
+@Action()
+def close(args=[]):
+	docManager = controler.currentSession.get_documentManager()
+	if len(args)==0 or not args[0]:
+		document = controler.currentSession.get_currentDocument()
+	else:
+		path = args[0]
+		document = docManager.get_value(docManager.get_iter(path), 0)
+	close_document(document)
 
 @Action()
 def debug(args=[]):
@@ -108,7 +116,14 @@ def open(args=[]):
 @Action()
 def quit(args=[]):
 	import gtk
+	closeall()
 	gtk.main_quit()
+	
+@Action()
+def closeall(args=[]):
+	docManager = controler.currentSession.get_documentManager()
+	for (doc, ) in docManager:
+		close_document(doc)
 
 @Action()
 def split(args=[]):

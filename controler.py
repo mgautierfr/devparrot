@@ -1,7 +1,6 @@
 
 from textFile import TextFile
 
-
 from actions import Action
 
 import os,sys

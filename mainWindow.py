@@ -54,15 +54,20 @@ documentListView = None
 workspaceContainer = None
 accelGroup = None
 
+def quit(widget,event):
+	from actions.controlerActions import quit
+	quit()
+
 
 def init():
+	
 	global window
 	global entry
 	global documentListView
 	global workspaceContainer
 	global accelGroup
 	window = gtk.Window()
-	window.connect('destroy', gtk.main_quit)
+	window.connect('delete-event', quit)
 	window.set_default_size(800,600)
 	icon_path = os.path.dirname(os.path.realpath(__file__))
 	icon_path = os.path.join(icon_path,"icon.png")
