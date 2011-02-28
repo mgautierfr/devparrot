@@ -20,6 +20,8 @@ class FileDocument(Document, gobject.GObject):
 	def __init__(self):
 		Document.__init__(self)
 		FileDocument.__gobject_init__(self)
+		self.path = None
+		self.timestamp = None
 		
 	def get_path(self):
 		return self.path
@@ -61,6 +63,8 @@ class FileDocument(Document, gobject.GObject):
 	def init_timestamp(self):
 		if self.path:
 			self.timestamp = os.stat(self.path).st_mtime
+		else:
+			self.timestamp = None
 
 	def set_content(self, content):
 		if not self.path:
