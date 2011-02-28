@@ -92,6 +92,7 @@ class FileDocument(Document, gobject.GObject):
 			fileOut = open(self.path, 'w')
 			fileOut.write(content)
 			fileOut.close()
+			self.init_timestamp()
 		except:
 			sys.stderr.write("Error while writing file %s\n"%self.path)
 
