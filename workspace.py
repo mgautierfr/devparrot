@@ -20,14 +20,14 @@
 
 
 from views.textView import TextView
-from views.viewContainer import ViewContainer
+from views.viewContainer import ViewContainer,LeafContainer
 
 import mainWindow
 
 class Workspace(ViewContainer):
 	def __init__(self):
-		TextView.current = TextView()
-		ViewContainer.__init__(self, TextView.current)
+		LeafContainer.current = LeafContainer(TextView())
+		ViewContainer.__init__(self, LeafContainer.current)
 		mainWindow.workspaceContainer.add(self)
 
 	def set_currentDocument(self, document):
@@ -37,8 +37,8 @@ class Workspace(ViewContainer):
 		return self.get_currentView().get_document()
 
 	def get_currentView(self):
-		return TextView.current
+		return LeafContainer.current.get_view()
 
 	def get_currentViewContainer(self):
-		return TextView.current.get_parentContainer()
+		return LeafContainer.current.get_parentContainer()
 

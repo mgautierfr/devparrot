@@ -60,7 +60,7 @@ class ViewContainer(gtk.VBox, AbstractContainer):
 	def __init__(self,  child):
 		gtk.VBox.__init__(self)
 		AbstractContainer.__init__(self)
-		self.is_leafContainer = True 
+		self.is_splitted = False 
 		self.parentContainer = None
 		self.set_as_child(child)
 		self.show_all()
@@ -71,29 +71,69 @@ class ViewContainer(gtk.VBox, AbstractContainer):
 		self.add(self.child)
 
 	def split(self, direction):
-		newChild = self.child.clone()
+		if self.is_splitted:
+			#We only split unsplitted container
+			sys.stderr.write("Error, Trying to split a olready splitted view\n")
+			return
+		#assert than child is a LeadContainer
+		newView = self.child.get_view().clone()
 		oldChild = self.child
 		self.remove(oldChild)
 		newContainer1 = ViewContainer(oldChild)
-		newContainer2 = ViewContainer(newChild)
+		newContainer2 = ViewContainer(LeafContainer(newView))
 		if direction == 0:
 			self.set_as_child(HSplittedContainer(newContainer1, newContainer2))
 		else:
 			self.set_as_child(VSplittedContainer(newContainer1, newContainer2))
-		self.is_leafContainer = False
+		self.is_splitted = True
 		self.show_all()
 
 	def unsplit(self):
-		if self.is_leafContainer:
+		if not self.is_splitted:
+			#Child is the final container to keep
 			if self.get_parentContainer():
 				# It will be attach by grandfather
 				self.remove(self.child)
 				ViewContainer.to_attach = self.child
 				return self.get_parentContainer().unsplit()
 				
-		
-		self.remove(self.child)
-		self.set_as_child(ViewContainer.to_attach)
-		ViewContainer.to_attach = None
-		self.is_leafContainer = True
+		else:
+			#Attach the final container instead of the splitted view
+			self.remove(self.child)
+			self.set_as_child(ViewContainer.to_attach)
+			ViewContainer.to_attach = None
+			self.is_splitted = False
+			self.show_all()
+
+class LeafContainer(gtk.Frame, AbstractContainer):
+	current = None
+	def __init__(self, view):
+		gtk.Frame.__init__(self)
+		AbstractContainer.__init__(self)
+		self.scrolledWindow = gtk.ScrolledWindow()
+		self.scrolledWindow.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
+		self.add(self.scrolledWindow)
+		self.set_label_align(0.0, 0.0)
+		self.set_view(view)
+
+	def set_view(self, view):
+		if view==None and self.view:
+			self.scrolledWindow.remove(self.view)
+			self.set_label_widget(None)
+			self.view=None
+		self.view = view
+		self.scrolledWindow.add(self.view)
+		self.set_label_widget(self.view.get_titleWidget())
+		self.connect('set-focus-child', self.on_set_focus_child)
+		self.connect("grab-focus", self.on_grab_focus)
+
+	def get_view(self):
+		return self.view
+
+	def on_set_focus_child(self, container, widget):
+		if widget:
+			LeafContainer.current = container
+
+	def on_grab_focus(self, widget):
+		self.view.grab_focus()
 		self.show_all()
