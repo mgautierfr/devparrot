@@ -22,15 +22,15 @@ from actionDef import Action
 import controler
 import gtk
 
-@Action()
-def cut(args=[]):
-	controler.currentSession.get_currentDocument().cut_clipboard(gtk.clipboard_get(), True);
+class cut(Action):
+	def run(cls, args=[]):
+		controler.currentSession.get_currentDocument().cut_clipboard(gtk.clipboard_get(), True);
 
-@Action()
-def copy(args=[]):
-	controler.currentSession.get_currentDocument().copy_clipboard(gtk.clipboard_get());
+class copy(Action):
+	def run(cls, args=[]):
+		controler.currentSession.get_currentDocument().copy_clipboard(gtk.clipboard_get());
 
-@Action()
-def paste(args=[]):
-	controler.currentSession.get_currentDocument().paste_clipboard(gtk.clipboard_get(), None, True);
+class paste(Action):
+	def run(cls, args=[]):
+		controler.currentSession.get_currentDocument().paste_clipboard(gtk.clipboard_get(), None, True);
 

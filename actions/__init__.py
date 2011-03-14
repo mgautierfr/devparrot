@@ -18,7 +18,7 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from actionDef import Action
+from actionDef import ActionList
 import controlerActions
 import editorActions
 

@@ -77,7 +77,7 @@ accelGroup = None
 
 def quit(widget,event):
 	from actions.controlerActions import quit
-	quit()
+	quit.run()
 
 
 def init():

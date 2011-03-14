@@ -20,7 +20,7 @@
 
 from textFile import TextFile
 
-from actions import Action
+from actions import ActionList
 
 import os,sys
 
@@ -38,27 +38,20 @@ def set_session(session):
 	currentSession = session
 
 def connect_actions():
-	for (name, action) in Action.actionList.items():
-		if action.accelerator :
-			mainWindow.accelGroup.connect_group(action.accelerator[0], action.accelerator[1],
+	for action in ActionList:
+		if "accelerators" in action.__dict__:
+			for accel in action.accelerators:
+				mainWindow.accelGroup.connect_group(accel[0], accel[1],
 			                                    accel_flags=0,
 			                                    callback=action.callback)
 
 def on_entry_activate(sourceWidget, userData=None):
-	interprete(sourceWidget.get_text())
+	text = sourceWidget.get_text()
+	for action in ActionList:
+		args = action.regChecker(text)
+		if args != None :
+			action.run(args)
+			break
 	sourceWidget.set_text('')
 	currentSession.get_workspace().get_currentView().grab_focus()
-
-def get_command(commandStr=''):
-	if commandStr in Action.actionList :
-		return Action.actionList[commandStr]
-	return None
-		
-def interprete(cmdline):
-	commands = cmdline.split(' ')
-	command = get_command(commands[0])
-	if command :
-		command.run(commands[1:])
-	else:
-		sys.stderr.write("can't found command named %s\n"%commands[0])
 

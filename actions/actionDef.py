@@ -18,20 +18,34 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
+ActionList = list()
+
+import types
+
+class MetaAction(type):
+	def __new__(cls, name, bases, dct):
+		for (key, value) in dct.items():
+			if isinstance(value, types.FunctionType):
+				dct[key] = classmethod(value)
+		return type.__new__(cls, name, bases, dct)
+
+	def __init__(cls, name, bases, dct):
+		super(MetaAction, cls).__init__(name, bases, dct)
+		if name != "Action":
+			ActionList.append(cls)
+
+
 class Action:
-	actionList = {}
+	__metaclass__ = MetaAction
 
-	def callback(self, accel_group, acceleratable, keyval, modifier):
-		return self.run([])
+	def callback(cls, accel_group, acceleratable, keyval, modifier):
+		return cls.run()
+
+	def defaultChecker(cls, line):
+		if line.startswith(cls.__name__):
+			return line.split(' ')[1:]
+		return None
+
+	def regChecker(cls, line):
+		return cls.defaultChecker(line)
 		
-	def __init__(self, accelerator=None):
-		self.accelerator = accelerator
-	
-	def __call__(self, function):
-		self.name = function.__name__
-		self.function = function
-		Action.actionList[self.name] = self
-		return function
-
-	def run(self, args):
-		return self.function(args)

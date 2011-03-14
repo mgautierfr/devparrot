@@ -50,26 +50,31 @@ def save_document(document, fileToSave=None):
 	return True
 
 
-@Action(accelerator=gtk.accelerator_parse("<Control>s"))
-def save(args=[]):
-	if len(args)>=1:
-		return save_document(controler.currentSession.get_currentDocument(),os.path.abspath(args[0]))
-	else:
-		return save_document(controler.currentSession.get_currentDocument(), None)
+class save(Action):
+	accelerators=[gtk.accelerator_parse("<Control>s")]
 
-@Action(accelerator=gtk.accelerator_parse("<Control>n"))
-def new(args=[]):
-	f = controler.currentSession.get_documentManager().new_file()
-	controler.currentSession.get_workspace().set_currentDocument(f)
 
-@Action()
-def switch(args=[]):
-	if len(args)==0:
-		return False
-	path = args[0]
-	docManager = controler.currentSession.get_documentManager()
-	document = docManager.get_value(docManager.get_iter(path), 0)
-	controler.currentSession.get_workspace().set_currentDocument(document)
+	def run(cls, args=[]):
+		if len(args)>=1:
+			return save_document(controler.currentSession.get_currentDocument(),os.path.abspath(args[0]))
+		else:
+			return save_document(controler.currentSession.get_currentDocument(), None)
+
+
+class new(Action):
+	accelerators=[gtk.accelerator_parse("<Control>n")]
+	def run(cls, args=[]):
+		f = controler.currentSession.get_documentManager().new_file()
+		controler.currentSession.get_workspace().set_currentDocument(f)
+
+def switch(Action):
+	def run(cls, args=[]):
+		if len(args)==0:
+			return False
+		path = args[0]
+		docManager = controler.currentSession.get_documentManager()
+		document = docManager.get_value(docManager.get_iter(path), 0)
+		controler.currentSession.get_workspace().set_currentDocument(document)
 	
 	
 def close_document(document):
@@ -86,23 +91,24 @@ def close_document(document):
 		controler.currentSession.get_workspace().set_currentDocument(docToDisplay)
 		
 		
-@Action()
-def close(args=[]):
-	docManager = controler.currentSession.get_documentManager()
-	if len(args)==0 or not args[0]:
-		document = controler.currentSession.get_currentDocument()
-	else:
-		path = args[0]
-		document = docManager.get_value(docManager.get_iter(path), 0)
-	close_document(document)
+class close(Action):
+	def run(cls, args=[]):
+		docManager = controler.currentSession.get_documentManager()
+		if len(args)==0 or not args[0]:
+			document = controler.currentSession.get_currentDocument()
+		else:
+			path = args[0]
+			document = docManager.get_value(docManager.get_iter(path), 0)
+		close_document(document)
 
-@Action()
-def debug(args=[]):
-	print controler.currentSession.get_documentManager()
+class debug(Action):
+	def run(cls, args=[]):
+		print controler.currentSession.get_documentManager()
 
-@Action(accelerator=gtk.accelerator_parse("<Control>o"))
-def open(args=[]):
-	def open_a_file(fileToOpen):
+class open(Action):
+	accelerators=[gtk.accelerator_parse("<Control>o")]
+
+	def open_a_file(cls, fileToOpen):
 		if not fileToOpen: return
 		lineToGo = None
 		# if path doesn't exist and we have a line marker, lets go to that line
@@ -120,58 +126,60 @@ def open(args=[]):
 		if lineToGo:
 			controler.currentSession.get_workspace().get_currentView().goto_line(lineToGo-1)
 
-	if len(args)>=1:
-		for fileToOpen in args:
-			open_a_file(fileToOpen)
-	else:
-		path = None
-		currentDoc = controler.currentSession.get_workspace().get_currentDocument()
-		if currentDoc:
-			path = currentDoc.get_path()
-			if path: path = os.path.dirname(path)
-		fileToOpen = mainWindow.Helper().ask_filenameOpen("Open a file", path)
-		open_a_file(fileToOpen)
+	def run(cls, args=[]):
+		if len(args)>=1:
+			for fileToOpen in args:
+				cls.open_a_file(fileToOpen)
+		else:
+			path = None
+			currentDoc = controler.currentSession.get_workspace().get_currentDocument()
+			if currentDoc:
+				path = currentDoc.get_path()
+				if path: path = os.path.dirname(path)
+			fileToOpen = mainWindow.Helper().ask_filenameOpen("Open a file", path)
+			cls.open_a_file(fileToOpen)
 
-@Action()
-def quit(args=[]):
-	import gtk
-	closeall()
-	gtk.main_quit()
+class quit(Action):
+	def run(cls, args=[]):
+		import gtk
+		closeall()
+		gtk.main_quit()
 	
-@Action()
-def closeall(args=[]):
-	docManager = controler.currentSession.get_documentManager()
-	for (doc, ) in docManager:
-		close_document(doc)
+class closeall(Action):
+	def run(cls, args=[]):
+		docManager = controler.currentSession.get_documentManager()
+		for (doc, ) in docManager:
+			close_document(doc)
 
-@Action()
-def split(args=[]):
-	from views.viewContainer import ViewContainer
-	controler.currentSession.get_workspace().get_currentViewContainer().split(ViewContainer.Horizontal)
+class split(Action):
+	def run(cls, args=[]):
+		from views.viewContainer import ViewContainer
+		controler.currentSession.get_workspace().get_currentViewContainer().split(ViewContainer.Horizontal)
 
-@Action()
-def vsplit(args=[]):
-	from views.viewContainer import ViewContainer
-	controler.currentSession.get_workspace().get_currentViewContainer().split(ViewContainer.Vertical)
+class vsplit(Action):
+	def run(cls, args=[]):
+		from views.viewContainer import ViewContainer
+		controler.currentSession.get_workspace().get_currentViewContainer().split(ViewContainer.Vertical)
 
-@Action()
-def unsplit(args=[]):
-	controler.currentSession.get_workspace().get_currentViewContainer().unsplit()
+class unsplit(Action):
+	def run(cls, args=[]):
+		controler.currentSession.get_workspace().get_currentViewContainer().unsplit()
 
-@Action()
-def search(args=[]):
-	if len(args) and args[0]:
-		controler.currentSession.get_workspace().get_currentView().start_search(args[0])
+class search(Action):
+	def run(cls, args=[]):
+		if len(args) and args[0]:
+			controler.currentSession.get_workspace().get_currentView().start_search(args[0])
 
-@Action(accelerator=gtk.accelerator_parse("F3"))
-def next(args=[]):
-	controler.currentSession.get_workspace().get_currentView().next_search()
+class nextAction(Action):
+	accelerators=[gtk.accelerator_parse("F3")]
+	def run(cls, args=[]):
+		controler.currentSession.get_workspace().get_currentView().next_search()
 
-@Action()
-def goto(args=[]):
-	if len(args) and args[0]:
-		try :
-			line = int(args[0])
-			controler.currentSession.get_workspace().get_currentView().goto_line(line-1)
-		except:
-			pass
+class goto(Action):
+	def run(cls, args=[]):
+		if len(args) and args[0]:
+			try :
+				line = int(args[0])
+				controler.currentSession.get_workspace().get_currentView().goto_line(line-1)
+			except:
+				pass
