@@ -152,18 +152,24 @@ class closeall(Action):
 			close_document(doc)
 
 class split(Action):
-	def run(cls, args=[]):
-		from views.viewContainer import ViewContainer
-		controler.currentSession.get_workspace().get_currentViewContainer().split(ViewContainer.Horizontal)
+	from views.viewContainer import ViewContainer
+	SPLIT = 0
+	UNSPLIT = 1
 
-class vsplit(Action):
-	def run(cls, args=[]):
-		from views.viewContainer import ViewContainer
-		controler.currentSession.get_workspace().get_currentViewContainer().split(ViewContainer.Vertical)
+	def regChecker(cls, line):
+		if line.startswith("split"):
+			return [cls.SPLIT, cls.ViewContainer.Horizontal]
+		if line.startswith("vsplit"):
+			return [cls.SPLIT, cls.ViewContainer.Vertical]
+		if line.startswith("unsplit"):
+			return [cls.UNSPLIT]
+		return None
 
-class unsplit(Action):
 	def run(cls, args=[]):
-		controler.currentSession.get_workspace().get_currentViewContainer().unsplit()
+		if args[0] == cls.SPLIT:
+			controler.currentSession.get_workspace().get_currentViewContainer().split(args[1])
+		if args[0] == cls.UNSPLIT:
+			controler.currentSession.get_workspace().get_currentViewContainer().unsplit()
 
 class search(Action):
 	def run(cls, args=[]):
