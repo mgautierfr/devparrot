@@ -172,14 +172,38 @@ class split(Action):
 			controler.currentSession.get_workspace().get_currentViewContainer().unsplit()
 
 class search(Action):
-	def run(cls, args=[]):
-		if len(args) and args[0]:
-			controler.currentSession.get_workspace().get_currentView().start_search(args[0])
-
-class nextAction(Action):
 	accelerators=[gtk.accelerator_parse("F3")]
+	import re
+	lastSearch = None
+	FORWARD=False
+	BACKWARD=True
+
+	def regChecker(cls, line):
+		import re
+		if line.startswith("search"):
+			ret = [cls.FORWARD]
+			ret.extend(line.split(' ')[1:])
+			return ret
+		if line.startswith("next"):
+			return []
+		match = re.match(r"^/(.*)$", line)
+		if match:
+			ret = [cls.FORWARD]
+			ret.extend(match.groups())
+			return ret
+		match = re.match(r"^\?(.*)$", line)
+		if match:
+			ret = [cls.BACKWARD]
+			ret.extend(match.groups())
+			return  ret
+		return None
+
 	def run(cls, args=[]):
-		controler.currentSession.get_workspace().get_currentView().next_search()
+		if len(args):
+			cls.lastSearch = args
+			return controler.currentSession.get_workspace().get_currentView().search(*args)
+		if cls.lastSearch:
+			return controler.currentSession.get_workspace().get_currentView().search(*cls.lastSearch)
 
 class goto(Action):
 	def run(cls, args=[]):

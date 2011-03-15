@@ -112,15 +112,9 @@ class TextView(gtksourceview2.View):
 			self.label.set_text("")
 			self.set_bold(False)
 
-	def start_search(self, text):
+	def search(self, backward, text):
 		if not self.document: return
-		foundIter = self.get_buffer().start_search(text)
-		if foundIter:
-			self.scroll_to_iter(foundIter, 0.2)
-
-	def next_search(self):
-		if not self.document: return
-		foundIter = self.get_buffer().next_search()
+		foundIter = self.get_buffer().search(backward,text)
 		if foundIter:
 			self.scroll_to_iter(foundIter, 0.2)
 

@@ -71,25 +71,31 @@ class SourceBuffer(gtksourceview2.Buffer):
 				self.apply_tag(tag, match_start, match_end)
 				res = match_end.forward_search(text, gtk.TEXT_SEARCH_TEXT_ONLY)
 
-	def start_search(self, text):
+	def search(self, backward, text):
 		if not text : return
 		self.apply_tag_on_text(self.search_tag,text)
 
-		self.searchedText = text
-		if not self.searchMark:
-			self.searchMark = self.create_mark('search_start', self.get_iter_at_mark(self.get_insert()))
+		if self.get_has_selection():
+			(it, selection) = self.get_selection_bounds()
+			if backward:
+				if it.compare(selection)>0 : it = selection
+			else:
+				if it.compare(selection)<0 : it = selection
 		else:
-			self.move_mark(self.searchMark,self.get_iter_at_mark(self.get_insert()))
-		return self.next_search()
+			it = self.get_iter_at_mark(self.get_insert())
+		if backward:
+			search_func = gtk.TextIter.backward_search
+			falldawn_iter = self.get_end_iter()
+		else:
+			search_func = gtk.TextIter.forward_search
+			falldawn_iter = self.get_start_iter()
 
-	def next_search(self):
-		it  = self.get_iter_at_mark(self.searchMark)
-		res = it.forward_search(self.searchedText, gtk.TEXT_SEARCH_TEXT_ONLY)
+		res = search_func (it,text, gtk.TEXT_SEARCH_TEXT_ONLY)
 		if not res:
-			res = self.get_start_iter().forward_search(self.searchedText, gtk.TEXT_SEARCH_TEXT_ONLY, it)
+			res = search_func (falldawn_iter,text, gtk.TEXT_SEARCH_TEXT_ONLY, it)
 		if res:
 			match_start, match_end = res
 			self.select_range(match_start, match_end)
-			self.move_mark(self.searchMark,match_end)
+			if backward : return match_start
 			return match_end
 		return None
