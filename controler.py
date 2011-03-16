@@ -30,6 +30,7 @@ currentSession = None
 
 def init():
 	mainWindow.entry.connect('activate', on_entry_activate)
+	mainWindow.entry.connect('event', on_entry_event)
 	connect_actions()
 	pass
 
@@ -46,12 +47,27 @@ def connect_actions():
 			                                    callback=action.callback)
 
 def on_entry_activate(sourceWidget, userData=None):
+	global currentSession
 	text = sourceWidget.get_text()
 	for action in ActionList:
 		args = action.regChecker(text)
 		if args != None :
 			action.run(args)
 			break
+	currentSession.get_history().push(text)
 	sourceWidget.set_text('')
 	currentSession.get_workspace().get_currentView().grab_focus()
 
+def on_entry_event(widget, event, userData = None):
+	global currentSession
+	import gtk
+	if event.type == gtk.gdk.KEY_PRESS:
+		if event.keyval == 65362:
+			widget.set_text(currentSession.get_history().get_previous())
+			widget.set_position(-1)
+			return True
+		if event.keyval == 65364:
+			widget.set_text(currentSession.get_history().get_next())
+			widget.set_position(-1)
+			return True
+	return False

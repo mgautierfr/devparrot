@@ -24,9 +24,31 @@ from workspace import Workspace
 import controler
 
 class Session(object):
+	class History(object):
+		def __init__(self):
+			self.history = list()
+			self.currentIndex = 0
+
+		def push(self, line):
+			self.history.append(line)
+			self.currentIndex = 0
+
+		def get_previous(self):
+			if self.currentIndex < len(self.history):
+				self.currentIndex += 1
+			if self.currentIndex==0 : return ""
+			return self.history[-self.currentIndex]
+
+		def get_next(self):
+			if self.currentIndex != 0:
+				self.currentIndex -= 1
+			if self.currentIndex == 0 : return ""
+			return self.history[-self.currentIndex]
+
 	def __init__(self):
 		self.documentManager = DocumentManager(self)
 		self.workspace = Workspace()
+		self.history = Session.History()
 		controler.set_session(self)
 
 	def get_workspace(self):
@@ -37,3 +59,6 @@ class Session(object):
 
 	def get_currentDocument(self):
 		return self.workspace.get_currentDocument()
+		
+	def get_history(self):
+		return self.history
