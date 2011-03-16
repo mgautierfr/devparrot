@@ -25,40 +25,39 @@ import os
 
 import controler, mainWindow
 
-def save_document(document, fileToSave=None):
-	if not document: return False
-	if document.get_path() and not fileToSave:
-		document.write()
-		return True
-	if not document.get_path() and not fileToSave:
-		fileToSave = mainWindow.Helper().ask_filenameSave("Save")
-
-	if not fileToSave:
-		return False
-
-	(newDocument, newOne) = controler.currentSession.get_documentManager().get_file(fileToSave, False)
-	if newDocument:
-		# If the document is already opened change its content and delete the older one
-		document.get_model('text').save_to_document(newDocument)
-		newDocument.load()
-		controler.currentSession.get_workspace().set_currentDocument(newDocument)
-		controler.currentSession.get_documentManager().del_file(document)
-	else:
-		document.set_path(fileToSave)
-		document.write()
-
-	return True
-
-
 class save(Action):
 	accelerators=[gtk.accelerator_parse("<Control>s")]
 
-
 	def run(cls, args=[]):
 		if len(args)>=1:
-			return save_document(controler.currentSession.get_currentDocument(),os.path.abspath(args[0]))
+			return save.save_document(controler.currentSession.get_currentDocument(),os.path.abspath(args[0]))
 		else:
-			return save_document(controler.currentSession.get_currentDocument(), None)
+			return save.save_document(controler.currentSession.get_currentDocument(), None)
+
+	@staticmethod			
+	def save_document(document, fileToSave=None):
+		if not document: return False
+		if document.get_path() and not fileToSave:
+			document.write()
+			return True
+		if not document.get_path() and not fileToSave:
+			fileToSave = mainWindow.Helper().ask_filenameSave("Save")
+
+		if not fileToSave:
+			return False
+
+		(newDocument, newOne) = controler.currentSession.get_documentManager().get_file(fileToSave, False)
+		if newDocument:
+			# If the document is already opened change its content and delete the older one
+			document.get_model('text').save_to_document(newDocument)
+			newDocument.load()
+			controler.currentSession.get_workspace().set_currentDocument(newDocument)
+			controler.currentSession.get_documentManager().del_file(document)
+		else:
+			document.set_path(fileToSave)
+			document.write()
+
+		return True
 
 
 class new(Action):
@@ -67,7 +66,7 @@ class new(Action):
 		f = controler.currentSession.get_documentManager().new_file()
 		controler.currentSession.get_workspace().set_currentDocument(f)
 
-def switch(Action):
+class switch(Action):
 	def run(cls, args=[]):
 		if len(args)==0:
 			return False
@@ -75,20 +74,6 @@ def switch(Action):
 		docManager = controler.currentSession.get_documentManager()
 		document = docManager.get_value(docManager.get_iter(path), 0)
 		controler.currentSession.get_workspace().set_currentDocument(document)
-	
-	
-def close_document(document):
-	docManager = controler.currentSession.get_documentManager()
-	if document.check_for_save():
-			save_document(document)
-	docManager.del_file(document)
-	if document == controler.currentSession.get_workspace().get_currentDocument():
-		docToDisplay = None
-		try :
-			docToDisplay = docManager.get_value(docManager.get_iter("0"), 0)
-		except ValueError:
-			pass
-		controler.currentSession.get_workspace().set_currentDocument(docToDisplay)
 		
 		
 class close(Action):
@@ -99,7 +84,21 @@ class close(Action):
 		else:
 			path = args[0]
 			document = docManager.get_value(docManager.get_iter(path), 0)
-		close_document(document)
+		close.close_document(document)
+
+	@staticmethod		
+	def close_document(document):
+		docManager = controler.currentSession.get_documentManager()
+		if document.check_for_save():
+				save.save_document(document)
+		docManager.del_file(document)
+		if document == controler.currentSession.get_workspace().get_currentDocument():
+			docToDisplay = None
+			try :
+				docToDisplay = docManager.get_value(docManager.get_iter("0"), 0)
+			except ValueError:
+				pass
+			controler.currentSession.get_workspace().set_currentDocument(docToDisplay)
 
 class debug(Action):
 	def run(cls, args=[]):
@@ -149,7 +148,7 @@ class closeall(Action):
 	def run(cls, args=[]):
 		docManager = controler.currentSession.get_documentManager()
 		for (doc, ) in docManager:
-			close_document(doc)
+			close.close_document(doc)
 
 class split(Action):
 	from views.viewContainer import ViewContainer
