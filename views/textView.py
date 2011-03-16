@@ -28,6 +28,7 @@ class TextView(gtksourceview2.View):
 		self.set_highlight_current_line(True)
 		self.set_show_line_numbers(True)
 		self.set_smart_home_end(True)
+		self.modify_font(pango.FontDescription("monospace"))
 		self.props.sensitive = False
 
 		self.connect('focus-in-event',self.on_focus_in_event)
