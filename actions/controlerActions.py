@@ -171,6 +171,7 @@ class split(Action):
 
 class search(Action):
 	import re
+	lastDirection = None
 	lastSearch = None
 	FORWARD=False
 	BACKWARD=True
@@ -182,7 +183,7 @@ class search(Action):
 			ret.extend(line.split(' ')[1:])
 			return ret
 		if line.startswith("next"):
-			return []
+			return [cls.lastDirection, cls.lastSearch]
 		match = re.match(r"^/(.*)$", line)
 		if match:
 			ret = [cls.FORWARD]
@@ -195,13 +196,26 @@ class search(Action):
 			return  ret
 		return None
 
-	@accelerators(Accelerator("F3"))
+	@accelerators(Accelerator("F3", (False,)),Accelerator("<Alt>F3", (True,)))
+	def research(cls, changeDirection):
+		if changeDirection:
+			direction = not cls.lastDirection
+		else:
+			direction = cls.lastDirection
+		if direction != None and cls.lastSearch != None:
+			return controler.currentSession.get_workspace().get_currentView().search(direction, cls.lastSearch)
+
 	def run(cls, args=[]):
-		if len(args):
-			cls.lastSearch = args
-			return controler.currentSession.get_workspace().get_currentView().search(*args)
-		if cls.lastSearch:
-			return controler.currentSession.get_workspace().get_currentView().search(*cls.lastSearch)
+		direction = cls.lastDirection
+		search = cls.lastSearch
+		if len(args) > 0:
+			direction = args[0]
+			cls.lastDirection = direction
+		if len(args) > 1:
+			search = args[1]
+			cls.lastSearch = search
+		if direction != None and search != None:
+			return controler.currentSession.get_workspace().get_currentView().search(direction, search)
 
 class goto(Action):
 	def run(cls, args=[]):
