@@ -18,7 +18,7 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from actionDef import Action
+from actionDef import Action, Accelerator, accelerators
 
 import gtk
 import os
@@ -26,8 +26,8 @@ import os
 import controler, mainWindow
 
 class save(Action):
-	accelerators=[gtk.accelerator_parse("<Control>s")]
 
+	@accelerators(Accelerator("<Control>s"))
 	def run(cls, args=[]):
 		if len(args)>=1:
 			return save.save_document(controler.currentSession.get_currentDocument(),os.path.abspath(args[0]))
@@ -61,7 +61,7 @@ class save(Action):
 
 
 class new(Action):
-	accelerators=[gtk.accelerator_parse("<Control>n")]
+	@accelerators(Accelerator("<Control>n"))
 	def run(cls, args=[]):
 		f = controler.currentSession.get_documentManager().new_file()
 		controler.currentSession.get_workspace().set_currentDocument(f)
@@ -105,8 +105,6 @@ class debug(Action):
 		print controler.currentSession.get_documentManager()
 
 class open(Action):
-	accelerators=[gtk.accelerator_parse("<Control>o")]
-
 	def open_a_file(cls, fileToOpen):
 		if not fileToOpen: return
 		lineToGo = None
@@ -125,6 +123,7 @@ class open(Action):
 		if lineToGo:
 			controler.currentSession.get_workspace().get_currentView().goto_line(lineToGo-1)
 
+	@accelerators(Accelerator("<Control>o"))
 	def run(cls, args=[]):
 		if len(args)>=1:
 			for fileToOpen in args:
@@ -171,7 +170,6 @@ class split(Action):
 			controler.currentSession.get_workspace().get_currentViewContainer().unsplit()
 
 class search(Action):
-	accelerators=[gtk.accelerator_parse("F3")]
 	import re
 	lastSearch = None
 	FORWARD=False
@@ -197,6 +195,7 @@ class search(Action):
 			return  ret
 		return None
 
+	@accelerators(Accelerator("F3"))
 	def run(cls, args=[]):
 		if len(args):
 			cls.lastSearch = args

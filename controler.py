@@ -40,11 +40,8 @@ def set_session(session):
 
 def connect_actions():
 	for action in ActionList:
-		if "accelerators" in action.__dict__:
-			for accel in action.accelerators:
-				mainWindow.accelGroup.connect_group(accel[0], accel[1],
-			                                    accel_flags=0,
-			                                    callback=action.callback)
+		for accel in action.accelerators:
+			accel.connect_group(mainWindow.accelGroup)
 
 def get_command(commandName):
 	for action in ActionList:
