@@ -46,6 +46,12 @@ def connect_actions():
 			                                    accel_flags=0,
 			                                    callback=action.callback)
 
+def get_command(commandName):
+	for action in ActionList:
+		if action.__name__ == commandName:
+			return action
+	return None
+
 def on_entry_activate(sourceWidget, userData=None):
 	global currentSession
 	text = sourceWidget.get_text()
