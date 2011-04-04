@@ -1,3 +1,4 @@
+#!/usr/bin/python
 
 import os
 
@@ -53,9 +54,6 @@ class Ctags_file:
 			found_tag = line_elem[0]
 		return tag_obj
 	
-	def __str__(self):
-		return 'ouoyoi"
-		
 class Tag:
 	class Location:
 		def __init__(self, elems):
@@ -84,12 +82,16 @@ class Tag:
 					name = extras[0]
 					value = extras[1]
 				self.extras[name] = value
+
 		def __str__(self):
 			return "%(file)s [ %(founders)s ] { %(extras)s }"%{
 					'file': self.file,
 					'founders': ",".join(self.founders),
 					'extras' : ",".join(["%s:%s"%(name,value) for (name,value) in self.extras.items()])
 				}
+		
+		def pprint(self):
+			print "%(file)s:%(founders)s"%{'file': self.file,'founders': ",".join(self.founders)}
 		
 	
 
@@ -109,3 +111,19 @@ class Tag:
 			'locations': "["+"\n".join([str(l) for l in self.locations])+"]"
 		}
 		
+	def pprint(self):
+		print self.name
+		for loc in self.locations:
+			loc.pprint() 
+
+if __name__ == "__main__":
+	import sys
+	print sys.argv
+	if len(sys.argv) == 1:
+		print "No arguments"
+		sys.exit(0)
+	print "Looking for element", sys.argv[1]
+	ctagf = Ctags_file("tags")
+	tag = ctagf.get_tag(sys.argv[1])
+	tag.pprint()
+	
