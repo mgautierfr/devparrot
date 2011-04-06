@@ -208,10 +208,21 @@ class search(Action):
 			return capi.currentView.search(direction, search)
 
 class goto(Action):
+	def regChecker(cls, line):
+		import re
+		if line.startswith("goto"):
+			return line.split(' ')[1:]
+		match = re.match(r"^g(?P<delta>[+-]?)(?P<line>[0-9]*)$", line)
+		if match:
+			return [match.group('line'),match.group('delta')]
+		return None
 	def run(cls, args=[]):
 		if len(args) and args[0]:
 			try :
+				delta = args[1]
 				line = int(args[0])
-				capi.currentView.goto_line(line-1)
+				if not delta:
+					line -= 1
+				capi.currentView.goto_line(line, delta)
 			except:
 				pass

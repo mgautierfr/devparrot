@@ -119,10 +119,16 @@ class TextView(gtksourceview2.View):
 		if foundIter:
 			self.scroll_to_iter(foundIter, 0.2)
 
-	def goto_line(self, line):
+	def goto_line(self, line, delta = None):
 		def callback(it):
 			self.scroll_to_iter(it, 0.2)
 			return False
+		if delta != None:
+			current_line = self.get_buffer().get_iter_at_mark(self.get_buffer().get_insert()).get_line()
+			if delta == '+':
+				line = current_line + line
+			if delta == '-':
+				line = current_line - line
 		line_iter = self.get_buffer().get_iter_at_line(line)
 		self.get_buffer().select_range(line_iter,line_iter)
 		glib.idle_add(callback, line_iter)
