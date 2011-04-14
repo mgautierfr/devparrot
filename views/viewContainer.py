@@ -33,8 +33,8 @@ class AbstractContainer:
 class SplittedContainer(AbstractContainer):
 	def __init__(self, child1, child2):
 		AbstractContainer.__init__(self)
-		self.pack1(child1)
-		self.pack2(child2)
+		self.pack1(child1, resize=True)
+		self.pack2(child2, resize=True)
 		child1.set_parentContainer(self)
 		child2.set_parentContainer(self)
 		self.show_all()
@@ -52,7 +52,6 @@ class VSplittedContainer(SplittedContainer, gtk.VPaned):
 	def __init__(self, child1, child2):
 		gtk.VPaned.__init__(self)
 		SplittedContainer.__init__(self, child1, child2)
-		
 
 class ViewContainer(gtk.VBox, AbstractContainer):
 	Horizontal = 0
