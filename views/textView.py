@@ -107,6 +107,7 @@ class TextView(gtksourceview2.View):
 			self.set_bold( self.get_buffer().get_modified())
 			self.signalConnections['path-changed'] = (self.document, self.document.connect('path-changed', self.on_path_changed) )
 			self.signalConnections['modified-changed'] = (self.get_buffer(), self.get_buffer().connect('modified-changed', self.on_modified_changed) )
+			self.on_focus_in_event(None, None)
 		else:
 			self.set_buffer(gtk.TextBuffer())
 			self.props.sensitive = False
