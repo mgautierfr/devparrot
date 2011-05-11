@@ -19,18 +19,17 @@
 #    Copyright 2011 Matthieu Gautier
 
 from actionDef import Action
-import controler
 import gtk
 
 class cut(Action):
 	def run(cls, args=[]):
-		controler.currentSession.get_currentDocument().cut_clipboard(gtk.clipboard_get(), True);
+		capi.currentDocument.cut_clipboard(gtk.clipboard_get(), True);
 
 class copy(Action):
 	def run(cls, args=[]):
-		controler.currentSession.get_currentDocument().copy_clipboard(gtk.clipboard_get());
+		capi.currentDocument.copy_clipboard(gtk.clipboard_get());
 
 class paste(Action):
 	def run(cls, args=[]):
-		controler.currentSession.get_currentDocument().paste_clipboard(gtk.clipboard_get(), None, True);
+		capi.currentDocument.paste_clipboard(gtk.clipboard_get(), None, True);
 

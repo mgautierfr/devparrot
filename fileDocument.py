@@ -49,6 +49,9 @@ class FileDocument(Document, gobject.GObject):
 		if self.path != path:
 			self.path = path
 			self.emit('path-changed', self.path)
+
+	def has_a_path(self):
+		return self.path != None
 		
  	def do_get_property(self, property):
 		if property.name == 'path':

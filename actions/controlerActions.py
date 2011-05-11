@@ -20,39 +20,38 @@
 
 from actionDef import Action, Accelerator, accelerators
 
-import gtk
 import os
-
-import controler, mainWindow
+import capi
 
 class save(Action):
 
 	@accelerators(Accelerator("<Control>s"))
 	def run(cls, args=[]):
 		if len(args)>=1:
-			return save.save_document(controler.currentSession.get_currentDocument(),os.path.abspath(args[0]))
+			return save.save_document(capi.currentDocument,os.path.abspath(args[0]))
 		else:
-			return save.save_document(controler.currentSession.get_currentDocument(), None)
+			return save.save_document(capi.currentDocument, None)
 
 	@staticmethod			
 	def save_document(document, fileToSave=None):
 		if not document: return False
-		if document.get_path() and not fileToSave:
+		if document.has_a_path() and not fileToSave:
 			document.write()
 			return True
-		if not document.get_path() and not fileToSave:
-			fileToSave = mainWindow.Helper().ask_filenameSave("Save")
+		if not document.has_a_path() and not fileToSave:
+			fileToSave = capi.ask_for_filename_to_save(title="Save")
 
 		if not fileToSave:
 			return False
 
-		(newDocument, newOne) = controler.currentSession.get_documentManager().get_file(fileToSave, False)
-		if newDocument:
+		newDocument = capi.get_file(fileToSave)
+		if capi.file_is_opened(fileToSave):
 			# If the document is already opened change its content and delete the older one
+			newDocument = capi.get_file(fileToSave)
 			document.get_model('text').save_to_document(newDocument)
 			newDocument.load()
-			controler.currentSession.get_workspace().set_currentDocument(newDocument)
-			controler.currentSession.get_documentManager().del_file(document)
+			capi.currentDocument = newDocument
+			capi.del_file(document)
 		else:
 			document.set_path(fileToSave)
 			document.write()
@@ -63,46 +62,37 @@ class save(Action):
 class new(Action):
 	@accelerators(Accelerator("<Control>n"))
 	def run(cls, args=[]):
-		f = controler.currentSession.get_documentManager().new_file()
-		controler.currentSession.get_workspace().set_currentDocument(f)
+		capi.currentDocument = capi.new_file()
 
 class switch(Action):
 	def run(cls, args=[]):
 		if len(args)==0:
 			return False
 		path = args[0]
-		docManager = controler.currentSession.get_documentManager()
-		document = docManager.get_value(docManager.get_iter(path), 0)
-		controler.currentSession.get_workspace().set_currentDocument(document)
+		capi.currentDocument = capi.get_nth_file(path)
 		
 		
 class close(Action):
 	def run(cls, args=[]):
-		docManager = controler.currentSession.get_documentManager()
 		if len(args)==0 or not args[0]:
-			document = controler.currentSession.get_currentDocument()
+			document = capi.currentDocument
 		else:
 			path = args[0]
-			document = docManager.get_value(docManager.get_iter(path), 0)
+			document = capi.documents[path]
 		close.close_document(document)
 
 	@staticmethod		
 	def close_document(document):
-		docManager = controler.currentSession.get_documentManager()
 		if document.check_for_save():
 				save.save_document(document)
 		docManager.del_file(document)
-		if document == controler.currentSession.get_workspace().get_currentDocument():
+		if document == capi.currentDocument:
 			docToDisplay = None
 			try :
-				docToDisplay = docManager.get_value(docManager.get_iter("0"), 0)
+				docToDisplay = capi.documents['0']
 			except ValueError:
 				pass
-			controler.currentSession.get_workspace().set_currentDocument(docToDisplay)
-
-class debug(Action):
-	def run(cls, args=[]):
-		print controler.currentSession.get_documentManager()
+			capi.currentDocument = docToDisplay
 
 class open(Action):
 	def open_a_file(cls, fileToOpen):
@@ -116,12 +106,14 @@ class open(Action):
 				try :
 					lineToGo= int(parts[1])
 				except: pass
-		(doc, newOne) = controler.currentSession.get_documentManager().get_file(fileToOpen)
-		if newOne:
-			doc.load()
-		controler.currentSession.get_workspace().set_currentDocument(doc)
+		if capi.file_is_opened(fileToOpen):
+			doc = capi.get_file(fileToOpen)
+		else:
+			doc = capi.new_file(fileToOpen)
+		doc.load()
+		capi.currentDocument = doc
 		if lineToGo:
-			controler.currentSession.get_workspace().get_currentView().goto_line(lineToGo-1)
+			capi.currentView.goto_line(lineToGo-1)
 
 	@accelerators(Accelerator("<Control>o"))
 	def run(cls, args=[]):
@@ -130,23 +122,21 @@ class open(Action):
 				cls.open_a_file(fileToOpen)
 		else:
 			path = None
-			currentDoc = controler.currentSession.get_workspace().get_currentDocument()
+			currentDoc = capi.currentDocument
 			if currentDoc:
 				path = currentDoc.get_path()
 				if path: path = os.path.dirname(path)
-			fileToOpen = mainWindow.Helper().ask_filenameOpen("Open a file", path)
+			fileToOpen = capi.ask_for_filename_to_open(title="Open a file", defaultDir=path)
 			cls.open_a_file(fileToOpen)
 
 class quit(Action):
 	def run(cls, args=[]):
-		import gtk
 		closeall()
-		gtk.main_quit()
+		capi.quit()
 	
 class closeall(Action):
 	def run(cls, args=[]):
-		docManager = controler.currentSession.get_documentManager()
-		for (doc, ) in docManager:
+		for (doc, ) in capi.documents:
 			close.close_document(doc)
 
 class split(Action):
@@ -165,9 +155,9 @@ class split(Action):
 
 	def run(cls, args=[]):
 		if args[0] == cls.SPLIT:
-			controler.currentSession.get_workspace().get_currentViewContainer().split(args[1])
+			capi.currentViewContainer.split(args[1])
 		if args[0] == cls.UNSPLIT:
-			controler.currentSession.get_workspace().get_currentViewContainer().unsplit()
+			capi.currentViewContainer.unsplit()
 
 class search(Action):
 	import re
@@ -203,7 +193,7 @@ class search(Action):
 		else:
 			direction = cls.lastDirection
 		if direction != None and cls.lastSearch != None:
-			return controler.currentSession.get_workspace().get_currentView().search(direction, cls.lastSearch)
+			return capi.currentView.search(direction, cls.lastSearch)
 
 	def run(cls, args=[]):
 		direction = cls.lastDirection
@@ -215,13 +205,13 @@ class search(Action):
 			search = args[1]
 			cls.lastSearch = search
 		if direction != None and search != None:
-			return controler.currentSession.get_workspace().get_currentView().search(direction, search)
+			return capi.currentView.search(direction, search)
 
 class goto(Action):
 	def run(cls, args=[]):
 		if len(args) and args[0]:
 			try :
 				line = int(args[0])
-				controler.currentSession.get_workspace().get_currentView().goto_line(line-1)
+				capi.currentView.goto_line(line-1)
 			except:
 				pass
