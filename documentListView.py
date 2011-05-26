@@ -58,8 +58,8 @@ class DocumentListView(gtk.TreeView):
 		cell.props.text = document.get_title()
 
 	def cellPathSetter(self, column, cell, model, iter, user_data=None):
-		document = model.get_value(iter, 0)
-		cell.props.text = document.get_rowReference().get_path()[0]
+		path = model.get_path(iter)
+		cell.props.text = path[0]
 		cell.set_fixed_size(10,-1)
 
 	def set_document(self, document):

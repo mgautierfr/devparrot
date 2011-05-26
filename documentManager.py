@@ -30,9 +30,18 @@ class DocumentManager(gtk.ListStore):
 		mainWindow.documentListView.set_document(self)
 		self.signalConnections = {}
 
+	def find_index(self, doc):
+		index = 0
+		for row in self:
+			if row[0] == doc:
+				return index
+			index += 1
+		return None
+
 	def force_redraw(self, doc):
-		path = doc.get_rowReference().get_path()
-		self.row_changed(path, self.get_iter(path))
+		path = self.find_index(doc)
+		if path:
+			self.row_changed(path, self.get_iter(path))
 
 	def on_path_changed(self, source, path):
 		self.force_redraw(source)
@@ -53,11 +62,11 @@ class DocumentManager(gtk.ListStore):
 		return None
 
 	def del_file(self, document):
-		rowReference = document.get_rowReference()
+		rowReference = self.find_index(document)
 		for (key, (obj,connect)) in self.signalConnections[document].items():
 			obj.disconnect(connect)
 		del self.signalConnections[document]
-		self.remove(self.get_iter(rowReference.get_path()))
+		del self[rowReference]
 			
 
 	def new_file(self, path=None):
@@ -67,7 +76,6 @@ class DocumentManager(gtk.ListStore):
 			'modified-changed' : ( doc.get_model('text'), doc.get_model('text').connect('modified-changed', self.on_event) )
 		}
 		self.append([doc])
-		doc.set_rowReference(gtk.TreeRowReference(self,len(self)-1))
 		return doc
 	
 	def __str__(self):

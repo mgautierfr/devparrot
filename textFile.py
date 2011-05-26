@@ -36,7 +36,6 @@ class TextFile(FileDocument):
 
 	def __init__(self, path = None):
 		FileDocument.__init__(self)
-		self.rowReference = None
 		self.path = None
 		self.language = None
 		if path:
@@ -45,9 +44,6 @@ class TextFile(FileDocument):
 			self.filename = "NewFile%d"%TextFile.newFileNumber
 			TextFile.newFileNumber += 1
 
-	def get_rowReference(self):
-		return self.rowReference
-	
 	def __eq__(self, other):
 		if self.path and not other.path:
 			return False
@@ -57,9 +53,6 @@ class TextFile(FileDocument):
 			return self.path == other.path
 		else:
 			return self.filename == other.filename
-
-	def set_rowReference(self, rowReference):
-		self.rowReference = rowReference
 
 	def get_title(self):
 		if self.get_path():
