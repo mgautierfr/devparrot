@@ -43,7 +43,7 @@ class DocumentWrapper(object):
 		return controler.currentSession.get_documentManager().__len__()
 	
 	def __getitem__(self, key):
-		return controler.currentSession.get_documentManager().__getitem__(key)
+		return controler.currentSession.get_documentManager().__getitem__(key)[0]
 			
 def __getattr__(name):
 	if name == 'currentDocument':

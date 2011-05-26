@@ -84,8 +84,8 @@ class close(Action):
 	@staticmethod		
 	def close_document(document):
 		if document.check_for_save():
-				save.save_document(document)
-		docManager.del_file(document)
+			save.save_document(document)
+		capi.del_file(document)
 		if document == capi.currentDocument:
 			docToDisplay = None
 			try :
