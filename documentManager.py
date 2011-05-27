@@ -19,7 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 import gtk,gobject
-from textFile import TextFile
+from textDocument import TextDocument
 
 import mainWindow
 
@@ -70,7 +70,7 @@ class DocumentManager(gtk.ListStore):
 			
 
 	def new_file(self, path=None):
-		doc = TextFile(path)
+		doc = TextDocument(path)
 		self.signalConnections[doc] = {
 			'path-changed' : ( doc, doc.connect('path-changed', self.on_path_changed) ),
 			'modified-changed' : ( doc.get_model('text'), doc.get_model('text').connect('modified-changed', self.on_event) )

@@ -18,8 +18,6 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from textFile import TextFile
-
 from actions import ActionList
 
 import os,sys

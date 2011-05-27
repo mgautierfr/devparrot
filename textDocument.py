@@ -23,8 +23,9 @@ import os,sys
 
 from document import Document
 from datetime import datetime
+from models.sourceBuffer import SourceBuffer
 
-class FileDocument(Document, gobject.GObject):
+class TextDocument(Document, gobject.GObject):
 	__gproperties__ = {
 		'path' : ( gobject.TYPE_STRING,
 	                   'Path of the file',
@@ -34,24 +35,60 @@ class FileDocument(Document, gobject.GObject):
 	}
 	__gsignals__ = {
 		'path-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+		                    (gobject.TYPE_STRING,)),
+		'language-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
 		                    (gobject.TYPE_STRING,))
 	}
-	def __init__(self):
+	__models__ = {
+		"text" : SourceBuffer
+	}
+	newFileNumber = 0
+
+	def __init__(self, path=None):
 		Document.__init__(self)
-		FileDocument.__gobject_init__(self)
+		TextDocument.__gobject_init__(self)
 		self.path = None
 		self.timestamp = None
+		self.language = None
+		if path:
+			self.set_path(path)
+		else:
+			self.filename = "NewFile%d"%TextDocument.newFileNumber
+			TextDocument.newFileNumber += 1
+
+	def __eq__(self, other):
+		if self.path and not other.path:
+			return False
+		if not self.path and other.path:
+			return False
+		if self.path and other.path :
+			return self.path == other.path
+		else:
+			return self.filename == other.filename
 		
 	def get_path(self):
 		return self.path
 
 	def set_path(self, path):
+		import gtksourceview2
 		if self.path != path:
 			self.path = path
 			self.emit('path-changed', self.path)
+		languageManager = gtksourceview2.LanguageManager()
+		self.language = languageManager.guess_language(self.path, None)
+		if self.language:
+			self.get_model('text').set_highlight_syntax(True)
+			self.get_model('text').set_language(self.language)
+			self.emit('language-changed', self.language)
 
 	def has_a_path(self):
 		return self.path != None
+		
+	def get_title(self):
+		if self.has_a_path():
+			return os.path.basename(self.get_path())
+		else:
+			return self.filename
 		
  	def do_get_property(self, property):
 		if property.name == 'path':
@@ -104,10 +141,23 @@ class FileDocument(Document, gobject.GObject):
 		if not self.timestamp: return False
 		modif = os.stat(self.path).st_mtime
 		return  modif > self.timestamp
+		
+	def load(self):
+		self.get_model('text').load_from_document()
+
+	def write(self):
+		self.get_model('text').save_to_document()
+		
+	def check_for_save(self):
+		model = self.get_model('text')
+		if model.get_modified():
+			import mainWindow
+			return mainWindow.Helper().ask_questionYesNo("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.get_title()})
+		return False
 
 	def __str__(self):
 		if self.get_path():
 			return self.get_path()
 		return "None"
 		
-gobject.type_register(FileDocument)
+gobject.type_register(TextDocument)
