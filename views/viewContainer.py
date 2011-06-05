@@ -72,7 +72,8 @@ class ViewContainer(gtk.VBox, AbstractContainer):
 	def split(self, direction):
 		if self.is_splitted:
 			#We only split unsplitted container
-			sys.stderr.write("Error, Trying to split a olready splitted view\n")
+			import sys
+			sys.stderr.write("Error, Trying to split a already splitted view\nThis a devparrot bug, please report it.\n")
 			return
 		#assert than child is a LeadContainer
 		newView = self.child.get_view().clone()
