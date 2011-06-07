@@ -25,18 +25,18 @@ import gtk
 import sys
 
 
-from session import Session
+from core.session import Session
 
-import mainWindow
-import controler
+import core.mainWindow
+import core.controler
 
 class DevParrot(object):
 	def __init__(self):
-		mainWindow.init()
-		controler.init()
+		core.mainWindow.init()
+		core.controler.init()
 		self.session = Session()
 		if len(sys.argv) > 1:
-			command = controler.get_command('open')
+			command = core.controler.get_command('open')
 			command.run(sys.argv[1:])
 
 if __name__ == "__main__":

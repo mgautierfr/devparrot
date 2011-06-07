@@ -20,7 +20,7 @@
 
 import gtk,pango
 
-import controler
+import core.controler
 
 class DocumentListView(gtk.TreeView):
 	def __init__(self):

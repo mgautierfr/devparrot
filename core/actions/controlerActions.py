@@ -21,7 +21,7 @@
 from actionDef import Action, Accelerator, accelerators
 
 import os
-import capi
+import core.capi as capi
 
 class save(Action):
 
@@ -62,7 +62,10 @@ class save(Action):
 class new(Action):
 	@accelerators(Accelerator("<Control>n"))
 	def run(cls, args=[]):
-		capi.currentDocument = capi.new_file()
+		from documents.textDocument import TextDocument
+		document = TextDocument()
+		capi.add_file(document)
+		capi.currentDocument = document
 
 class switch(Action):
 	def run(cls, args=[]):
@@ -109,7 +112,9 @@ class open(Action):
 		if capi.file_is_opened(fileToOpen):
 			doc = capi.get_file(fileToOpen)
 		else:
-			doc = capi.new_file(fileToOpen)
+			from documents.textDocument import TextDocument
+			doc = TextDocument(fileToOpen)
+			capi.add_file(doc)
 		doc.load()
 		capi.currentDocument = doc
 		if lineToGo:

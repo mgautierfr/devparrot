@@ -22,7 +22,7 @@
 import gtk
 import os
 
-from documentListView import DocumentListView
+from views.documentListView import DocumentListView
 
 
 class Helper:
@@ -91,7 +91,7 @@ def init():
 	window.connect('delete-event', quit)
 	window.set_default_size(800,600)
 	icon_path = os.path.dirname(os.path.realpath(__file__))
-	icon_path = os.path.join(icon_path,"icon.png")
+	icon_path = os.path.join(icon_path,"../icon.png")
 	window.set_icon_from_file(icon_path)
 	window.set_title("DevParrot")
 	vbox = gtk.VBox()

@@ -19,7 +19,6 @@
 #    Copyright 2011 Matthieu Gautier
 
 import gtk,gobject
-from textDocument import TextDocument
 
 import mainWindow
 
@@ -69,14 +68,12 @@ class DocumentManager(gtk.ListStore):
 		del self[rowReference]
 			
 
-	def new_file(self, path=None):
-		doc = TextDocument(path)
-		self.signalConnections[doc] = {
-			'path-changed' : ( doc, doc.connect('path-changed', self.on_path_changed) ),
-			'modified-changed' : ( doc.get_model('text'), doc.get_model('text').connect('modified-changed', self.on_event) )
+	def add_file(self, document):
+		self.signalConnections[document] = {
+			'path-changed' : ( document, document.connect('path-changed', self.on_path_changed) ),
+			'modified-changed' : ( document.get_model('text'), document.get_model('text').connect('modified-changed', self.on_event) )
 		}
-		self.append([doc])
-		return doc
+		self.append([document])
 	
 	def __str__(self):
 		return "Open Files\n[\n%(openfiles)s\n]"%{

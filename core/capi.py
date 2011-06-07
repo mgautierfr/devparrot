@@ -59,8 +59,8 @@ def __setattr__(name, value):
 		return controler.currentSession.get_workspace().set_currentDocument(value);
 	raise AttributeError
 	
-def new_file(filePath=None):
-	return controler.currentSession.get_documentManager().new_file(filePath)
+def add_file(document):
+	return controler.currentSession.get_documentManager().add_file(document)
 
 def file_is_opened(filePath):
 	return controler.currentSession.get_documentManager().has_file(filePath)
