@@ -24,20 +24,18 @@ import os,sys
 from document import Document
 from datetime import datetime
 from models.sourceBuffer import SourceBuffer
+from views.textView import TextView
+from fileHandle import FileHandle
+
+import glib
 
 class TextDocument(Document, gobject.GObject):
-	__gproperties__ = {
-		'path' : ( gobject.TYPE_STRING,
-	                   'Path of the file',
-	                   'The absolute path of the file',
-	                   None,
-		           gobject.PARAM_READWRITE)
-	}
 	__gsignals__ = {
+		'language-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+		                    (gobject.TYPE_STRING,)),
+		'modified-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,)),
 		'path-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
 		                    (gobject.TYPE_STRING,)),
-		'language-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-		                    (gobject.TYPE_STRING,))
 	}
 	__models__ = {
 		"text" : SourceBuffer
@@ -45,16 +43,33 @@ class TextDocument(Document, gobject.GObject):
 	newFileNumber = 0
 
 	def __init__(self, path=None):
-		Document.__init__(self)
 		TextDocument.__gobject_init__(self)
-		self.path = None
-		self.timestamp = None
+		Document.__init__(self)
+		self.models['text'].connect('modified-changed', self.on_modified_changed_)
+		self.fileHandle = None
 		self.language = None
 		if path:
 			self.set_path(path)
+			self.load()
 		else:
 			self.filename = "NewFile%d"%TextDocument.newFileNumber
 			TextDocument.newFileNumber += 1
+		
+		self.add_view('text', TextView(self))
+
+	def __getattr__(self, name):
+		if name == "title":
+			if self.has_a_path():
+				return os.path.basename(self.get_path())
+			else:
+				return self.filename
+		if name == "longTitle":
+			if self.has_a_path():
+				return self.get_path()
+			else:
+				return self.filename
+		raise AttributeError
+
 
 	def __eq__(self, other):
 		if self.path and not other.path:
@@ -65,99 +80,82 @@ class TextDocument(Document, gobject.GObject):
 			return self.path == other.path
 		else:
 			return self.filename == other.filename
-		
+
+	def add_view(self, model_type, view):
+		Document.add_view(self, model_type, view)
+		self.currentView.view.connect('focus-in-event', self.on_focus_in_event)
+
+	def on_focus_in_event(self, widget, event):
+		res = self.fileHandle.check_for_exteriorModification()
+		if res == None : return
+		if res:
+			import core.mainWindow
+			answer = core.mainWindow.Helper().ask_questionYesNo("File content changed",
+			     "The content of file %s has changed.\nDo you want to reload it?"%self.title)
+			if answer:
+				self.load()
+			else:
+				self.fileHandle.init_timestamp()
+
+
 	def get_path(self):
-		return self.path
+		return self.fileHandle.get_path()
 
 	def set_path(self, path):
 		import gtksourceview2
-		if self.path != path:
-			self.path = path
-			self.emit('path-changed', self.path)
+		if not self.fileHandle or self.fileHandle.get_path() != path:
+			self.fileHandle = FileHandle(path)
+			self.emit('path-changed', path)
 		languageManager = gtksourceview2.LanguageManager()
-		self.language = languageManager.guess_language(self.path, None)
+		self.language = languageManager.guess_language(path, None)
 		if self.language:
-			self.get_model('text').set_highlight_syntax(True)
-			self.get_model('text').set_language(self.language)
+			self.models['text'].set_highlight_syntax(True)
+			self.models['text'].set_language(self.language)
 			self.emit('language-changed', self.language)
 
+	def on_modified_changed_(self, buffer):
+		self.emit('modified-changed', buffer)
+
 	def has_a_path(self):
-		return self.path != None
-		
-	def get_title(self):
-		if self.has_a_path():
-			return os.path.basename(self.get_path())
-		else:
-			return self.filename
-		
- 	def do_get_property(self, property):
-		if property.name == 'path':
-			return self.path
-		else:
-			raise AttributeError, 'unknown property %s' % property.name
+		return self.fileHandle.get_path() != None
 
-	def do_set_property(self, property, value):
-		if property.name == 'path':
-			self.path = value
-			self.filename = os.path.basename(path)
-		else:
-			raise AttributeError, 'unknown property %s' % property.name
-
-			self.emit('path-changed', self.path)
-			
-	def get_content(self):
-		if not self.path or not os.path.exists(self.path):
-			return ""
-
-		text = ""		
-		try:
-			fileIn = open(self.path, 'r')
-			text = fileIn.read()
-			fileIn.close()
-			self.init_timestamp()
-		except:
-			sys.stderr.write("Error while loading file %s\n"%self.filename)
-		return text
-
-	def init_timestamp(self):
-		if self.path:
-			self.timestamp = os.stat(self.path).st_mtime
-		else:
-			self.timestamp = None
-
-	def set_content(self, content):
-		if not self.path:
-			return
-		try :
-			fileOut = open(self.path, 'w')
-			fileOut.write(content)
-			fileOut.close()
-			self.init_timestamp()
-		except:
-			sys.stderr.write("Error while writing file %s\n"%self.path)
-
-	def check_for_exteriorModification(self):
-		if not self.path : return None
-		if not self.timestamp: return False
-		modif = os.stat(self.path).st_mtime
-		return  modif > self.timestamp
-		
 	def load(self):
-		self.get_model('text').load_from_document()
+		self.models['text'].set_text(self.fileHandle.get_content())
 
 	def write(self):
-		self.get_model('text').save_to_document()
-		
+		model = self.models['text']
+		self.fileHandle.set_content(model.get_text(model.get_start_iter(), model.get_end_iter()))
+		model.set_modified(False)
+
 	def check_for_save(self):
-		model = self.get_model('text')
+		model = self.models['text']
 		if model.get_modified():
 			import mainWindow
 			return mainWindow.Helper().ask_questionYesNo("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.get_title()})
 		return False
 
-	def __str__(self):
-		if self.get_path():
-			return self.get_path()
-		return "None"
+	def search(self, backward, text):
+		foundIter = self.models['text'].search(backward,text)
+		if foundIter:
+			self.currentView.view.scroll_to_iter(foundIter, 0.2)
+
+	def goto_line(self, line, delta = None):
+		def callback(it):
+			self.currentView.view.scroll_to_iter(it, 0.2)
+			return False
+		if delta != None:
+			current_line = self.models['text'].get_iter_at_mark(self.models['text'].get_insert()).get_line()
+			if delta == '+':
+				line = current_line + line
+			if delta == '-':
+				line = current_line - line
+		line_iter = self.models['text'].get_iter_at_line(line)
+		self.models['text'].select_range(line_iter,line_iter)
+		glib.idle_add(callback, line_iter)
+
+#	def __str__(self):
+#		if self.get_path():
+#			return self.get_path()
+#		return "None"
 		
 gobject.type_register(TextDocument)

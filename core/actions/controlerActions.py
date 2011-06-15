@@ -44,18 +44,13 @@ class save(Action):
 		if not fileToSave:
 			return False
 
-		newDocument = capi.get_file(fileToSave)
 		if capi.file_is_opened(fileToSave):
-			# If the document is already opened change its content and delete the older one
-			newDocument = capi.get_file(fileToSave)
-			document.get_model('text').save_to_document(newDocument)
-			newDocument.load()
-			capi.currentDocument = newDocument
-			capi.del_file(document)
-		else:
-			document.set_path(fileToSave)
-			document.write()
-
+			#The document is already opened.
+			#do nothing (should warn)
+			return False
+		
+		document.set_path(fileToSave)
+		document.write()
 		return True
 
 
@@ -71,8 +66,7 @@ class switch(Action):
 	def run(cls, args=[]):
 		if len(args)==0:
 			return False
-		path = args[0]
-		capi.currentDocument = capi.get_nth_file(path)
+		capi.currentDocument = capi.get_nth_file(args[0])
 		
 		
 class close(Action):
@@ -84,7 +78,7 @@ class close(Action):
 			document = capi.documents[path]
 		close.close_document(document)
 
-	@staticmethod		
+	@staticmethod
 	def close_document(document):
 		if document.check_for_save():
 			save.save_document(document)
@@ -118,7 +112,7 @@ class open(Action):
 		doc.load()
 		capi.currentDocument = doc
 		if lineToGo:
-			capi.currentView.goto_line(lineToGo-1)
+			doc.goto_line(lineToGo-1)
 
 	@accelerators(Accelerator("<Control>o"))
 	def run(cls, args=[]):
@@ -151,18 +145,29 @@ class split(Action):
 
 	def regChecker(cls, line):
 		if line.startswith("split"):
-			return [cls.SPLIT, cls.ViewContainer.Horizontal]
+			args = line.split()
+			if len(args) != 2:
+				return None
+			return [cls.SPLIT, cls.ViewContainer.Horizontal, args[1] ]
 		if line.startswith("vsplit"):
-			return [cls.SPLIT, cls.ViewContainer.Vertical]
+			args = line.split()
+			if len(args) != 2:
+				return None
+			return [cls.SPLIT, cls.ViewContainer.Vertical, args[1] ]
 		if line.startswith("unsplit"):
 			return [cls.UNSPLIT]
 		return None
 
 	def run(cls, args=[]):
 		if args[0] == cls.SPLIT:
-			capi.currentViewContainer.split(args[1])
+			doc = capi.get_nth_file(args[2])
+			if doc.documentView.is_displayed():
+				print "doc is displayed"
+				doc.documentView.grab_focus()
+			else:
+				capi.currentContainer.split(args[1], doc.documentView)
 		if args[0] == cls.UNSPLIT:
-			capi.currentViewContainer.unsplit()
+			capi.currentContainer.unsplit()
 
 class search(Action):
 	import re
@@ -198,7 +203,7 @@ class search(Action):
 		else:
 			direction = cls.lastDirection
 		if direction != None and cls.lastSearch != None:
-			return capi.currentView.search(direction, cls.lastSearch)
+			return capi.currentDocument.search(direction, cls.lastSearch)
 
 	def run(cls, args=[]):
 		direction = cls.lastDirection
@@ -210,7 +215,7 @@ class search(Action):
 			search = args[1]
 			cls.lastSearch = search
 		if direction != None and search != None:
-			return capi.currentView.search(direction, search)
+			return capi.currentDocument.search(direction, search)
 
 class goto(Action):
 	def regChecker(cls, line):
@@ -228,6 +233,6 @@ class goto(Action):
 				line = int(args[0])
 				if not delta:
 					line -= 1
-				capi.currentView.goto_line(line, delta)
+				capi.currentDocument.goto_line(line, delta)
 			except:
 				pass

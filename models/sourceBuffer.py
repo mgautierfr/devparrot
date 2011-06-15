@@ -21,7 +21,6 @@
 import gtksourceview2
 import gtk
 
-#@Representation("text")
 class SourceBuffer(gtksourceview2.Buffer):
 	def __init__(self, document):
 		gtksourceview2.Buffer.__init__(self)
@@ -32,22 +31,16 @@ class SourceBuffer(gtksourceview2.Buffer):
 		self.connect("mark-set", self.on_mark_set)
 		self.highlight_tag = self.create_tag(background="yellow")
 		self.search_tag = self.create_tag(background="red")
-		self.load_from_document()
 		
 	def get_document(self):
 		return self.document
-		
-	def load_from_document(self):
+	
+	def set_text(self, content):
 		self.begin_not_undoable_action()
-		self.set_text(self.document.get_content())
+		gtksourceview2.Buffer.set_text(self, content)
 		self.end_not_undoable_action()
 		self.set_modified(False)
-	
-	def save_to_document(self, document=None):
-		if not document : document = self.document
-		document.set_content(self.get_text(self.get_start_iter(), self.get_end_iter()))
-		self.set_modified(False)
-		
+
 	def on_mark_set(self, textbuffer, iter, textmark):
 		if textmark.get_name() in ['insert', 'selection_bound']:
 			if textbuffer.get_has_selection():

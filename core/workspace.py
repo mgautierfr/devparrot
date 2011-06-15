@@ -20,25 +20,25 @@
 
 
 from views.textView import TextView
-from views.viewContainer import ViewContainer,LeafContainer
+from views.viewContainer import ViewContainer
 
 import mainWindow
 
 class Workspace(ViewContainer):
 	def __init__(self):
-		LeafContainer.current = LeafContainer(TextView())
-		ViewContainer.__init__(self, LeafContainer.current)
+		ViewContainer.__init__(self, None)
+		ViewContainer.current = self
 		mainWindow.workspaceContainer.add(self)
 
 	def set_currentDocument(self, document):
-		self.get_currentView().set_document(document)
+		self.get_currentContainer().set_as_child(document.documentView)
 
 	def get_currentDocument(self):
-		return self.get_currentView().get_document()
+		child = self.get_currentContainer().get_child()
+		if child:
+			return child.document
+		return None
 
-	def get_currentView(self):
-		return LeafContainer.current.get_view()
-
-	def get_currentViewContainer(self):
-		return LeafContainer.current.get_parentContainer()
+	def get_currentContainer(self):
+		return ViewContainer.current
 

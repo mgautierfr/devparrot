@@ -51,11 +51,11 @@ class DocumentListView(gtk.TreeView):
 			if select:
 				(model, iter) = select
 				document = model.get_value(iter, 0)
-				controler.currentSession.get_workspace().set_currentDocument(document)
+				core.controler.currentSession.get_workspace().set_currentDocument(document)
 
 	def cellDocumentSetter(self, column, cell, model, iter, user_data=None):
 		document = model.get_value(iter, 0)
-		cell.props.text = document.get_title()
+		cell.props.text = document.title
 
 	def cellPathSetter(self, column, cell, model, iter, user_data=None):
 		path = model.get_path(iter)

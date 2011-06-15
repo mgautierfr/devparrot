@@ -18,14 +18,38 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
+from views.documentView import DocumentView
+
 class Document():
 	def __init__(self):
 		self.models = {}
+		for model_type in self.__class__.__models__:
+			self.models[model_type] = self.__class__.__models__[model_type](self)
+		self.views = []
+		self.documentView = DocumentView(self)
+		self.currentView = None
 		pass
+	
+	def __getattr__(self, name):
+		if name in ["title", "longTitle"]:
+			print "WARNING : Sub class of document must have a attribute named %s"%name
+		raise AttributeError
 		
-	def get_model(self,repr_type):
-		if repr_type not in self.__class__.__models__:
-			raise KeyError()
-		if repr_type not in self.models:
-			self.models[repr_type] = self.__class__.__models__[repr_type](self)
-		return self.models[repr_type] 
+	def add_view(self, model_type, view):
+		if self.currentView != None:
+			print "NYI : Only one view per document for now"
+			return
+		self.views.append(view)
+		view.set_model(self.models[model_type])
+		self.documentView.set_view(view)
+		self.currentView = view
+		
+	def remove_view(self, model_type, view):
+		if self.models[model_type] in self.views.keys():
+			self.views[self.models[model_type]].remove(view)
+		self.documentView.remove_view(view)
+		view.set_model(None)
+		if self.currentView == view : self.currentView = None
+		
+	def get_currentView(self):
+		return self.currentView

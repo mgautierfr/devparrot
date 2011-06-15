@@ -57,7 +57,7 @@ def on_entry_activate(sourceWidget, userData=None):
 			break
 	currentSession.get_history().push(text)
 	sourceWidget.set_text('')
-	currentSession.get_workspace().get_currentView().grab_focus()
+	currentSession.get_workspace().get_currentDocument().get_currentView().grab_focus()
 
 def on_entry_event(widget, event, userData = None):
 	global currentSession

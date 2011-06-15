@@ -21,47 +21,29 @@
 import gtk,pango,glib
 import gtksourceview2
 
-class TextView(gtksourceview2.View):
-	def __init__(self):
-		gtksourceview2.View.__init__(self)
-		self.set_auto_indent(True)
-		self.set_highlight_current_line(True)
-		self.set_show_line_numbers(True)
-		self.set_smart_home_end(True)
-		self.modify_font(pango.FontDescription("monospace"))
-		self.props.sensitive = False
-
-		self.connect('focus-in-event',self.on_focus_in_event)
-
-		self.document = None
-		self.parentContainer = None
-
-		self.label = gtk.Label()
-		self.label.set_selectable(True)
-		self.label.set_alignment(0, 0.5)
-		self.label.props.can_focus = False
-
-		self.signalConnections = {}
+class TextView():
+	def __init__(self, document):
+		self.container = gtk.ScrolledWindow()
+		self.view = gtksourceview2.View()
+		
+		self.container.add(self.view)
+		self.container.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
+		
+		self.view.set_auto_indent(True)
+		self.view.set_highlight_current_line(True)
+		self.view.set_show_line_numbers(True)
+		self.view.set_smart_home_end(True)
+		self.view.modify_font(pango.FontDescription("monospace"))
+		self.view.props.sensitive = False
+		self.document = document
 
 	def clone(self):
-		new = TextView()
-		new.set_document(self.document)
+		new = TextView(self.document)
+		self.document.add_view('text', new)
 		return new
-
-	def on_focus_in_event(self, widget, event):
-		res = self.document.check_for_exteriorModification()
-		if res == None : return
-		if res:
-			import mainWindow
-			answer = mainWindow.Helper().ask_questionYesNo("File content changed",
-			                                                                                      "The content of file %s has changed.\nDo you want to reload it?"%self.document.get_title())
-			if answer:
-				self.document.load()
-			else:
-				self.document.init_timestamp()
-
-	def get_titleWidget(self):
-		return self.label
+		
+	def grab_focus(self):
+		return self.view.grab_focus()
 
 	def get_document(self):
 		return self.document
@@ -72,64 +54,6 @@ class TextView(gtksourceview2.View):
 	def set_parentContainer(self, container):
 		self.parentContainer = container
 
-	def on_path_changed(self, path, userData=None):
-		if self.document.get_path():
-			self.label.set_text(self.document.get_path())
-		else:
-			self.label.set_text(self.document.get_title())
-
-	def on_modified_changed(self, buffer):
-		self.set_bold(buffer.get_modified())
-
-	def set_bold(self, bold):
-		att = pango.AttrList()
-		att.insert(pango.AttrWeight(pango.WEIGHT_BOLD if bold else pango.WEIGHT_NORMAL,
-		                            start_index=0,
-		                            end_index=len(self.label.get_text())
-                                           ))
-		self.label.set_attributes(att)
-
-	def set_document(self, document):
-		if self.document and document and self.document == document:
-			return
-		if self.document :
-			for (key,(obj,connect)) in self.signalConnections.items():
-				obj.disconnect(connect)
-			self.signalConnections = {}
-		self.document = document
-		if self.document:
-			self.set_buffer(document.get_model("text"))
-			self.props.sensitive = True
-			if document.get_path():
-				self.label.set_text(document.get_path())
-			else:
-				self.label.set_text(document.get_title())
-			self.set_bold( self.get_buffer().get_modified())
-			self.signalConnections['path-changed'] = (self.document, self.document.connect('path-changed', self.on_path_changed) )
-			self.signalConnections['modified-changed'] = (self.get_buffer(), self.get_buffer().connect('modified-changed', self.on_modified_changed) )
-			self.on_focus_in_event(None, None)
-		else:
-			self.set_buffer(gtk.TextBuffer())
-			self.props.sensitive = False
-			self.label.set_text("")
-			self.set_bold(False)
-
-	def search(self, backward, text):
-		if not self.document: return
-		foundIter = self.get_buffer().search(backward,text)
-		if foundIter:
-			self.scroll_to_iter(foundIter, 0.2)
-
-	def goto_line(self, line, delta = None):
-		def callback(it):
-			self.scroll_to_iter(it, 0.2)
-			return False
-		if delta != None:
-			current_line = self.get_buffer().get_iter_at_mark(self.get_buffer().get_insert()).get_line()
-			if delta == '+':
-				line = current_line + line
-			if delta == '-':
-				line = current_line - line
-		line_iter = self.get_buffer().get_iter_at_line(line)
-		self.get_buffer().select_range(line_iter,line_iter)
-		glib.idle_add(callback, line_iter)
+	def set_model(self, model):
+		self.view.set_buffer(model)
+		self.view.props.sensitive = True

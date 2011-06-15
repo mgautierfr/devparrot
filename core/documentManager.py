@@ -50,13 +50,13 @@ class DocumentManager(gtk.ListStore):
 
 	def has_file(self, path):
 		for (document,) in self:
-			if document.path == path:
+			if document.get_path() == path:
 				return True
 		return False
 
 	def get_file(self, path):
 		for (document,) in self:
-			if document.path == path:
+			if document.get_path() == path:
 				return document
 		return None
 
@@ -70,8 +70,8 @@ class DocumentManager(gtk.ListStore):
 
 	def add_file(self, document):
 		self.signalConnections[document] = {
-			'path-changed' : ( document, document.connect('path-changed', self.on_path_changed) ),
-			'modified-changed' : ( document.get_model('text'), document.get_model('text').connect('modified-changed', self.on_event) )
+#			'path-changed' : ( document, document.connect('path-changed', self.on_path_changed) ),
+#			'modified-changed' : ( document.get_model('text'), document.get_model('text').connect('modified-changed', self.on_event) )
 		}
 		self.append([document])
 	

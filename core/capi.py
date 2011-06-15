@@ -47,18 +47,20 @@ class DocumentWrapper(object):
 			
 def __getattr__(name):
 	if name == 'currentDocument':
-		return controler.currentSession.get_currentDocument();
-	if name == 'currentView':
-		return controler.currentSession.get_workspace().get_currentView()
-	if name == 'currentViewContainer':
-		return controler.currentSession.get_workspace().get_currentViewContainer()
+		return controler.currentSession.get_currentDocument()
+	if name == 'currentContainer':
+		return controler.currentSession.get_workspace().get_currentContainer()
 	raise AttributeError
 
 def __setattr__(name, value):
 	if name == 'currentDocument':
-		return controler.currentSession.get_workspace().set_currentDocument(value);
+		if value.documentView.is_displayed():
+			value.documentView.grab_focus()
+		else:
+			__getattr__('currentContainer').set_as_child(value.documentView)
+		return
 	raise AttributeError
-	
+
 def add_file(document):
 	return controler.currentSession.get_documentManager().add_file(document)
 

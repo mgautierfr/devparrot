@@ -46,46 +46,59 @@ class HSplittedContainer(SplittedContainer, gtk.HPaned):
 	def __init__(self, child1, child2):
 		gtk.HPaned.__init__(self)
 		SplittedContainer.__init__(self, child1, child2)
+		self.set_border_width(0)
 		
 		
 class VSplittedContainer(SplittedContainer, gtk.VPaned):
 	def __init__(self, child1, child2):
 		gtk.VPaned.__init__(self)
 		SplittedContainer.__init__(self, child1, child2)
+		self.set_border_width(0)
 
-class ViewContainer(gtk.VBox, AbstractContainer):
+class ViewContainer(gtk.Frame, AbstractContainer):
 	Horizontal = 0
 	Vertical   = 1
+	current = None
 	def __init__(self,  child):
-		gtk.VBox.__init__(self)
+		gtk.Frame.__init__(self)
 		AbstractContainer.__init__(self)
 		self.is_splitted = False 
 		self.parentContainer = None
+		self.set_shadow_type(gtk.SHADOW_NONE)
+		self.set_border_width(0)
 		self.set_as_child(child)
 		self.show_all()
 		
 	def set_as_child(self, child):
-		self.child = child
-		self.child.set_parentContainer(self)
-		self.add(self.child)
+		if self.child:
+			self.child.set_parentContainer(None)
+			self.remove(self.child)
+			
+		if child:
+			child.set_parentContainer(self)
+			self.add(child)
+	
+	def get_child(self):
+		return self.child
+		
 
-	def split(self, direction):
+	def split(self, direction, newView):
 		if self.is_splitted:
 			#We only split unsplitted container
 			import sys
 			sys.stderr.write("Error, Trying to split a already splitted view\nThis a devparrot bug, please report it.\n")
 			return
 		#assert than child is a LeadContainer
-		newView = self.child.get_view().clone()
 		oldChild = self.child
 		self.remove(oldChild)
 		newContainer1 = ViewContainer(oldChild)
-		newContainer2 = ViewContainer(LeafContainer(newView))
+		newContainer2 = ViewContainer(newView)
 		if direction == 0:
 			self.set_as_child(HSplittedContainer(newContainer1, newContainer2))
 		else:
 			self.set_as_child(VSplittedContainer(newContainer1, newContainer2))
 		self.is_splitted = True
+		ViewContainer.current = newContainer2
 		self.show_all()
 
 	def unsplit(self):
@@ -93,8 +106,8 @@ class ViewContainer(gtk.VBox, AbstractContainer):
 			#Child is the final container to keep
 			if self.get_parentContainer():
 				# It will be attach by grandfather
-				self.remove(self.child)
 				ViewContainer.to_attach = self.child
+				self.remove(self.child)
 				return self.get_parentContainer().unsplit()
 				
 		else:
@@ -102,37 +115,30 @@ class ViewContainer(gtk.VBox, AbstractContainer):
 			self.remove(self.child)
 			self.set_as_child(ViewContainer.to_attach)
 			ViewContainer.to_attach = None
+			ViewContainer.current = self
 			self.is_splitted = False
 			self.show_all()
 
-class LeafContainer(gtk.Frame, AbstractContainer):
+class DocumentViewContainer(gtk.ScrolledWindow, AbstractContainer):
 	current = None
 	def __init__(self, view):
-		gtk.Frame.__init__(self)
+		gtk.ScrolledWindow.__init__(self)
 		AbstractContainer.__init__(self)
-		self.scrolledWindow = gtk.ScrolledWindow()
-		self.scrolledWindow.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
-		self.add(self.scrolledWindow)
-		self.set_label_align(0.0, 0.0)
+		self.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
 		self.set_view(view)
 
 	def set_view(self, view):
 		if view==None and self.view:
-			self.scrolledWindow.remove(self.view)
-			self.set_label_widget(None)
+			self.remove(self.view)
 			self.view=None
 		self.view = view
-		self.scrolledWindow.add(self.view)
-		self.set_label_widget(self.view.get_titleWidget())
+		print self, "adding", self.view
+		self.add(self.view)
 		self.connect('set-focus-child', self.on_set_focus_child)
 		self.connect("grab-focus", self.on_grab_focus)
 
 	def get_view(self):
 		return self.view
-
-	def on_set_focus_child(self, container, widget):
-		if widget:
-			LeafContainer.current = container
 
 	def on_grab_focus(self, widget):
 		self.view.grab_focus()
