@@ -38,6 +38,24 @@ class SplittedContainer(AbstractContainer):
 		child1.set_parentContainer(self)
 		child2.set_parentContainer(self)
 		self.show_all()
+			
+	def __unlink_child__(self, recursive=False):
+		child1 = self.get_child1()
+		child2 = self.get_child2()
+		if child1:
+			child1.set_parentContainer(None)
+			self.remove(child1)
+			if recursive:
+				try:
+					child1.__unlink_child__(recursive)
+				except:pass
+		if child2:
+			child2.set_parentContainer(None)
+			self.remove(child2)
+			if recursive:
+				try:
+					child2.__unlink_child__(recursive)
+				except:pass
 		
 	def unsplit(self):
 		return self.get_parentContainer().unsplit()
@@ -71,8 +89,7 @@ class ViewContainer(gtk.Frame, AbstractContainer):
 		
 	def set_as_child(self, child):
 		if self.child:
-			self.child.set_parentContainer(None)
-			self.remove(self.child)
+			self.__unlink_child__()
 			
 		if child:
 			child.set_parentContainer(self)
@@ -107,17 +124,30 @@ class ViewContainer(gtk.Frame, AbstractContainer):
 			if self.get_parentContainer():
 				# It will be attach by grandfather
 				ViewContainer.to_attach = self.child
-				self.remove(self.child)
+				self.__unlink_child__()
 				return self.get_parentContainer().unsplit()
 				
 		else:
 			#Attach the final container instead of the splitted view
-			self.remove(self.child)
+			old_child = self.child
 			self.set_as_child(ViewContainer.to_attach)
+			
+			old_child.__unlink_child__(recursive=True)
+			
 			ViewContainer.to_attach = None
 			ViewContainer.current = self
 			self.is_splitted = False
 			self.show_all()
+			
+	def __unlink_child__(self, recursive=False):
+		child = self.child
+		if child: 
+			child.set_parentContainer(None)
+			self.remove(child)
+			if recursive:
+				try:
+					child.__unlink_child__(recursive)
+				except:pass
 
 class DocumentViewContainer(gtk.ScrolledWindow, AbstractContainer):
 	current = None
