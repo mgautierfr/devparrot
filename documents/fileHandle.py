@@ -22,7 +22,7 @@ import os
 
 class FileHandle(object):
 	def __init__(self, path):
-		self.path = path
+		self.path = os.path.abspath(path)
 		self.timestamp = None
 		
 	def __eq__(self, other):
