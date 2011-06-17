@@ -71,15 +71,15 @@ class TextDocument(Document, gobject.GObject):
 		raise AttributeError
 
 
-	def __eq__(self, other):
-		if self.path and not other.path:
-			return False
-		if not self.path and other.path:
-			return False
-		if self.path and other.path :
-			return self.path == other.path
-		else:
-			return self.filename == other.filename
+#	def __eq__(self, other):
+#		if self.has_a_path() and not other.has_a_path():
+#			return False
+#		if not self.has_a_path() and other.has_a_path():
+#			return False
+#		if self.has_a_path():
+#			return self.fileHandle == other.fileHandle
+#		else:
+#			return self.filename == other.filename
 
 	def get_modified(self):
 		return self.models['text'].get_modified()
