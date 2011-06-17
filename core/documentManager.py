@@ -39,14 +39,14 @@ class DocumentManager(gtk.ListStore):
 
 	def force_redraw(self, doc):
 		path = self.find_index(doc)
-		if path:
+		if path != None:
 			self.row_changed(path, self.get_iter(path))
 
 	def on_path_changed(self, source, path):
 		self.force_redraw(source)
 
-	def on_event(self, source):
-		self.force_redraw(source.get_document())
+	def on_event(self, document, buffer):
+		self.force_redraw(document)
 
 	def has_file(self, path):
 		for (document,) in self:
@@ -71,7 +71,7 @@ class DocumentManager(gtk.ListStore):
 	def add_file(self, document):
 		self.signalConnections[document] = {
 #			'path-changed' : ( document, document.connect('path-changed', self.on_path_changed) ),
-#			'modified-changed' : ( document.get_model('text'), document.get_model('text').connect('modified-changed', self.on_event) )
+			'modified-changed' : ( document, document.connect('modified-changed', self.on_event) )
 		}
 		self.append([document])
 	

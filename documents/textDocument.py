@@ -45,7 +45,7 @@ class TextDocument(Document, gobject.GObject):
 	def __init__(self, path=None):
 		TextDocument.__gobject_init__(self)
 		Document.__init__(self)
-		self.models['text'].connect('modified-changed', self.on_modified_changed_)
+		self.models['text'].connect('modified-changed', self.on_modified_changed)
 		self.fileHandle = None
 		self.language = None
 		if path:
@@ -81,6 +81,9 @@ class TextDocument(Document, gobject.GObject):
 		else:
 			return self.filename == other.filename
 
+	def get_modified(self):
+		return self.models['text'].get_modified()
+
 	def add_view(self, model_type, view):
 		Document.add_view(self, model_type, view)
 		self.currentView.view.connect('focus-in-event', self.on_focus_in_event)
@@ -113,7 +116,7 @@ class TextDocument(Document, gobject.GObject):
 			self.models['text'].set_language(self.language)
 			self.emit('language-changed', self.language)
 
-	def on_modified_changed_(self, buffer):
+	def on_modified_changed(self, buffer):
 		self.emit('modified-changed', buffer)
 
 	def has_a_path(self):

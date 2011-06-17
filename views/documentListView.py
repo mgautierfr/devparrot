@@ -56,6 +56,7 @@ class DocumentListView(gtk.TreeView):
 	def cellDocumentSetter(self, column, cell, model, iter, user_data=None):
 		document = model.get_value(iter, 0)
 		cell.props.text = document.title
+		cell.props.weight = pango.WEIGHT_BOLD if document.get_modified() else pango.WEIGHT_NORMAL
 
 	def cellPathSetter(self, column, cell, model, iter, user_data=None):
 		path = model.get_path(iter)
