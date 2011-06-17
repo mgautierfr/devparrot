@@ -51,7 +51,10 @@ class DocumentListView(gtk.TreeView):
 			if select:
 				(model, iter) = select
 				document = model.get_value(iter, 0)
-				core.controler.currentSession.get_workspace().set_currentDocument(document)
+				if document.documentView.is_displayed():
+					document.documentView.grab_focus()
+				else:
+					core.controler.currentSession.get_workspace().set_currentDocument(document)
 
 	def cellDocumentSetter(self, column, cell, model, iter, user_data=None):
 		document = model.get_value(iter, 0)
