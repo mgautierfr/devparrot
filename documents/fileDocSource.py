@@ -18,31 +18,36 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import os
+import os,sys
+import gtksourceview2
 
-class FileHandle(object):
+class FileDocSource(object):
 	def __init__(self, path):
 		self.path = os.path.abspath(path)
 		self.timestamp = None
+		languageManager = gtksourceview2.LanguageManager()
+		self.language = languageManager.guess_language(path, None)
+		
+	def __getattr__(self, name):
+		if name == "title":
+			return os.path.basename(self.path)
+		if name == "longTitle":
+			return self.path
+		raise AttributeError
 		
 	def __eq__(self, other):
-		if self.path and not other.path:
-			return False
-		if not self.path and other.path:
-			return False
-		if self.path and other.path :
+		if self.__class__ == other.__class__:
 			return self.path == other.path
-		else:
-			return self.filename == other.filename
+		return False
 		
 	def get_path(self):
 		return self.path
 	
 	def get_content(self):
-		if not self.path or not os.path.exists(self.path):
+		if not os.path.exists(self.path):
 			return ""
 
-		text = ""		
+		text = ""
 		try:
 			fileIn = open(self.path, 'r')
 			text = fileIn.read()
@@ -54,14 +59,9 @@ class FileHandle(object):
 	
 
 	def init_timestamp(self):
-		if self.path:
-			self.timestamp = os.stat(self.path).st_mtime
-		else:
-			self.timestamp = None
+		self.timestamp = os.stat(self.path).st_mtime
 
 	def set_content(self, content):
-		if not self.path:
-			return
 		try :
 			fileOut = open(self.path, 'w')
 			fileOut.write(content)
@@ -70,8 +70,7 @@ class FileHandle(object):
 		except:
 			sys.stderr.write("Error while writing file %s\n"%self.path)
 	
-	def check_for_exteriorModification(self):
-		if not self.path : return None
+	def need_reload(self):
 		if not self.timestamp: return False
 		modif = os.stat(self.path).st_mtime
 		return  modif > self.timestamp

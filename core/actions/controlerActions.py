@@ -49,7 +49,8 @@ class save(Action):
 			#do nothing (should warn)
 			return False
 		
-		document.set_path(fileToSave)
+		from documents.fileDocSource import FileDocSource
+		document.set_path(FileDocSource(fileToSave))
 		document.write()
 		return True
 
@@ -57,8 +58,9 @@ class save(Action):
 class new(Action):
 	@accelerators(Accelerator("<Control>n"))
 	def run(cls, args=[]):
-		from documents.textDocument import TextDocument
-		document = TextDocument()
+		from documents.document import Document
+		from documents.newDocSource import NewDocSource
+		document = Document(NewDocSource())
 		capi.add_file(document)
 		capi.currentDocument = document
 
@@ -106,8 +108,9 @@ class open(Action):
 		if capi.file_is_opened(fileToOpen):
 			doc = capi.get_file(fileToOpen)
 		else:
-			from documents.textDocument import TextDocument
-			doc = TextDocument(fileToOpen)
+			from documents.document import Document
+			from documents.fileDocSource import FileDocSource
+			doc = Document(FileDocSource(fileToOpen))
 			capi.add_file(doc)
 		doc.load()
 		capi.currentDocument = doc

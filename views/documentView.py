@@ -35,7 +35,7 @@ class DocumentView(gtk.Frame,AbstractContainer):
 		self.label.props.can_focus = False
 		self.set_label_widget(self.label)
 		
-		self.document.connect('path-changed', self.on_path_changed)
+		self.document.connect('documentSource-changed', self.on_documentSource_changed)
 		self.document.connect('modified-changed', self.on_modified_changed)
 		self.connect('set-focus-child', self.on_set_focus_child)
 		self.connect("grab-focus", self.on_grab_focus)
@@ -45,7 +45,7 @@ class DocumentView(gtk.Frame,AbstractContainer):
 		self.currentView = child
 		self.show_all()
 	
-	def on_path_changed(self, path, userData=None):
+	def on_documentSource_changed(self, documentSource, userData=None):
 		self.label.set_text(self.document.longTitle)
 
 	def on_modified_changed(self, source, buffer):
