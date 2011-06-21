@@ -170,7 +170,8 @@ class split(Action):
 			else:
 				capi.currentContainer.split(args[1], doc.documentView)
 		if args[0] == cls.UNSPLIT:
-			capi.currentContainer.unsplit()
+			if capi.currentContainer.get_parentContainer():
+				capi.currentContainer.get_parentContainer().unsplit(toKeep=capi.currentContainer)
 
 class search(Action):
 	import re

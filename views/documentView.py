@@ -40,6 +40,14 @@ class DocumentView(gtk.Frame,AbstractContainer):
 		self.connect('set-focus-child', self.on_set_focus_child)
 		self.connect("grab-focus", self.on_grab_focus)
 		
+		
+		self.label.drag_source_set(gtk.gdk.BUTTON1_MASK, [('documentView',gtk.TARGET_SAME_APP,5)], gtk.gdk.ACTION_MOVE)
+		self.label.connect('drag-begin',self.on_drag_begin)
+		self.label.connect('drag-data-get',self.on_drag_data_get)
+		self.label.connect('drag-end',self.on_drag_end)
+		
+		
+		
 	def set_view(self, child):
 		self.add(child.container)
 		self.currentView = child
@@ -69,7 +77,20 @@ class DocumentView(gtk.Frame,AbstractContainer):
 	def on_grab_focus(self, widget):
 		self.currentView.grab_focus()
 		self.show_all()
+
 		
 	def on_set_focus_child(self, container, widget):
 		if widget:
 			ViewContainer.current = self.parentContainer
+	
+	def on_drag_begin(self, widget, drag_context, data=None):
+		import core.controler
+		core.controler.currentSession.get_workspace().prepare_to_dnd(True,self)
+	
+	def on_drag_data_get(self, widget, drag_context, selection_data, info, time, data=None):
+		selection_data.set('documentView', info, self.document.longTitle)
+		
+	def on_drag_end(self, widget, drag_context, data=None):
+		import core.controler
+		core.controler.currentSession.get_workspace().prepare_to_dnd(False)
+	
