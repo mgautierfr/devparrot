@@ -212,7 +212,7 @@ class DragHandler(gtk.Window):
 	def __init__(self, container):
 		gtk.Window.__init__(self,gtk.WINDOW_POPUP)
 		self.container = container
-		self.drag_dest_set(gtk.DEST_DEFAULT_MOTION|gtk.DEST_DEFAULT_DROP, [('documentView',gtk.TARGET_SAME_APP,5)], gtk.gdk.ACTION_MOVE)
+		self.drag_dest_set(gtk.DEST_DEFAULT_MOTION|gtk.DEST_DEFAULT_DROP, [('documentView',gtk.TARGET_SAME_APP,5)], gtk.gdk.ACTION_COPY)
 		self.connect('drag-motion', self.on_drag_motion)
 		self.connect('drag-leave', self.on_drag_leave)
 		self.connect('drag-data-received', self.on_drag_data_received)
@@ -224,7 +224,7 @@ class DragHandler(gtk.Window):
 		p = self.container.window.get_origin()
 		self.pos = 'center'
 		self.window.move_resize(r.x+p[0],r.y+p[1],r.width,r.height)
-		self.window.set_opacity(0)
+		self.window.set_opacity(0.4)
 		
 	def calculate_pos(self,x,y):
 		r = self.container.get_allocation()
@@ -265,7 +265,7 @@ class DragHandler(gtk.Window):
 	
 		self.drag_highlight()
 		self.window.move_resize(*new)
-		self.window.set_opacity(0.5)				
+		self.window.set_opacity(0.8)				
 		return True
 	
 	def on_drag_leave(self, widget,drag_context, time, data=None):

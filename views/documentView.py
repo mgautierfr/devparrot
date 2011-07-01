@@ -40,8 +40,7 @@ class DocumentView(gtk.Frame,AbstractContainer):
 		self.connect('set-focus-child', self.on_set_focus_child)
 		self.connect("grab-focus", self.on_grab_focus)
 		
-		
-		self.label.drag_source_set(gtk.gdk.BUTTON1_MASK, [('documentView',gtk.TARGET_SAME_APP,5)], gtk.gdk.ACTION_MOVE)
+		self.label.drag_source_set(gtk.gdk.BUTTON1_MASK, [('documentView',gtk.TARGET_SAME_APP,5)], gtk.gdk.ACTION_COPY)
 		self.label.connect('drag-begin',self.on_drag_begin)
 		self.label.connect('drag-data-get',self.on_drag_data_get)
 		self.label.connect('drag-end',self.on_drag_end)
@@ -63,10 +62,6 @@ class DocumentView(gtk.Frame,AbstractContainer):
 		att = pango.AttrList()
 		att.insert(pango.AttrWeight(pango.WEIGHT_BOLD if bold else pango.WEIGHT_NORMAL,
 		                            start_index=0,
-		                            
-		                            
-		                            
-		                            
 		                            end_index=len(self.label.get_text())
                                            ))
 		self.label.set_attributes(att)

@@ -42,6 +42,11 @@ class DocumentListView(gtk.TreeView):
 		self.document = None
 		self.get_selection().set_mode(gtk.SELECTION_SINGLE)
 		self.connect("button-press-event", self.switch_to_document, None)
+		self.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, [('documentView',gtk.TARGET_SAME_APP,5)], gtk.gdk.ACTION_COPY)
+		self.connect('drag-begin',self.on_drag_begin)
+		self.connect('drag-data-get',self.on_drag_data_get)
+		self.connect('drag-end',self.on_drag_end)
+		
 
 
 	def switch_to_document(self, widget, event, user_data=None):
@@ -55,6 +60,30 @@ class DocumentListView(gtk.TreeView):
 					document.documentView.grab_focus()
 				else:
 					core.controler.currentSession.get_workspace().set_currentDocument(document)
+	
+	def on_drag_begin(self, widget, drag_context, data=None):
+		import core.controler
+		selection = widget.get_selection()
+		select = selection.get_selected()
+		if select:
+			(model, iter) = select
+			document = model.get_value(iter, 0)
+			core.controler.currentSession.get_workspace().prepare_to_dnd(True,document.documentView)
+
+	def on_drag_data_get(self, widget, drag_context, selection_data, info, time, data=None):
+		selection = widget.get_selection()
+		select = selection.get_selected()
+		if select:
+			(model, iter) = select
+			document = model.get_value(iter, 0)
+			selection_data.set('documentView', info, document.longTitle)
+		else:
+			return False
+	
+	def on_drag_end(self, widget, drag_context, data=None):
+		import core.controler
+		core.controler.currentSession.get_workspace().prepare_to_dnd(False)
+
 
 	def cellDocumentSetter(self, column, cell, model, iter, user_data=None):
 		document = model.get_value(iter, 0)
