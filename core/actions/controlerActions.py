@@ -142,7 +142,6 @@ class closeall(Action):
 			close.close_document(doc)
 
 class split(Action):
-	from views.viewContainer import ViewContainer
 	SPLIT = 0
 	UNSPLIT = 1
 
@@ -151,12 +150,12 @@ class split(Action):
 			args = line.split()
 			if len(args) != 2:
 				return None
-			return [cls.SPLIT, cls.ViewContainer.Horizontal, args[1] ]
+			return [cls.SPLIT, 0, args[1] ]
 		if line.startswith("vsplit"):
 			args = line.split()
 			if len(args) != 2:
 				return None
-			return [cls.SPLIT, cls.ViewContainer.Vertical, args[1] ]
+			return [cls.SPLIT, 1, args[1] ]
 		if line.startswith("unsplit"):
 			return [cls.UNSPLIT]
 		return None

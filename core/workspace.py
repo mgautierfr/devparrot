@@ -20,25 +20,26 @@
 
 
 from views.textView import TextView
-from views.viewContainer import ViewContainer
+from views.viewContainer import BaseContainer
 
 import mainWindow
 
-class Workspace(ViewContainer):
+class Workspace(BaseContainer):
 	def __init__(self):
-		ViewContainer.__init__(self, None)
-		ViewContainer.current = self
-		mainWindow.workspaceContainer.add(self)
+		BaseContainer.__init__(self)
+		BaseContainer.init_TOP(self)
+		BaseContainer.current = self.implementation.childContainer
+		mainWindow.workspaceContainer.add(self.gtkContainer)
 
 	def set_currentDocument(self, document):
-		self.get_currentContainer().set_as_child(document.documentView)
+		self.get_currentContainer().set_documentView(document.documentView)
 
 	def get_currentDocument(self):
-		child = self.get_currentContainer().get_child()
+		child = self.get_currentContainer().get_documentView()
 		if child:
 			return child.document
 		return None
 
 	def get_currentContainer(self):
-		return ViewContainer.current
+		return BaseContainer.current
 

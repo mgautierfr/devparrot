@@ -57,7 +57,7 @@ def __setattr__(name, value):
 		if value.documentView.is_displayed():
 			value.documentView.grab_focus()
 		else:
-			__getattr__('currentContainer').set_as_child(value.documentView)
+			__getattr__('currentContainer').set_documentView(value.documentView)
 		return
 	raise AttributeError
 

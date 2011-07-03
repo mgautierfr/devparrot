@@ -19,15 +19,15 @@
 #    Copyright 2011 Matthieu Gautier
 
 import gtk,pango
-from views.viewContainer import ViewContainer, AbstractContainer
+from views.viewContainer import BaseContainer
 
-class DocumentView(gtk.Frame,AbstractContainer):
+class DocumentView(gtk.Frame):
 	def __init__(self, document):
 		gtk.Frame.__init__(self)
-		AbstractContainer.__init__(self)
 		self.document = document
 		self.set_label_align(0.0, 0.0)
 		self.currentView= None
+		self.parentContainer = None
 		
 		self.label = gtk.Label()
 		self.label.set_selectable(True)
@@ -45,6 +45,8 @@ class DocumentView(gtk.Frame,AbstractContainer):
 		self.label.connect('drag-data-get',self.on_drag_data_get)
 		self.label.connect('drag-end',self.on_drag_end)
 		
+	def get_parentContainer(self) : return self.parentContainer
+	def set_parentContainer(self, parent) : self.parentContainer = parent
 		
 		
 	def set_view(self, child):
@@ -76,7 +78,7 @@ class DocumentView(gtk.Frame,AbstractContainer):
 		
 	def on_set_focus_child(self, container, widget):
 		if widget:
-			ViewContainer.current = self.parentContainer
+			BaseContainer.current = self.parentContainer
 	
 	def on_drag_begin(self, widget, drag_context, data=None):
 		import core.controler
