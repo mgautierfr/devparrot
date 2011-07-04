@@ -20,15 +20,14 @@
 
 
 from views.textView import TextView
-from views.viewContainer import BaseContainer
+from views.viewContainer import TopContainer, LeafSpecialization
 
 import mainWindow
 
-class Workspace(BaseContainer):
+class Workspace(TopContainer):
 	def __init__(self):
-		BaseContainer.__init__(self)
-		BaseContainer.init_TOP(self)
-		BaseContainer.current = self.implementation.childContainer
+		TopContainer.__init__(self)
+		LeafSpecialization.current = self.childContainer
 		mainWindow.workspaceContainer.add(self.gtkContainer)
 
 	def set_currentDocument(self, document):
@@ -41,5 +40,5 @@ class Workspace(BaseContainer):
 		return None
 
 	def get_currentContainer(self):
-		return BaseContainer.current
+		return LeafSpecialization.current
 

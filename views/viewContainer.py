@@ -21,79 +21,90 @@
 import gtk
 from textView import TextView
 
-class AbstractContainer(object):
-	def __init__(self, baseContainer):
-		self.baseContainer = baseContainer
-
-class BaseContainer(object):
-	current = None
-	TOP = -1
-	LEAF = 0
-	VSPLITTED = 1
-	HSPLITTED = 2
+class ContainerSpecialization(object):
+	def __init__(self, specialized):
+		# remove the connection from the old specialization to the specialized
+		if specialized.__specialization__:
+			specialized.__specialization__.specialized = None
+		# set the new specialization
+		self.specialized = specialized
+		self.specialized.__specialization__ = self
+		
+class AbstractContainerChild(object):
 	def __init__(self):
 		self.parentContainer = None
-		self.gtkContainer = None
-		self.implementation = None
-		
+	
+	def get_parentContainer(self) : return self.parentContainer
+	def set_parentContainer(self, parent):
+			self.parentContainer = parent
+			
+class Specializable(object):
+	def __init__(self):
+		self.__specialization__ = None
+	
+	def __getattr__(self, name):
+		if self.__dict__['__specialization__'] != None :
+			att = getattr(self.__dict__['__specialization__'],name)
+			import types
+			if isinstance(att, types.MethodType):
+				#take the correspondinf function
+				att = att.im_func
+				#return the new bounded method
+				return att.__get__(self, self.__class__)
+			else:
+				return att
+		raise AttributeError
+	
+	def __setattr__(self, name, value):
+		if '__specialization__' not in self.__dict__ or self.__dict__['__specialization__'] == None or name =='__specialization__' :
+			object.__setattr__(self, name, value)
+			return
+
+		if name in self.__dict__['__specialization__'].__dict__:
+			object.__setattr__(self.__dict__['__specialization__'], name, value)
+		else:
+			object.__setattr__(self, name, value)
+
+class BasicContainer(AbstractContainerChild,Specializable):
+	def __init__(self):
+		AbstractContainerChild.__init__(self)
+		Specializable.__init__(self)
+	
 	def get_parentContainer(self) : return self.parentContainer
 	def set_parentContainer(self, parent) : self.parentContainer = parent
-	
-	def get_innerContainer(self) : return self.innerContainer
-	def set_innerContainer(self, inner) : self.innerContainer = inner
-	
-	def split(self, direction, newView, first = False): self.implementation.split(direction, newView, first)
-	def gtk_attach(self, gtkContainer): self.implementation.gtk_attach(gtkContainer)
-	def unsplit(self, toKeep=None, toRemove=None): self.implementation.unsplit(toKeep,toRemove)
-	def destroy_tree(self) : self.implementation.destroy_tree()
-	def detach_child(self, childToDetach) : self.implementation.detach_child(childToDetach)
-	def attach_child(self, child) : self.implementation.attach_child(child)
-	def prepare_to_dnd(self, active, toExclude = None) : self.implementation.prepare_to_dnd(active, toExclude)
-	def set_documentView(self, documentView) : self.implementation.set_documentView(documentView)
-	def get_documentView(self) : return self.implementation.get_documentView()
-	
-	@staticmethod
-	def init_TOP(container):
-		container.implementation = TopContainer(container)
-	
-	@staticmethod
-	def init_LEAF(container):
-		container.implementation = LeafContainer(container)
 
-	@staticmethod
-	def new_VSPLITTED(child1, child2):
-		container = BaseContainer()
-		container.set_innerContainer(VSplittedContainer(container))
-		container.init(child1,child2)
-		return container
+class TopContainer(BasicContainer):
+	def __init__(self):
+		BasicContainer.__init__(self)
+		TopSpecialization(self)
+	
+def CleanSpecialization(specialized):
+	if specialized.__specialization__:
+		specialized.__specialization__.specialized = None
+	specialized.__specialization__ = None
 
-	@staticmethod
-	def new_HSPLITTED(child1, child2):
-		container = BaseContainer()
-		container.set_innerContainer(HSplittedContainer(container))
-		container.init(child1,child2)
-		return container	
-
-class SplittedContainer(AbstractContainer):
-	def __init__(self, baseContainer):
-		AbstractContainer.__init__(self, baseContainer)
+class SplittedSpecialization(ContainerSpecialization):
+	def __init__(self, specialized):
+		ContainerSpecialization.__init__(self, specialized)
+		self.container1 = None
+		self.container2 = None
 		
 	def init(self, container1, container2):
 		self.container1 = container1
 		self.container2 = container2
-		self.baseContainer.gtkContainer.pack1(container1.gtkContainer, resize=True)
-		self.baseContainer.gtkContainer.pack2(container2.gtkContainer, resize=True)
-		container1.set_parentContainer(self.baseContainer)
-		container2.set_parentContainer(self.baseContainer)
-		self.baseContainer.gtkContainer.show_all()
+		self.gtkContainer.pack1(container1.gtkContainer, resize=True)
+		self.gtkContainer.pack2(container2.gtkContainer, resize=True)
+		container1.set_parentContainer(self)
+		container2.set_parentContainer(self)
+		self.gtkContainer.show_all()
 			
 	def __unlink_child__(self):
 		if self.container1:
 			self.container1.set_parentContainer(None)
-			self.remove(self.container1)
+			self.gtkContainer.remove(self.container1.gtkContainer)
 		if self.container2:
 			self.container2.set_parentContainer(None)
-			self.remove(self.container2)
+			self.gtkContainer.remove(self.container2.gtkContainer)
 	
 	def prepare_to_dnd(self, active, toExclude = None):
 		if self.container1:
@@ -102,25 +113,23 @@ class SplittedContainer(AbstractContainer):
 			self.container2.prepare_to_dnd(active, toExclude)
 		
 	def destroy_tree(self):
-		print "destroy tree SPLIT", self, self.container1, self.container2
 		if self.container1:
 			self.container1.set_parentContainer(None)
-			self.baseContainer.gtkContainer.remove(self.container1.gtkContainer)
+			self.gtkContainer.remove(self.container1.gtkContainer)
 			self.container1.destroy_tree()
 			self.container1 = None
 		if self.container2:
 			self.container2.set_parentContainer(None)
-			self.baseContainer.gtkContainer.remove(self.container2.gtkContainer)
+			self.gtkContainer.remove(self.container2.gtkContainer)
 			self.container2.destroy_tree()
 			self.container2 = None
 
-		self.baseContainer.gtkContainer = None
-		self.baseContainer.implementation = None
-		self.baseContainer = None
+		self.gtkContainer = None
+		CleanSpecialization(self)
 			
 	def detach_child(self, childToDetach):
 		childToDetach.set_parentContainer(None)
-		self.baseContainer.gtkContainer.remove(childToDetach.gtkContainer)
+		self.gtkContainer.remove(childToDetach.gtkContainer)
 		if self.container1 == childToDetach:
 			self.container1 = None
 		elif self.container2 == childToDetach:
@@ -141,55 +150,55 @@ class SplittedContainer(AbstractContainer):
 		else:
 			return
 				
-		fatherContainer = self.baseContainer.get_parentContainer()
-		fatherContainer.detach_child(self.baseContainer)
+		fatherContainer = self.get_parentContainer()
+		fatherContainer.detach_child(self)
 		self.detach_child(toKeep)
 		fatherContainer.attach_child(toKeep)
 		self.destroy_tree()
 	
 	def gtk_attach(self, gtkContainer):
-		if self.baseContainer.gtkContainer.get_child1() == None:
-			self.baseContainer.gtkContainer.pack1(gtkContainer, resize=True)
-		if self.baseContainer.gtkContainer.get_child2() == None:
-			self.baseContainer.gtkContainer.pack2(gtkContainer, resize=True)
+		if self.gtkContainer.get_child1() == None:
+			self.gtkContainer.pack1(gtkContainer, resize=True)
+		if self.gtkContainer.get_child2() == None:
+			self.gtkContainer.pack2(gtkContainer, resize=True)
 
 	def attach_child(self, child):
 		if self.container1 == None:
 			self.container1 = child
-			self.baseContainer.gtkContainer.pack1(child.gtkContainer, resize=True)
-			child.set_parentContainer(self.baseContainer)
+			self.gtkContainer.pack1(child.gtkContainer, resize=True)
+			child.set_parentContainer(self)
 		if self.container2 == None:
 			self.container2 = child
-			self.baseContainer.gtkContainer.pack2(child.gtkContainer, resize=True)
-			child.set_parentContainer(self.baseContainer)
-		self.baseContainer.gtkContainer.show_all()
+			self.gtkContainer.pack2(child.gtkContainer, resize=True)
+			child.set_parentContainer(self)
+		self.gtkContainer.show_all()
 		
-class HSplittedContainer(SplittedContainer):
-	def __init__(self, baseContainer):
-		SplittedContainer.__init__(self, baseContainer)
-		self.baseContainer.gtkContainer = gtk.HPaned()
+class HSplittedSpecialization(SplittedSpecialization):
+	def __init__(self, specialized): 
+		SplittedSpecialization.__init__(self, specialized)
+		self.gtkContainer = gtk.HPaned()
 
-class VSplittedContainer(SplittedContainer):
-	def __init__(self, baseContainer):
-		SplittedContainer.__init__(self, baseContainer)
-		self.baseContainer.gtkContainer = gtk.VPaned()
+class VSplittedSpecialization(SplittedSpecialization):
+	def __init__(self, specialized):
+		SplittedSpecialization.__init__(self, specialized)
+		self.gtkContainer = gtk.VPaned()
 		
-class TopContainer(AbstractContainer):
-	def __init__(self, baseContainer):
-		AbstractContainer.__init__(self, baseContainer)
-		self.baseContainer.gtkContainer = gtk.VBox()
-		self.childContainer = BaseContainer()
-		BaseContainer.init_LEAF(self.childContainer)
-		self.childContainer.set_parentContainer(self.baseContainer)
+class TopSpecialization(ContainerSpecialization):
+	def __init__(self, specialized):
+		ContainerSpecialization.__init__(self, specialized)
+		self.gtkContainer = gtk.VBox()
+		self.childContainer = BasicContainer()
+		LeafSpecialization(self.childContainer)
+		self.childContainer.set_parentContainer(self)
 		self.gtk_attach(self.childContainer.gtkContainer)
-		self.baseContainer.gtkContainer.show_all()
+		self.gtkContainer.show_all()
 	
 	def gtk_attach(self, gtkContainer):
-		self.baseContainer.gtkContainer.add(gtkContainer)
+		self.gtkContainer.add(gtkContainer)
 	
 	def detach_child(self, childToDetach):
 		childToDetach.set_parentContainer(None)
-		self.baseContainer.gtkContainer.remove(childToDetach.gtkContainer)
+		self.gtkContainer.remove(childToDetach.gtkContainer)
 		self.childContainer = None
 		
 	def prepare_to_dnd(self, active, toExclude = None):
@@ -197,18 +206,18 @@ class TopContainer(AbstractContainer):
 	
 	def attach_child(self, child):
 		self.childContainer = child
-		self.baseContainer.gtkContainer.add(child.gtkContainer)
-		child.set_parentContainer(self.baseContainer)
-		self.baseContainer.gtkContainer.show_all()
+		self.gtkContainer.add(child.gtkContainer)
+		child.set_parentContainer(self)
+		self.gtkContainer.show_all()
 
-class LeafContainer(AbstractContainer):
-
-	def __init__(self, baseContainer, gtkContainer=None):
-		AbstractContainer.__init__(self, baseContainer)
+class LeafSpecialization(ContainerSpecialization):
+	current = None
+	def __init__(self, specialized, gtkContainer=None):
+		ContainerSpecialization.__init__(self, specialized)
 		if gtkContainer == None:
-			self.baseContainer.gtkContainer = gtk.VBox()
+			self.gtkContainer = gtk.VBox()
 		else:
-			self.baseContainer.gtkContainer = gtkContainer
+			self.gtkContainer = gtkContainer
 		self.drag_handler = None
 		self.documentView = None
 	
@@ -228,70 +237,65 @@ class LeafContainer(AbstractContainer):
 				self.drag_handle = None
 
 	def set_documentView(self, documentView):
-		print "set_documentView", self.documentView, documentView
 		if self.documentView:
-			self.baseContainer.gtkContainer.remove(self.documentView)
+			self.gtkContainer.remove(self.documentView)
 			self.documentView.set_parentContainer(None)
 			self.documentView = None
 			
 		if documentView:
-			documentView.set_parentContainer(self.baseContainer)
+			documentView.set_parentContainer(self)
 			self.documentView = documentView
-			self.baseContainer.gtkContainer.add(documentView)
-		print "show all"
-		self.baseContainer.gtkContainer.show_all()
+			self.gtkContainer.add(documentView)
+		self.gtkContainer.show_all()
 
 	def get_documentView(self):
 		return self.documentView
 		
 	def destroy_tree(self):
-		print "destroy tree LEAF", self, self.documentView
 		if self.documentView:
 			self.documentView.set_parentContainer(None)
-			self.baseContainer.gtkContainer.remove(self.documentView)
+			self.gtkContainer.remove(self.documentView)
 			self.documentView = None
 
-		self.baseContainer.gtkContainer = None
-		self.baseContainer.implementation = None
-		self.baseContainer = None
+		self.gtkContainer = None
+		CleanSpecialization(self)
 		
 	def split(self, direction, newView, first = False):
 		#switch basecontainer to a SplittedContainer
-		currentGtkContainer = self.baseContainer.gtkContainer
+		currentGtkContainer = self.gtkContainer
 		currentDocumentView = self.documentView
-		fatherContainer = self.baseContainer.get_parentContainer()
-		fatherContainer.gtkContainer.remove(self.baseContainer.gtkContainer)
+		fatherContainer = self.get_parentContainer()
+		fatherContainer.gtkContainer.remove(self.gtkContainer)
 		
 		if direction == 0:
-			self.baseContainer.gtkContainer = gtk.HPaned()
+			HSplittedSpecialization(self)
 		else:
-			self.baseContainer.gtkContainer = gtk.VPaned()
-		fatherContainer.gtk_attach(self.baseContainer.gtkContainer)
-		self.baseContainer.implementation = SplittedContainer(self.baseContainer)
+			VSplittedSpecialization(self)
+		fatherContainer.gtk_attach(self.gtkContainer)
 
 		# create the two leaf containers
-		container1 = BaseContainer()
-		container1.implementation = LeafContainer(container1, currentGtkContainer)
-		self.documentView.set_parentContainer(container1)
-		container1.implementation.documentView = self.documentView
+		container1 = BasicContainer()
+		LeafSpecialization(container1, currentGtkContainer)
+		currentDocumentView.set_parentContainer(container1)
+		container1.documentView = currentDocumentView
 		
 		 
-		container2 = BaseContainer()
-		container2.implementation = LeafContainer(container2)
+		container2 = BasicContainer()
+		LeafSpecialization(container2)
 		container2.set_documentView(newView)
 
 		#add the two leaf containers to the base container
 		if first:
-			self.baseContainer.implementation.init(container2, container1)	
+			self.init(container2, container1)	
 		else:
-			self.baseContainer.implementation.init(container1, container2)
+			self.init(container1, container2)
 		
-		BaseContainer.current = container1
+		LeafSpecialization.current = container1
 
 class DragHandler(gtk.Window):
 	def __init__(self, container):
 		gtk.Window.__init__(self,gtk.WINDOW_POPUP)
-		self.container = container.baseContainer
+		self.container = container
 		self.drag_dest_set(gtk.DEST_DEFAULT_MOTION|gtk.DEST_DEFAULT_DROP, [('documentView',gtk.TARGET_SAME_APP,5)], gtk.gdk.ACTION_COPY)
 		self.connect('drag-motion', self.on_drag_motion)
 		self.connect('drag-leave', self.on_drag_leave)
@@ -304,7 +308,7 @@ class DragHandler(gtk.Window):
 		p = self.container.gtkContainer.window.get_origin()
 		self.pos = 'center'
 		self.window.move_resize(r.x+p[0],r.y+p[1],r.width,r.height)
-		self.window.set_opacity(0.4)
+		self.window.set_opacity(0)
 		
 	def calculate_pos(self,x,y):
 		r = self.container.gtkContainer.get_allocation()
@@ -342,7 +346,7 @@ class DragHandler(gtk.Window):
 	
 		self.drag_highlight()
 		self.window.move_resize(*new)
-		self.window.set_opacity(0.8)				
+		self.window.set_opacity(0.5)				
 		return True
 	
 	def on_drag_leave(self, widget,drag_context, time, data=None):

@@ -164,7 +164,6 @@ class split(Action):
 		if args[0] == cls.SPLIT:
 			doc = capi.get_nth_file(args[2])
 			if doc.documentView.is_displayed():
-				print "doc is displayed"
 				doc.documentView.grab_focus()
 			else:
 				capi.currentContainer.split(args[1], doc.documentView)
