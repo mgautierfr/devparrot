@@ -54,7 +54,9 @@ def __getattr__(name):
 
 def __setattr__(name, value):
 	if name == 'currentDocument':
-		if value.documentView.is_displayed():
+		if value == None:
+			__getattr__('currentContainer').set_documentView(None)
+		elif value.documentView.is_displayed():
 			value.documentView.grab_focus()
 		else:
 			__getattr__('currentContainer').set_documentView(value.documentView)
@@ -75,7 +77,7 @@ def get_nth_file(index):
 	return docManager.get_value(docManager.get_iter(str(index)), 0) 
 
 def del_file(document):
-	controler.currentSession.get_documentManager().del_file(document)
+	return controler.currentSession.get_documentManager().del_file(document)
 
 def ask_for_filename_to_save(title):
 	return mainWindow.Helper().ask_filenameSave(title=title)

@@ -36,8 +36,8 @@ class save(Action):
 	def save_document(document, fileToSave=None):
 		if not document: return False
 		if document.has_a_path() and not fileToSave:
-			document.write()
-			return True
+			return document.write()
+
 		if not document.has_a_path() and not fileToSave:
 			fileToSave = capi.ask_for_filename_to_save(title="Save")
 
@@ -51,8 +51,7 @@ class save(Action):
 		
 		from documents.fileDocSource import FileDocSource
 		document.set_path(FileDocSource(fileToSave))
-		document.write()
-		return True
+		return document.write()
 
 
 class new(Action):
@@ -63,12 +62,14 @@ class new(Action):
 		document = Document(NewDocSource())
 		capi.add_file(document)
 		capi.currentDocument = document
+		return True
 
 class switch(Action):
 	def run(cls, args=[]):
 		if len(args)==0:
 			return False
 		capi.currentDocument = capi.get_nth_file(args[0])
+		return True
 		
 		
 class close(Action):
@@ -78,24 +79,25 @@ class close(Action):
 		else:
 			path = args[0]
 			document = capi.documents[path]
-		close.close_document(document)
+		return close.close_document(document)
 
 	@staticmethod
 	def close_document(document):
 		if document.check_for_save():
 			save.save_document(document)
-		capi.del_file(document)
+		ret = capi.del_file(document)
 		if document == capi.currentDocument:
 			docToDisplay = None
 			try :
 				docToDisplay = capi.documents['0']
-			except ValueError:
+			except IndexError:
 				pass
 			capi.currentDocument = docToDisplay
+		return ret
 
 class open(Action):
 	def open_a_file(cls, fileToOpen):
-		if not fileToOpen: return
+		if not fileToOpen: return False
 		lineToGo = None
 		# if path doesn't exist and we have a line marker, lets go to that line
 		if not os.path.exists(fileToOpen):
@@ -116,12 +118,15 @@ class open(Action):
 		capi.currentDocument = doc
 		if lineToGo:
 			doc.goto_line(lineToGo-1)
+		return True
 
 	@accelerators(Accelerator("<Control>o"))
 	def run(cls, args=[]):
 		if len(args)>=1:
+			ret = True
 			for fileToOpen in args:
-				cls.open_a_file(fileToOpen)
+				ret = ret and cls.open_a_file(fileToOpen)
+			return ret
 		else:
 			path = None
 			currentDoc = capi.currentDocument
@@ -129,17 +134,19 @@ class open(Action):
 				path = currentDoc.get_path()
 				if path: path = os.path.dirname(path)
 			fileToOpen = capi.ask_for_filename_to_open(title="Open a file", defaultDir=path)
-			cls.open_a_file(fileToOpen)
+			return cls.open_a_file(fileToOpen)
 
 class quit(Action):
 	def run(cls, args=[]):
 		closeall()
-		capi.quit()
+		return capi.quit()
 	
 class closeall(Action):
 	def run(cls, args=[]):
-		for (doc, ) in capi.documents:
-			close.close_document(doc)
+		ret = True
+		while len(capi.documents):
+			ret = ret and close.close_document(capi.get_nth_file(0))
+		return ret
 
 class split(Action):
 	SPLIT = 0
@@ -164,12 +171,13 @@ class split(Action):
 		if args[0] == cls.SPLIT:
 			doc = capi.get_nth_file(args[2])
 			if doc.documentView.is_displayed():
-				doc.documentView.grab_focus()
+				return doc.documentView.grab_focus()
 			else:
-				capi.currentContainer.split(args[1], doc.documentView)
+				return capi.currentContainer.split(args[1], doc.documentView)
 		if args[0] == cls.UNSPLIT:
 			if capi.currentContainer.get_parentContainer():
-				capi.currentContainer.get_parentContainer().unsplit(toKeep=capi.currentContainer)
+				return capi.currentContainer.get_parentContainer().unsplit(toKeep=capi.currentContainer)
+		return False
 
 class search(Action):
 	import re
@@ -235,6 +243,6 @@ class goto(Action):
 				line = int(args[0])
 				if not delta:
 					line -= 1
-				capi.currentDocument.goto_line(line, delta)
+				return capi.currentDocument.goto_line(line, delta)
 			except:
-				pass
+				return False

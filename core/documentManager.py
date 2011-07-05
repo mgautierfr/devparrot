@@ -62,10 +62,13 @@ class DocumentManager(gtk.ListStore):
 
 	def del_file(self, document):
 		rowReference = self.find_index(document)
+		if rowReference == None:
+			return False
 		for (key, (obj,connect)) in self.signalConnections[document].items():
 			obj.disconnect(connect)
 		del self.signalConnections[document]
 		del self[rowReference]
+		return True
 			
 
 	def add_file(self, document):

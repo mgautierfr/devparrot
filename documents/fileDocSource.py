@@ -67,8 +67,10 @@ class FileDocSource(object):
 			fileOut.write(content)
 			fileOut.close()
 			self.init_timestamp()
+			return True
 		except:
 			sys.stderr.write("Error while writing file %s\n"%self.path)
+			return False
 	
 	def need_reload(self):
 		if not self.timestamp: return False

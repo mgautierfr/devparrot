@@ -53,6 +53,7 @@ class Document(gobject.GObject):
 		raise AttributeError
 	
 	def __eq__(self, other):
+		if other == None : return False
 		return self.documentSource == other.documentSource
 		
 	def add_view(self, model_type, view):
@@ -100,8 +101,8 @@ class Document(gobject.GObject):
 	
 	def write(self):
 		model = self.models['text']
-		self.documentSource.set_content(model.get_text(model.get_start_iter(), model.get_end_iter()))
-		model.set_modified(False)
+		if self.documentSource.set_content(model.get_text(model.get_start_iter(), model.get_end_iter())):
+			model.set_modified(False)
 		
 	def on_modified_changed(self, buffer):
 		self.emit('modified-changed', buffer)

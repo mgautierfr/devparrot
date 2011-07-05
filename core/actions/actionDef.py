@@ -79,7 +79,8 @@ class Action:
 	__metaclass__ = MetaAction
 
 	def defaultChecker(cls, line):
-		if line.startswith(cls.__name__):
+		command = line.split(' ')[0]
+		if command == cls.__name__:
 			return line.split(' ')[1:]
 		return None
 

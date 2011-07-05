@@ -21,14 +21,23 @@
 from actions import ActionList
 
 import os,sys
+import gtk
 
 import mainWindow
 
 currentSession = None
+baseColor = None
+
+#It should be some define of those value somewhere. Where ?
+__key_UP__ = 65362
+__key_DOWN__ = 65364
 
 def init():
+	global baseColor
 	mainWindow.entry.connect('activate', on_entry_activate)
+	mainWindow.entry.connect('focus-in-event', on_get_focus)
 	mainWindow.entry.connect('event', on_entry_event)
+	baseColor = mainWindow.entry.get_style().base[gtk.STATE_NORMAL]
 	connect_actions()
 	pass
 
@@ -46,28 +55,43 @@ def get_command(commandName):
 		if action.__name__ == commandName:
 			return action
 	return None
+	
+def on_get_focus(widget, event, userData = None):
+	global baseColor
+	widget.modify_base(gtk.STATE_NORMAL,baseColor)
+	widget.set_text('')
 
 def on_entry_activate(sourceWidget, userData=None):
 	global currentSession
+	import gtk
 	text = sourceWidget.get_text()
+	map = sourceWidget.get_colormap()
+	colour = map.alloc_color("red") # light red
 	for action in ActionList:
 		args = action.regChecker(text)
 		if args != None :
-			action.run(args)
+			ret = action.run(args)
+			if ret == None:
+				colour = baseColor
+			elif ret:
+				colour = map.alloc_color("#BBFFBB") # light green
+			else:
+				colour = map.alloc_color("#FF9999") # light red
 			break
 	currentSession.get_history().push(text)
-	sourceWidget.set_text('')
-	currentSession.get_workspace().get_currentDocument().get_currentView().grab_focus()
+	sourceWidget.modify_base(gtk.STATE_NORMAL,colour)
+	if currentSession.get_workspace().get_currentDocument():
+		currentSession.get_workspace().get_currentDocument().get_currentView().grab_focus()
 
 def on_entry_event(widget, event, userData = None):
 	global currentSession
 	import gtk
 	if event.type == gtk.gdk.KEY_PRESS:
-		if event.keyval == 65362:
+		if event.keyval == __key_UP__:
 			widget.set_text(currentSession.get_history().get_previous())
 			widget.set_position(-1)
 			return True
-		if event.keyval == 65364:
+		if event.keyval == __key_DOWN__:
 			widget.set_text(currentSession.get_history().get_next())
 			widget.set_position(-1)
 			return True
