@@ -65,7 +65,8 @@ class Accelerator:
 		                         callback = self)
 
 	def __call__(self, accel_group, acceleratable, keyval, modifier):
-		return self.function.__get__(None, self.cls)(*self.datas)
+		import core.controler
+		return core.controler.run_action(self.cls.__name__, self.function.__get__(None, self.cls),*self.datas)
 
 class accelerators:
 	def __init__(self, *accelerators):

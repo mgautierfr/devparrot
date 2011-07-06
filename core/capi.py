@@ -60,6 +60,8 @@ def __setattr__(name, value):
 			value.documentView.grab_focus()
 		else:
 			__getattr__('currentContainer').set_documentView(value.documentView)
+			value.documentView.grab_focus()
+
 		return
 	raise AttributeError
 

@@ -33,11 +33,15 @@ __key_UP__ = 65362
 __key_DOWN__ = 65364
 
 def init():
-	global baseColor
+	global baseColor,notFoundColor, okColor, errorColor
 	mainWindow.entry.connect('activate', on_entry_activate)
 	mainWindow.entry.connect('focus-in-event', on_get_focus)
 	mainWindow.entry.connect('event', on_entry_event)
 	baseColor = mainWindow.entry.get_style().base[gtk.STATE_NORMAL]
+	map = mainWindow.entry.get_colormap()
+	notFoundColor = map.alloc_color("red") # red
+	okColor = map.alloc_color("#BBFFBB") # light green
+	errorColor = map.alloc_color("#FF9999") # light red
 	connect_actions()
 	pass
 
@@ -49,6 +53,16 @@ def connect_actions():
 	for action in ActionList:
 		for accel in action.accelerators:
 			accel.connect_group(mainWindow.accelGroup)
+
+def run_action(text, function,*args, **keywords):
+	ret = function(*args,**keywords)
+	if ret == None:
+		mainWindow.entry.modify_base(gtk.STATE_NORMAL,baseColor)
+	elif ret:
+		mainWindow.entry.modify_base(gtk.STATE_NORMAL,okColor)
+	else:
+		mainWindow.entry.modify_base(gtk.STATE_NORMAL,errorColor)
+	mainWindow.entry.set_text(text)
 
 def get_command(commandName):
 	for action in ActionList:
@@ -65,21 +79,16 @@ def on_entry_activate(sourceWidget, userData=None):
 	global currentSession
 	import gtk
 	text = sourceWidget.get_text()
-	map = sourceWidget.get_colormap()
-	colour = map.alloc_color("red") # light red
+	found = False
 	for action in ActionList:
 		args = action.regChecker(text)
 		if args != None :
-			ret = action.run(args)
-			if ret == None:
-				colour = baseColor
-			elif ret:
-				colour = map.alloc_color("#BBFFBB") # light green
-			else:
-				colour = map.alloc_color("#FF9999") # light red
+			run_action(text, action.run, args)
+			found = True
 			break
+	if not found:
+		mainWindow.entry.modify_base(gtk.STATE_NORMAL,notFoundColor)
 	currentSession.get_history().push(text)
-	sourceWidget.modify_base(gtk.STATE_NORMAL,colour)
 	if currentSession.get_workspace().get_currentDocument():
 		currentSession.get_workspace().get_currentDocument().get_currentView().grab_focus()
 

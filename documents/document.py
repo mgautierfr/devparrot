@@ -103,6 +103,8 @@ class Document(gobject.GObject):
 		model = self.models['text']
 		if self.documentSource.set_content(model.get_text(model.get_start_iter(), model.get_end_iter())):
 			model.set_modified(False)
+			return True
+		return False
 		
 	def on_modified_changed(self, buffer):
 		self.emit('modified-changed', buffer)
