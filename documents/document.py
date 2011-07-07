@@ -22,7 +22,7 @@ from views.documentView import DocumentView
 from views.textView import TextView
 from models.sourceBuffer import SourceBuffer
 
-import gobject
+import gobject,glib
 from datetime import datetime
 
 class Document(gobject.GObject):
@@ -129,6 +129,8 @@ class Document(gobject.GObject):
 		foundIter = self.models['text'].search(backward,text)
 		if foundIter:
 			self.currentView.view.scroll_to_iter(foundIter, 0.2)
+			return True
+		return False
 
 	def goto_line(self, line, delta = None):
 		def callback(it):
