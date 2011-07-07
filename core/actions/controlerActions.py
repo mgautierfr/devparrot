@@ -85,15 +85,9 @@ class close(Action):
 	def close_document(document):
 		if document.check_for_save():
 			save.save_document(document)
-		ret = capi.del_file(document)
-		if document == capi.currentDocument:
-			docToDisplay = None
-			try :
-				docToDisplay = capi.documents['0']
-			except IndexError:
-				pass
-			capi.currentDocument = docToDisplay
-		return ret
+		if document.documentView.is_displayed():
+			document.documentView.get_parentContainer().undisplay(document.documentView)
+		return capi.del_file(document)
 
 class open(Action):
 	def open_a_file(cls, fileToOpen):

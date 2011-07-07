@@ -27,7 +27,6 @@ import mainWindow
 class Workspace(TopContainer):
 	def __init__(self):
 		TopContainer.__init__(self)
-		LeafSpecialization.current = self.childContainer
 		mainWindow.workspaceContainer.add(self.gtkContainer)
 
 	def set_currentDocument(self, document):

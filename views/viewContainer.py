@@ -154,7 +154,11 @@ class SplittedSpecialization(ContainerSpecialization):
 		fatherContainer.detach_child(self)
 		self.detach_child(toKeep)
 		fatherContainer.attach_child(toKeep)
+		toKeep.set_as_current()
 		self.destroy_tree()
+		
+	def undisplay(self, toRemove):
+		return self.unsplit(toRemove = toRemove)
 	
 	def gtk_attach(self, gtkContainer):
 		if self.gtkContainer.get_child1() == None:
@@ -172,6 +176,12 @@ class SplittedSpecialization(ContainerSpecialization):
 			self.gtkContainer.pack2(child.gtkContainer, resize=True)
 			child.set_parentContainer(self)
 		self.gtkContainer.show_all()
+	
+	def set_as_current(self):
+		if self.container1:
+			self.container1.set_as_current()
+		elif self.container2:
+			self.container2.set_as_current()	
 		
 class HSplittedSpecialization(SplittedSpecialization):
 	def __init__(self, specialized): 
@@ -187,10 +197,14 @@ class TopSpecialization(ContainerSpecialization):
 	def __init__(self, specialized):
 		ContainerSpecialization.__init__(self, specialized)
 		self.gtkContainer = gtk.VBox()
+		self.init_default()		
+	
+	def init_default(self):
 		self.childContainer = BasicContainer()
 		LeafSpecialization(self.childContainer)
 		self.childContainer.set_parentContainer(self)
 		self.gtk_attach(self.childContainer.gtkContainer)
+		self.childContainer.set_as_current()
 		self.gtkContainer.show_all()
 	
 	def gtk_attach(self, gtkContainer):
@@ -200,6 +214,11 @@ class TopSpecialization(ContainerSpecialization):
 		childToDetach.set_parentContainer(None)
 		self.gtkContainer.remove(childToDetach.gtkContainer)
 		self.childContainer = None
+	
+	def undisplay(self, toRemove):
+		self.detach_child(toRemove)
+		toRemove.destroy_tree()
+		self.init_default()
 		
 	def prepare_to_dnd(self, active, toExclude = None):
 		self.childContainer.prepare_to_dnd(active, toExclude)
@@ -209,6 +228,9 @@ class TopSpecialization(ContainerSpecialization):
 		self.gtkContainer.add(child.gtkContainer)
 		child.set_parentContainer(self)
 		self.gtkContainer.show_all()
+	
+	def set_as_current(self):
+		self.childContainer.set_as_current()
 
 class LeafSpecialization(ContainerSpecialization):
 	current = None
@@ -259,6 +281,9 @@ class LeafSpecialization(ContainerSpecialization):
 
 		self.gtkContainer = None
 		CleanSpecialization(self)
+	
+	def undisplay(self, toRemove):
+		return self.get_parentContainer().undisplay(self)
 		
 	def split(self, direction, newView, first = False):
 		#switch basecontainer to a SplittedContainer
@@ -290,7 +315,10 @@ class LeafSpecialization(ContainerSpecialization):
 		else:
 			self.init(container1, container2)
 		
-		LeafSpecialization.current = container1
+		container1.set_as_current()
+	
+	def set_as_current(self):
+		LeafSpecialization.current = self
 
 class DragHandler(gtk.Window):
 	def __init__(self, container):
