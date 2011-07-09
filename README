@@ -1,0 +1,106 @@
+#    This file is part of DevParrot.
+#
+#    Author: Matthieu Gautier <matthieu.gautier@mgautier.fr>
+#
+#    DevParrot is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    DevParrot is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with DevParrot.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+#    Copyright 2011 Matthieu Gautier
+
+I - Introduction
+
+DevParrot is intended to be a IDE written in python.
+For now, it is most a text editor than a IDE.
+
+The design of DevParrot is inspired from classic unix
+text editor like vi(m) and emacs.
+However it use the functionalities of graphical interface
+to improve it.
+
+II - Bug report / Patch submition : 
+There is no bugtracker nor mailing list for now. However your help is welcomed.
+You can report a bug by sending me a mail.
+If you have a patch you can send me it by mail or send me a merge request through gitorious.
+
+III - Roadmap
+
+* 1 : Basic text editor
+  - open/edit/save/close a file.
+  - multiple file opened in the same time
+  - syntaxic coloration
+  - basic configuration
+
+* 2 : Advance text editor
+  - Allow user to define its own function.
+  - Allow user to define its own binding
+  - Document explorer
+  - Text folding
+  - handle ctag files
+  
+* 3 : Basic IDE
+  - Project management
+  - run external program (shell)
+  - symbole dectection and completion
+
+* I don't know when :
+  - Integration with SCM
+  - Compiling
+  - Debugging
+  
+
+IV - Use of DevParrot
+
+There is no menu nor toolbar in DevParrot.
+The main entry to use DevParrot is the command entry at the top of the window.
+The focus can be grab to the command entry with Ctrl-Enter.
+
+The classical action are available :
+
+- Open a file. If file is not given the selection file dialog box is used.
+open [file[:lineNumber]]
+
+- Open a new file.
+new
+
+- Save a file. If a file is given the content of the current buffer is save to that file (saveas fnctionality)
+save [file]
+
+- Split the view to view a different file in the same time
+[v]split <number of the opened file>
+
+- Unsplit the view
+unsplit
+
+- Close a file
+close
+
+- Close all the files
+closeall
+
+- Quit DevParrot
+quit
+
+- Search a string :
+search <string>
+/<string>
+
+- Search can be done backward by using ? :
+?<string>
+
+- To continue the search:
+F3
+Alt+F3
+
+- You can go to a line with:
+goto <line number>
