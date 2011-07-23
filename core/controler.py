@@ -24,6 +24,7 @@ import os,sys
 import gtk
 
 import mainWindow
+import config
 
 currentSession = None
 baseColor = None
@@ -39,9 +40,9 @@ def init():
 	mainWindow.entry.connect('event', on_entry_event)
 	baseColor = mainWindow.entry.get_style().base[gtk.STATE_NORMAL]
 	map = mainWindow.entry.get_colormap()
-	notFoundColor = map.alloc_color("red") # red
-	okColor = map.alloc_color("#BBFFBB") # light green
-	errorColor = map.alloc_color("#FF9999") # light red
+	notFoundColor = map.alloc_color(config.get('color','notFoundColor')) # red
+	okColor = map.alloc_color(config.get('color','okColor')) # light green
+	errorColor = map.alloc_color(config.get('color','errorColor')) # light red
 	connect_actions()
 	pass
 

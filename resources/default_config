@@ -1,0 +1,31 @@
+
+
+[window]
+height = 600
+width = 800
+
+[binding]
+commandLine = <Control>Return
+save_command = <Control>s
+new_command = <Control>n
+open_command = <Control>o
+forward_research = F3
+backward_research = <Alt>F3
+
+[textView]
+auto_indent = true
+tab_width = 4
+draw_spaces = 0
+space_indent = false
+highlight_current_line = true
+show_line_numbers = true
+smart_home_end = true
+font = monospace
+
+[color]
+notFoundColor =  red
+okColor = #BBFFBB
+errorColor = #FF9999
+highlight_tag_color = #FFFFBB
+search_tag_color = #FFAAAA
+

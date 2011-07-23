@@ -23,9 +23,11 @@ from actionDef import Action, Accelerator, accelerators
 import os
 import core.capi as capi
 
+import core.config
+
 class save(Action):
 
-	@accelerators(Accelerator("<Control>s"))
+	@accelerators(Accelerator(core.config.get('binding','save_command')))
 	def run(cls, args=[]):
 		if len(args)>=1:
 			return save.save_document(capi.currentDocument,os.path.abspath(args[0]))
@@ -55,7 +57,7 @@ class save(Action):
 
 
 class new(Action):
-	@accelerators(Accelerator("<Control>n"))
+	@accelerators(Accelerator(core.config.get('binding','new_command')))
 	def run(cls, args=[]):
 		from documents.document import Document
 		from documents.newDocSource import NewDocSource
@@ -114,7 +116,7 @@ class open(Action):
 			doc.goto_line(lineToGo-1)
 		return True
 
-	@accelerators(Accelerator("<Control>o"))
+	@accelerators(Accelerator(core.config.get('binding','open_command')))
 	def run(cls, args=[]):
 		if len(args)>=1:
 			ret = True
@@ -200,7 +202,7 @@ class search(Action):
 			return  ret
 		return None
 
-	@accelerators(Accelerator("F3", (False,)),Accelerator("<Alt>F3", (True,)))
+	@accelerators(Accelerator(core.config.get('binding','forward_research'), (False,)),Accelerator(core.config.get('binding','backward_research'), (True,)))
 	def research(cls, changeDirection):
 		if changeDirection:
 			direction = not cls.lastDirection

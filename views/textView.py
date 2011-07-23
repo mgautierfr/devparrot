@@ -21,6 +21,8 @@
 import gtk,pango,glib
 import gtksourceview2
 
+import core.config
+
 class TextView():
 	def __init__(self, document):
 		self.container = gtk.ScrolledWindow()
@@ -29,11 +31,14 @@ class TextView():
 		self.container.add(self.view)
 		self.container.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
 		
-		self.view.set_auto_indent(True)
-		self.view.set_highlight_current_line(True)
-		self.view.set_show_line_numbers(True)
-		self.view.set_smart_home_end(True)
-		self.view.modify_font(pango.FontDescription("monospace"))
+		self.view.set_auto_indent(core.config.getboolean('textView','auto_indent'))
+		self.view.set_tab_width(core.config.getint('textView','tab_width'))
+		self.view.set_draw_spaces(core.config.getint('textView','draw_spaces'))
+		self.view.set_insert_spaces_instead_of_tabs(core.config.getboolean('textView','space_indent'))
+		self.view.set_highlight_current_line(core.config.getboolean('textView','highlight_current_line'))
+		self.view.set_show_line_numbers(core.config.getboolean('textView','show_line_numbers'))
+		self.view.set_smart_home_end(core.config.getboolean('textView','smart_home_end'))
+		self.view.modify_font(pango.FontDescription(core.config.get('textView','font')))
 		self.view.props.sensitive = False
 		self.document = document
 

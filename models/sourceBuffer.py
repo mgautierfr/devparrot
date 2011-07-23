@@ -21,16 +21,16 @@
 import gtksourceview2
 import gtk
 
+import core.config
+
 class SourceBuffer(gtksourceview2.Buffer):
 	def __init__(self, document):
 		gtksourceview2.Buffer.__init__(self)
 		self.connect("mark-set", self.on_mark_set)
-		self.search_tag = self.create_tag(background="yellow")
 		self.document = document
 		self.searchMark = None
-		self.connect("mark-set", self.on_mark_set)
-		self.highlight_tag = self.create_tag(background="yellow")
-		self.search_tag = self.create_tag(background="red")
+		self.highlight_tag = self.create_tag(background=core.config.get('color','highlight_tag_color'))
+		self.search_tag = self.create_tag(background=core.config.get('color','search_tag_color'))
 		
 	def get_document(self):
 		return self.document

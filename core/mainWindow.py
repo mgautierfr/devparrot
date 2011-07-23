@@ -24,6 +24,7 @@ import os
 
 from views.documentListView import DocumentListView
 
+import core.config
 
 class Helper:
 	def __init__(self):
@@ -89,9 +90,9 @@ def init():
 	global accelGroup
 	window = gtk.Window()
 	window.connect('delete-event', quit)
-	window.set_default_size(800,600)
+	window.set_default_size(core.config.getint('window','width'),core.config.getint('window','height'))
 	icon_path = os.path.dirname(os.path.realpath(__file__))
-	icon_path = os.path.join(icon_path,"../icon.png")
+	icon_path = os.path.join(icon_path,"../resources/icon.png")
 	window.set_icon_from_file(icon_path)
 	window.set_title("DevParrot")
 	vbox = gtk.VBox()
@@ -113,28 +114,7 @@ def init():
 	accelGroup = gtk.AccelGroup()
 	window.add_accel_group(accelGroup)
 	
-	entry.add_accelerator('grab-focus', accelGroup, *gtk.accelerator_parse("<Control>Return") , accel_flags = 0)
+	entry.add_accelerator('grab-focus', accelGroup, *gtk.accelerator_parse(core.config.get('binding','commandLine')) , accel_flags = 0)
 
 	window.show_all()
-	
-
-def on_accel(accel_group, acceleratable, keyval, modifier):
-	global entry
-	if (keyval, modifier) == gtk.accelerator_parse("<Control>s"):
-		entry.set_text("save")
-		entry.activate()
-		return True
-	if (keyval, modifier) == gtk.accelerator_parse("<Control>o"):
-		entry.set_text("open")
-		entry.activate()
-		return True
-	if (keyval, modifier) == gtk.accelerator_parse("<Control>n"):
-		entry.set_text("new")
-		entry.activate()
-		return True
-	if (keyval, modifier) == gtk.accelerator_parse("<Control>q"):
-		entry.set_text("quit")
-		entry.activate()
-		return True
-	return False
 

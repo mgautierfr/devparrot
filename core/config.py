@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 #    This file is part of DevParrot.
 #
 #    Author: Matthieu Gautier <matthieu.gautier@mgautier.fr>
@@ -20,29 +18,23 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import pygtk
-pygtk.require('2.0')
-import gtk
+import ConfigParser
+import os, pwd
+
+config = None
 
 
-import sys
+_homedir = pwd.getpwuid(os.getuid())[5]
+_user_config_path = os.path.join(_homedir,'.devparrot')
+_default_config_path = os.path.dirname(os.path.realpath(__file__))
+_default_config_path = os.path.join(_default_config_path,"../resources/default_config")
+
+_config = ConfigParser.SafeConfigParser()
+_config.read([_default_config_path, _user_config_path])
 
 
-from core.session import Session
+def get(section, option): return _config.get(section, option)
 
-import core.config
-import core.mainWindow
-import core.controler
+def getint(section, option): return _config.getint(section, option)
 
-class DevParrot(object):
-	def __init__(self):
-		core.mainWindow.init()
-		core.controler.init()
-		self.session = Session()
-		if len(sys.argv) > 1:
-			command = core.controler.get_command('open')
-			command.run(sys.argv[1:])
-
-if __name__ == "__main__":
-	app = DevParrot()
-	gtk.main()
+def getboolean(section, option) : return _config.getboolean(section, option)
