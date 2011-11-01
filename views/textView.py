@@ -62,3 +62,18 @@ class TextView():
 	def set_model(self, model):
 		self.view.set_buffer(model)
 		self.view.props.sensitive = True
+	
+	def get_context(self):
+		had = self.view.get_hadjustment()
+		vad = self.view.get_vadjustment()
+		hadjustment = (had.value-had.lower)/(had.upper-had.lower)
+		vadjustment = (vad.value-vad.lower)/(vad.upper-vad.lower)
+		return (hadjustment,vadjustment)
+
+	def set_context(self, ctx):
+		had = self.view.get_hadjustment()
+		vad = self.view.get_vadjustment()
+		had.set_value(ctx[0]*(had.upper-had.lower)+had.lower)
+		vad.set_value(ctx[1]*(vad.upper-vad.lower)+vad.lower)
+		return False
+

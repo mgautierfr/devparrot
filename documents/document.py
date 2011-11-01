@@ -64,7 +64,7 @@ class Document(gobject.GObject):
 		view.set_model(self.models[model_type])
 		self.documentView.set_view(view)
 		self.currentView = view
-		view.view.connect('focus-in-event', self.on_focus_in_event)
+		view.view.connect_after('focus-in-event', self.on_focus_in_event)
 		
 	def remove_view(self, model_type, view):
 		if self.models[model_type] in self.views.keys():
@@ -116,7 +116,9 @@ class Document(gobject.GObject):
 			answer = core.mainWindow.Helper().ask_questionYesNo("File content changed",
 			     "The content of file %s has changed.\nDo you want to reload it?"%self.title)
 			if answer:
+				ctx = self.currentView.get_context()
 				self.load()
+				glib.idle_add(self.currentView.set_context, ctx)
 
 	def check_for_save(self):
 		model = self.models['text']
