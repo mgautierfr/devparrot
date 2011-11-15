@@ -18,8 +18,8 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from .documentManager import DocumentManager
-from .workspace import Workspace
+from core.documentManager import DocumentManager
+from core.workspace import Workspace
 
 import controler
 

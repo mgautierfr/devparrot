@@ -20,24 +20,20 @@
 
 from views.documentView import DocumentView
 from views.textView import TextView
-from models.sourceBuffer import SourceBuffer
 
-import gobject,glib
 from datetime import datetime
+import ttk
+import core.mainWindow
 
-class Document(gobject.GObject):
-	__gsignals__ = {
-		'modified-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,)),
-		'documentSource-changed' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-		                    (gobject.TYPE_PYOBJECT,)),
-	}
-	
+class Document(object):
 	def __init__(self, documentSource):
-		Document.__gobject_init__(self)
 		self.models = {}
-		self.models['text'] = SourceBuffer(self)
-		self.models['text'].connect('modified-changed', self.on_modified_changed)
+		self.titleVar = ttk.Tkinter.StringVar()
+		self.titleVar.set(documentSource.longTitle)
+		self.modifiedVar = ttk.Tkinter.StringVar(value="normal")
 		self.documentView = DocumentView(self)
+		self.models['text'] = ttk.Tkinter.Text(core.mainWindow.workspaceContainer)
+		self.models['text'].bind("<<Modified>>", self.on_modified_changed)
 		self.views = []
 		self.currentView = None
 		
@@ -45,7 +41,6 @@ class Document(gobject.GObject):
 		self.load()
 
 		self.add_view('text', TextView(self))
-		self.emit
 	
 	def __getattr__(self, name):
 		if name in ["title", "longTitle"]:
@@ -64,7 +59,7 @@ class Document(gobject.GObject):
 		view.set_model(self.models[model_type])
 		self.documentView.set_view(view)
 		self.currentView = view
-		view.view.connect_after('focus-in-event', self.on_focus_in_event)
+		#view.view.connect_after('focus-in-event', self.on_focus_in_event)
 		
 	def remove_view(self, model_type, view):
 		if self.models[model_type] in self.views.keys():
@@ -89,15 +84,17 @@ class Document(gobject.GObject):
 		if (not "documentSource" in self.__dict__ or
 		    self.documentSource != documentSource):
 			self.documentSource = documentSource
-			self.emit('documentSource-changed', self.documentSource)
-		try:
+			self.titleVar.set(self.documentSource.longTitle)
+		if False:
 			self.models['text'].set_language(self.documentSource.language)
 			self.models['text'].set_highlight_syntax(True)
-		except AttributeError:
-			self.models['text'].set_highlight_syntax(False)
+		#except AttributeError:
+		#	self.models['text'].set_highlight_syntax(False)
 		
 	def load(self):
-		self.models['text'].set_text(self.documentSource.get_content())
+		self.models['text'].delete("0.1", "end")
+		self.models['text'].insert("0.1", self.documentSource.get_content())
+		self.models['text'].edit_modified(False)
 	
 	def write(self):
 		model = self.models['text']
@@ -106,8 +103,8 @@ class Document(gobject.GObject):
 			return True
 		return False
 		
-	def on_modified_changed(self, buffer):
-		self.emit('modified-changed', buffer)
+	def on_modified_changed(self, event):
+		self.documentView.set_bold(self.models['text'].edit_modified())
 	
 	def on_focus_in_event(self, widget, event):
 		res = self.documentSource.need_reload()
@@ -118,7 +115,7 @@ class Document(gobject.GObject):
 			if answer:
 				ctx = self.currentView.get_context()
 				self.load()
-				glib.idle_add(self.currentView.set_context, ctx)
+				#glib.idle_add(self.currentView.set_context, ctx)
 
 	def check_for_save(self):
 		model = self.models['text']
@@ -146,6 +143,3 @@ class Document(gobject.GObject):
 				line = current_line - line
 		line_iter = self.models['text'].get_iter_at_line(line)
 		self.models['text'].select_range(line_iter,line_iter)
-		glib.idle_add(callback, line_iter)
-
-gobject.type_register(Document)

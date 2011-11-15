@@ -20,18 +20,12 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import pygtk
-pygtk.require('2.0')
-import gtk
-
 
 import sys
 
-
-from core.session import Session
-
 import core.config
 import core.mainWindow
+from core.session import Session
 import core.controler
 
 class DevParrot(object):
@@ -39,10 +33,11 @@ class DevParrot(object):
 		core.mainWindow.init()
 		core.controler.init()
 		self.session = Session()
+		print core.mainWindow.workspaceContainer
 		if len(sys.argv) > 1:
 			command = core.controler.get_command('open')
 			command.run(sys.argv[1:])
 
 if __name__ == "__main__":
 	app = DevParrot()
-	gtk.main()
+	core.mainWindow.window.mainloop()

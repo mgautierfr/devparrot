@@ -18,65 +18,60 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import gtk,gobject
 
 import mainWindow
 
-class DocumentManager(gtk.ListStore):
+class DocumentManager(object):
 	def __init__(self, session):
-		gtk.ListStore.__init__(self, gobject.TYPE_PYOBJECT)
 		self.session = session
-		mainWindow.documentListView.set_document(self)
+		self.view = mainWindow.documentListView
+		self.documents = []
 		self.signalConnections = {}
+	
+	def get_nbDocuments(self):
+		return len(self.documents)
+	
+	def get_nthFile(self, index):
+		return self.documents[index]
 
 	def find_index(self, doc):
 		index = 0
-		for row in self:
-			if row[0] == doc:
+		for document in self.documents:
+			if document == doc:
 				return index
 			index += 1
 		return None
 
-	def force_redraw(self, doc):
-		path = self.find_index(doc)
-		if path != None:
-			self.row_changed(path, self.get_iter(path))
-
-	def on_documentSource_changed(self, source, documentSource):
-		self.force_redraw(source)
-
-	def on_event(self, document, buffer):
-		self.force_redraw(document)
-
 	def has_file(self, path):
-		for (document,) in self:
+		for document in self.documents:
 			if document.get_path() == path:
 				return True
 		return False
 
 	def get_file(self, path):
-		for (document,) in self:
+		for document in self.documents:
 			if document.get_path() == path:
 				return document
 		return None
 
 	def del_file(self, document):
-		rowReference = self.find_index(document)
-		if rowReference == None:
+		try:
+			self.documents.remove(doc)
+			return True
+		except:
 			return False
-		for (key, (obj,connect)) in self.signalConnections[document].items():
-			obj.disconnect(connect)
-		del self.signalConnections[document]
-		del self[rowReference]
-		return True
+	
+	def switch_to_document(self, index):
+		document = self.documents[index]
+		if document.documentView.is_displayed():
+			document.documentView.focus()
+		else:
+			core.controler.currentSession.get_workspace().set_currentDocument(document)
 			
 
 	def add_file(self, document):
-		self.signalConnections[document] = {
-			'documentSource-changed' : ( document, document.connect('documentSource-changed', self.on_documentSource_changed) ),
-			'modified-changed' : ( document, document.connect('modified-changed', self.on_event) )
-		}
-		self.append([document])
+		self.documents.append(document)
+		self.view.insert('', 'end', text=str(self.documents.index(document)), values=(document.title))
 	
 	def __str__(self):
 		return "Open Files\n[\n%(openfiles)s\n]"%{

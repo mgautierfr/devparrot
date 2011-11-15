@@ -18,8 +18,6 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-
-from views.textView import TextView
 from views.viewContainer import TopContainer, LeafSpecialization
 
 import mainWindow
@@ -27,7 +25,7 @@ import mainWindow
 class Workspace(TopContainer):
 	def __init__(self):
 		TopContainer.__init__(self)
-		mainWindow.workspaceContainer.add(self.gtkContainer)
+		#self.uiContainer.pack(in_=mainWindow.workspaceContainer)
 
 	def set_currentDocument(self, document):
 		self.get_currentContainer().set_documentView(document.documentView)

@@ -19,10 +19,8 @@
 #    Copyright 2011 Matthieu Gautier
 
 
-import gtk
 import os
-
-from views.documentListView import DocumentListView
+import ttk
 
 import core.config
 
@@ -76,45 +74,48 @@ documentListView = None
 workspaceContainer = None
 accelGroup = None
 
-def quit(widget,event):
+def quit(event):
 	from actions.controlerActions import quit
 	quit.run()
 
 
 def init():
-	
+	from views.documentListView import DocumentListView
 	global window
 	global entry
 	global documentListView
 	global workspaceContainer
 	global accelGroup
-	window = gtk.Window()
-	window.connect('delete-event', quit)
-	window.set_default_size(core.config.getint('window','width'),core.config.getint('window','height'))
+	window = ttk.Tkinter.Tk()
+	geom = window.wm_geometry()
+	x = geom.split('+')[1]
+	y = geom.split('+')[2]
+	window.wm_geometry("%dx%d+%s+%s"%(core.config.getint('window','width'),core.config.getint('window','height'),x,y))
 	icon_path = os.path.dirname(os.path.realpath(__file__))
 	icon_path = os.path.join(icon_path,"../resources/icon.png")
-	window.set_icon_from_file(icon_path)
-	window.set_title("DevParrot")
-	vbox = gtk.VBox()
-	window.add(vbox)
-	entry = gtk.Entry()
-	vbox.add(entry)
-	vbox.child_set_property(entry, "expand", False)
-	hpaned = gtk.HPaned()
-	vbox.add(hpaned)
-	documentListView = DocumentListView()
-	scrolledWin = gtk.ScrolledWindow()
-	scrolledWin.set_policy(gtk.POLICY_NEVER,gtk.POLICY_AUTOMATIC)
-	hpaned.add(scrolledWin)
-	scrolledWin.add(documentListView)
-	workspaceContainer = gtk.VBox()
-	hpaned.add(workspaceContainer)
-	hpaned.props.position = 200
-
-	accelGroup = gtk.AccelGroup()
-	window.add_accel_group(accelGroup)
+#	window.wm_iconwindow(icon_path)
+	window.wm_title("DevParrot")
 	
-	entry.add_accelerator('grab-focus', accelGroup, *gtk.accelerator_parse(core.config.get('binding','commandLine')) , accel_flags = 0)
+	vbox = ttk.Tkinter.Frame(window)
+	vbox.pack(expand=True,fill=ttk.Tkinter.BOTH)
+	entry = ttk.Entry(vbox)
+	entry.pack(side=ttk.Tkinter.TOP,fill=ttk.Tkinter.X)
+	hpaned = ttk.Tkinter.PanedWindow(vbox,orient=ttk.Tkinter.HORIZONTAL)
+	hpaned.pack(expand=True,fill=ttk.Tkinter.BOTH)
+	documentListView = DocumentListView(hpaned)
+	hpaned.add(documentListView)
+	#scrolledWin = gtk.ScrolledWindow()
+	#scrolledWin.set_policy(gtk.POLICY_NEVER,gtk.POLICY_AUTOMATIC)
+	#hpaned.add(scrolledWin)
+	#scrolledWin.add(documentListView)
+	workspaceContainer = ttk.Tkinter.Frame(hpaned)
+	hpaned.add(workspaceContainer)
+	#hpaned.props.position = 200
 
-	window.show_all()
+	#accelGroup = gtk.AccelGroup()
+	#window.add_accel_group(accelGroup)
+	
+	window.bind("<Control-Return>", lambda event: entry.focus())
+
+#	window.show_all()
 

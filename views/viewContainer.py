@@ -18,8 +18,8 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import gtk
-from textView import TextView
+import Tkinter,ttk
+from core import mainWindow
 
 class ContainerSpecialization(object):
 	def __init__(self, specialized):
@@ -92,19 +92,23 @@ class SplittedSpecialization(ContainerSpecialization):
 	def init(self, container1, container2):
 		self.container1 = container1
 		self.container2 = container2
-		self.gtkContainer.pack1(container1.gtkContainer, resize=True)
-		self.gtkContainer.pack2(container2.gtkContainer, resize=True)
+		self.uiContainer.add(container1.uiContainer)
+		self.uiContainer.add(container2.uiContainer)
 		container1.set_parentContainer(self)
 		container2.set_parentContainer(self)
-		self.gtkContainer.show_all()
+	
+	def lift(self):
+		#self.uiContainer.lift(self.parentContainer.uiContainer)
+		self.container1.lift()
+		self.container2.lift()
 			
 	def __unlink_child__(self):
 		if self.container1:
 			self.container1.set_parentContainer(None)
-			self.gtkContainer.remove(self.container1.gtkContainer)
+			self.container1.uiContainer.forget()
 		if self.container2:
 			self.container2.set_parentContainer(None)
-			self.gtkContainer.remove(self.container2.gtkContainer)
+			self.container2.uiContainer.forget()
 	
 	def prepare_to_dnd(self, active, toExclude = None):
 		if self.container1:
@@ -115,21 +119,21 @@ class SplittedSpecialization(ContainerSpecialization):
 	def destroy_tree(self):
 		if self.container1:
 			self.container1.set_parentContainer(None)
-			self.gtkContainer.remove(self.container1.gtkContainer)
+			self.container1.uiContainer.forget()
 			self.container1.destroy_tree()
 			self.container1 = None
 		if self.container2:
 			self.container2.set_parentContainer(None)
-			self.gtkContainer.remove(self.container2.gtkContainer)
+			self.container2.uiContainer.forget()
 			self.container2.destroy_tree()
 			self.container2 = None
 
-		self.gtkContainer = None
+		self.uiContainer = None
 		CleanSpecialization(self)
 			
 	def detach_child(self, childToDetach):
 		childToDetach.set_parentContainer(None)
-		self.gtkContainer.remove(childToDetach.gtkContainer)
+		self.uiContainer.remove(childToDetach.uiContainer)
 		if self.container1 == childToDetach:
 			self.container1 = None
 		elif self.container2 == childToDetach:
@@ -160,22 +164,22 @@ class SplittedSpecialization(ContainerSpecialization):
 	def undisplay(self, toRemove):
 		return self.unsplit(toRemove = toRemove)
 	
-	def gtk_attach(self, gtkContainer):
-		if self.gtkContainer.get_child1() == None:
-			self.gtkContainer.pack1(gtkContainer, resize=True)
-		if self.gtkContainer.get_child2() == None:
-			self.gtkContainer.pack2(gtkContainer, resize=True)
+	def ui_attach(self, uiContainer):
+		if self.uiContainer.get_child1() == None:
+			self.uiContainer.add(uiContainer, resize=True)
+		if self.uiContainer.get_child2() == None:
+			self.uiContainer.add(uiContainer, resize=True)
 
 	def attach_child(self, child):
 		if self.container1 == None:
 			self.container1 = child
-			self.gtkContainer.pack1(child.gtkContainer, resize=True)
+			self.uiContainer.add(child.uiContainer, resize=True)
 			child.set_parentContainer(self)
 		if self.container2 == None:
 			self.container2 = child
-			self.gtkContainer.pack2(child.gtkContainer, resize=True)
+			self.uiContainer.add(child.uiContainer, resize=True)
 			child.set_parentContainer(self)
-		self.gtkContainer.show_all()
+		#self.gtkContainer.show_all()
 	
 	def set_as_current(self):
 		if self.container1:
@@ -186,33 +190,42 @@ class SplittedSpecialization(ContainerSpecialization):
 class HSplittedSpecialization(SplittedSpecialization):
 	def __init__(self, specialized): 
 		SplittedSpecialization.__init__(self, specialized)
-		self.gtkContainer = gtk.HPaned()
+		self.uiContainer = Tkinter.PanedWindow(mainWindow.workspaceContainer,orient=Tkinter.HORIZONTAL)
+	
+	def set_panedPos(self, pos):
+		width = self.uiContainer.winfo_width()
+		self.uiContainer.sash_place(0, int(width*pos),0)
 
 class VSplittedSpecialization(SplittedSpecialization):
 	def __init__(self, specialized):
 		SplittedSpecialization.__init__(self, specialized)
-		self.gtkContainer = gtk.VPaned()
+		self.uiContainer = Tkinter.PanedWindow(mainWindow.workspaceContainer,orient=Tkinter.VERTICAL)
+	
+	def set_panedPos(self, pos):
+		height = self.uiContainer.winfo_height()
+		self.uiContainer.sash_place(0, 0, int(height*pos))
 		
 class TopSpecialization(ContainerSpecialization):
 	def __init__(self, specialized):
 		ContainerSpecialization.__init__(self, specialized)
-		self.gtkContainer = gtk.VBox()
+		#self.uiContainer = Tkinter.Frame()
+		self.uiContainer = mainWindow.workspaceContainer
 		self.init_default()		
 	
 	def init_default(self):
 		self.childContainer = BasicContainer()
 		LeafSpecialization(self.childContainer)
 		self.childContainer.set_parentContainer(self)
-		self.gtk_attach(self.childContainer.gtkContainer)
+		self.ui_attach(self.childContainer.uiContainer)
 		self.childContainer.set_as_current()
-		self.gtkContainer.show_all()
+		#self.gtkContainer.show_all()
 	
-	def gtk_attach(self, gtkContainer):
-		self.gtkContainer.add(gtkContainer)
+	def ui_attach(self, uiContainer):
+		uiContainer.pack(in_=self.uiContainer, expand=True, fill=ttk.Tkinter.BOTH)
 	
 	def detach_child(self, childToDetach):
 		childToDetach.set_parentContainer(None)
-		self.gtkContainer.remove(childToDetach.gtkContainer)
+		childToDetach.uiContainer.forget()
 		self.childContainer = None
 	
 	def undisplay(self, toRemove):
@@ -225,21 +238,21 @@ class TopSpecialization(ContainerSpecialization):
 	
 	def attach_child(self, child):
 		self.childContainer = child
-		self.gtkContainer.add(child.gtkContainer)
+		child.uiContainer.pack(in_=self.uiContainer, expand=True, fill=ttk.Tkinter.BOTH)
 		child.set_parentContainer(self)
-		self.gtkContainer.show_all()
+		#self.gtkContainer.show_all()
 	
 	def set_as_current(self):
 		self.childContainer.set_as_current()
 
 class LeafSpecialization(ContainerSpecialization):
 	current = None
-	def __init__(self, specialized, gtkContainer=None):
+	def __init__(self, specialized, uiContainer=None):
 		ContainerSpecialization.__init__(self, specialized)
-		if gtkContainer == None:
-			self.gtkContainer = gtk.VBox()
+		if uiContainer == None:
+			self.uiContainer = Tkinter.Frame(mainWindow.workspaceContainer)
 		else:
-			self.gtkContainer = gtkContainer
+			self.uiContainer = uiContainer
 		self.drag_handler = None
 		self.documentView = None
 	
@@ -260,15 +273,15 @@ class LeafSpecialization(ContainerSpecialization):
 
 	def set_documentView(self, documentView):
 		if self.documentView:
-			self.gtkContainer.remove(self.documentView)
+			self.documentView.forget()
 			self.documentView.set_parentContainer(None)
 			self.documentView = None
 			
 		if documentView:
 			documentView.set_parentContainer(self)
 			self.documentView = documentView
-			self.gtkContainer.add(documentView)
-		self.gtkContainer.show_all()
+			documentView.pack(in_=self.uiContainer, expand=True, fill=ttk.Tkinter.BOTH)
+		#self.gtkContainer.show_all()
 
 	def get_documentView(self):
 		return self.documentView
@@ -276,10 +289,10 @@ class LeafSpecialization(ContainerSpecialization):
 	def destroy_tree(self):
 		if self.documentView:
 			self.documentView.set_parentContainer(None)
-			self.gtkContainer.remove(self.documentView)
+			self.documentView.forget()
 			self.documentView = None
 
-		self.gtkContainer = None
+		self.uiContainer = None
 		CleanSpecialization(self)
 	
 	def undisplay(self, toRemove):
@@ -287,20 +300,20 @@ class LeafSpecialization(ContainerSpecialization):
 		
 	def split(self, direction, newView, first = False):
 		#switch basecontainer to a SplittedContainer
-		currentGtkContainer = self.gtkContainer
+		currentUiContainer = self.uiContainer
 		currentDocumentView = self.documentView
 		fatherContainer = self.get_parentContainer()
-		fatherContainer.gtkContainer.remove(self.gtkContainer)
+		self.uiContainer.forget()
 		
 		if direction == 0:
 			HSplittedSpecialization(self)
 		else:
 			VSplittedSpecialization(self)
-		fatherContainer.gtk_attach(self.gtkContainer)
+		fatherContainer.ui_attach(self.uiContainer)
 
 		# create the two leaf containers
 		container1 = BasicContainer()
-		LeafSpecialization(container1, currentGtkContainer)
+		LeafSpecialization(container1, currentUiContainer)
 		currentDocumentView.set_parentContainer(container1)
 		container1.documentView = currentDocumentView
 		
@@ -315,12 +328,23 @@ class LeafSpecialization(ContainerSpecialization):
 		else:
 			self.init(container1, container2)
 		
+		self.lift()
+		#import pdb; pdb.set_trace()
+		
+		self.uiContainer.update()
+		self.uiContainer.after_idle(self.set_panedPos,0.5)
+		
 		container1.set_as_current()
+	
+	def lift(self):
+		self.uiContainer.lift(self.parentContainer.uiContainer)
+		self.documentView.lift()
 	
 	def set_as_current(self):
 		LeafSpecialization.current = self
 
-class DragHandler(gtk.Window):
+if False:
+#class DragHandler(gtk.Window):
 	def __init__(self, container):
 		gtk.Window.__init__(self,gtk.WINDOW_POPUP)
 		self.container = container

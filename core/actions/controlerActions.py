@@ -70,7 +70,7 @@ class switch(Action):
 	def run(cls, args=[]):
 		if len(args)==0:
 			return False
-		capi.currentDocument = capi.get_nth_file(args[0])
+		capi.currentDocument = capi.get_nth_file(int(args[0]))
 		return True
 		
 		
@@ -165,9 +165,9 @@ class split(Action):
 
 	def run(cls, args=[]):
 		if args[0] == cls.SPLIT:
-			doc = capi.get_nth_file(args[2])
+			doc = capi.get_nth_file(int(args[2]))
 			if doc.documentView.is_displayed():
-				return doc.documentView.grab_focus()
+				return doc.documentView.focus()
 			else:
 				return capi.currentContainer.split(args[1], doc.documentView)
 		if args[0] == cls.UNSPLIT:

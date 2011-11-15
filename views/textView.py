@@ -18,28 +18,24 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import gtk,pango,glib
-import gtksourceview2
-
 import core.config
+import ttk
+
+import core.mainWindow
 
 class TextView():
 	def __init__(self, document):
-		self.container = gtk.ScrolledWindow()
-		self.view = gtksourceview2.View()
+		self.uiContainer = ttk.Frame(core.mainWindow.workspaceContainer)
+		self.HScrollbar = ttk.Scrollbar(core.mainWindow.workspaceContainer,orient=ttk.Tkinter.HORIZONTAL)
+		self.VScrollbar = ttk.Scrollbar(core.mainWindow.workspaceContainer,orient=ttk.Tkinter.VERTICAL)
 		
-		self.container.add(self.view)
-		self.container.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
+		self.HScrollbar.grid(column=0, row=1, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
+		self.VScrollbar.grid(column=1, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
+		self.uiContainer.columnconfigure(0, weight=1)
+		self.uiContainer.columnconfigure(1, weight=0)
+		self.uiContainer.rowconfigure(0, weight=1)
+		self.uiContainer.rowconfigure(1, weight=0)
 		
-		self.view.set_auto_indent(core.config.getboolean('textView','auto_indent'))
-		self.view.set_tab_width(core.config.getint('textView','tab_width'))
-		self.view.set_draw_spaces(core.config.getint('textView','draw_spaces'))
-		self.view.set_insert_spaces_instead_of_tabs(core.config.getboolean('textView','space_indent'))
-		self.view.set_highlight_current_line(core.config.getboolean('textView','highlight_current_line'))
-		self.view.set_show_line_numbers(core.config.getboolean('textView','show_line_numbers'))
-		self.view.set_smart_home_end(core.config.getboolean('textView','smart_home_end'))
-		self.view.modify_font(pango.FontDescription(core.config.get('textView','font')))
-		self.view.props.sensitive = False
 		self.document = document
 
 	def clone(self):
@@ -47,21 +43,37 @@ class TextView():
 		self.document.add_view('text', new)
 		return new
 		
-	def grab_focus(self):
-		return self.view.grab_focus()
+	def focus(self):
+		return self.view.focus()
 
 	def get_document(self):
 		return self.document
 
-	def get_parentContainer(self):
-		return self.parentContainer
-
-	def set_parentContainer(self, container):
-		self.parentContainer = container
-
 	def set_model(self, model):
-		self.view.set_buffer(model)
-		self.view.props.sensitive = True
+		from pprint import pprint
+		self.view = model
+		self.view['yscrollcommand'] = self.VScrollbar.set
+		self.view['xscrollcommand'] = self.HScrollbar.set
+		self.VScrollbar['command'] = self.view.yview
+		self.HScrollbar['command'] = self.view.xview
+		self.view.grid(column=0, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
+		self.view.lift(self.uiContainer)
+		self.view.bind('<FocusIn>', self.document.documentView.on_focus_child)
+		#self.view.set_auto_indent(core.config.getboolean('textView','auto_indent'))
+		#self.view.set_tab_width(core.config.getint('textView','tab_width'))
+		#self.view.set_draw_spaces(core.config.getint('textView','draw_spaces'))
+		#self.view.set_insert_spaces_instead_of_tabs(core.config.getboolean('textView','space_indent'))
+		#self.view.set_highlight_current_line(core.config.getboolean('textView','highlight_current_line'))
+		#self.view.set_show_line_numbers(core.config.getboolean('textView','show_line_numbers'))
+		#self.view.set_smart_home_end(core.config.getboolean('textView','smart_home_end'))
+		#self.view.modify_font(pango.FontDescription(core.config.get('textView','font')))
+		#self.view.props.sensitive = True
+	
+	def lift(self, above):
+		self.uiContainer.lift(above)
+		self.VScrollbar.lift(self.uiContainer)
+		self.HScrollbar.lift(self.uiContainer)
+		self.view.lift(self.uiContainer)
 	
 	def get_context(self):
 		had = self.view.get_hadjustment()

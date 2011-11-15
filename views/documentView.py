@@ -18,64 +18,58 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import gtk,pango
+import Tkinter,ttk
 from views.viewContainer import LeafSpecialization,AbstractContainerChild
 
-class DocumentView(gtk.Frame,AbstractContainerChild):
+import core.mainWindow
+
+class DocumentView(ttk.LabelFrame,AbstractContainerChild):
 	def __init__(self, document):
-		gtk.Frame.__init__(self)
+		ttk.LabelFrame.__init__(self,core.mainWindow.workspaceContainer)
 		AbstractContainerChild.__init__(self)
 		self.document = document
-		self.set_label_align(0.0, 0.0)
 		self.currentView= None
 		
-		self.label = gtk.Label()
-		self.label.set_selectable(True)
-		self.label.set_alignment(0, 0.5)
-		self.label.props.can_focus = False
-		self.set_label_widget(self.label)
+		import tkFont
+		self.label = ttk.Label(self)
+		self.label.font = tkFont.Font(font="TkDefaultFont")
+		self.label['textvariable'] = document.titleVar
+		self.label['font'] = self.label.font
+		self['labelwidget'] = self.label
+
+		self.bind('<FocusIn>', self.on_focus)
 		
-		self.document.connect('documentSource-changed', self.on_documentSource_changed)
-		self.document.connect('modified-changed', self.on_modified_changed)
-		self.connect('set-focus-child', self.on_set_focus_child)
-		self.connect("grab-focus", self.on_grab_focus)
-		
-		self.label.drag_source_set(gtk.gdk.BUTTON1_MASK, [('documentView',gtk.TARGET_SAME_APP,5)], gtk.gdk.ACTION_COPY)
-		self.label.connect('drag-begin',self.on_drag_begin)
-		self.label.connect('drag-data-get',self.on_drag_data_get)
-		self.label.connect('drag-end',self.on_drag_end)
-		
+		#self.label.drag_source_set(gtk.gdk.BUTTON1_MASK, [('documentView',gtk.TARGET_SAME_APP,5)], gtk.gdk.ACTION_COPY)
+		#self.label.connect('drag-begin',self.on_drag_begin)
+		#self.label.connect('drag-data-get',self.on_drag_data_get)
+		#self.label.connect('drag-end',self.on_drag_end)
 		
 	def set_view(self, child):
-		self.add(child.container)
+		child.uiContainer.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)
 		self.currentView = child
-		self.show_all()
 	
-	def on_documentSource_changed(self, documentSource, userData=None):
-		self.label.set_text(self.document.longTitle)
-
-	def on_modified_changed(self, source, buffer):
-		self.set_bold(buffer.get_modified())
+	def lift(self):
+		ttk.LabelFrame.lift(self, self.parentContainer.uiContainer)
+		if self.currentView != None: 
+			self.currentView.lift(self)
+	
+	def on_modified(self, varname, value, mode):
+		var = ttk.Tkinter.BooleanVar(name=varname)
+		print "_____",var.get()
+		self.set_bold(var.get())		
+		return False
 
 	def set_bold(self, bold):
-		att = pango.AttrList()
-		att.insert(pango.AttrWeight(pango.WEIGHT_BOLD if bold else pango.WEIGHT_NORMAL,
-		                            start_index=0,
-		                            end_index=len(self.label.get_text())
-                                           ))
-		self.label.set_attributes(att)
+		self.label.font['weight'] = "bold" if bold else "normal"
 
 	def is_displayed(self):
 		return self.parentContainer != None
 		
-	def on_grab_focus(self, widget):
-		self.currentView.grab_focus()
-		self.show_all()
+	def on_focus(self, event):
+		self.currentView.focus()
 
-		
-	def on_set_focus_child(self, container, widget):
-		if widget:
-			LeafSpecialization.current = self.parentContainer
+	def on_focus_child(self, event):
+		LeafSpecialization.current = self.parentContainer
 	
 	def on_drag_begin(self, widget, drag_context, data=None):
 		import core.controler

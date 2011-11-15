@@ -21,7 +21,6 @@
 from actions import ActionList
 
 import os,sys
-import gtk
 
 import mainWindow
 import config
@@ -29,20 +28,17 @@ import config
 currentSession = None
 baseColor = None
 
-#It should be some define of those value somewhere. Where ?
-__key_UP__ = 65362
-__key_DOWN__ = 65364
-
 def init():
 	global baseColor,notFoundColor, okColor, errorColor
-	mainWindow.entry.connect('activate', on_entry_activate)
-	mainWindow.entry.connect('focus-in-event', on_get_focus)
-	mainWindow.entry.connect('event', on_entry_event)
-	baseColor = mainWindow.entry.get_style().base[gtk.STATE_NORMAL]
-	map = mainWindow.entry.get_colormap()
-	notFoundColor = map.alloc_color(config.get('color','notFoundColor')) # red
-	okColor = map.alloc_color(config.get('color','okColor')) # light green
-	errorColor = map.alloc_color(config.get('color','errorColor')) # light red
+	mainWindow.entry.bind('<Return>',on_entry_activate)
+	mainWindow.entry.bind('<FocusIn>', on_get_focus)
+	mainWindow.entry.bind('<KeyRelease-Up>', on_entry_event)
+	mainWindow.entry.bind('<KeyRelease-Down>', on_entry_event)
+#	map = mainWindow.entry.get_colormap()
+#	baseColor = mainWindow.entry.get_style().base[gtk.STATE_NORMAL]
+#	notFoundColor = map.alloc_color(config.get('color','notFoundColor')) # red
+#	okColor = map.alloc_color(config.get('color','okColor')) # light green
+#	errorColor = map.alloc_color(config.get('color','errorColor')) # light red
 	connect_actions()
 	pass
 
@@ -53,33 +49,21 @@ def set_session(session):
 def connect_actions():
 	for action in ActionList:
 		for accel in action.accelerators:
-			accel.connect_group(mainWindow.accelGroup)
+			pass
+#			accel.connect_group(mainWindow.accelGroup)
 
 def run_action(text, function,*args, **keywords):
 	ret = function(*args,**keywords)
-	if ret == None:
-		mainWindow.entry.modify_base(gtk.STATE_NORMAL,baseColor)
-	elif ret:
-		mainWindow.entry.modify_base(gtk.STATE_NORMAL,okColor)
-	else:
-		mainWindow.entry.modify_base(gtk.STATE_NORMAL,errorColor)
-	mainWindow.entry.set_text(text)
-
-def get_command(commandName):
-	for action in ActionList:
-		if action.__name__ == commandName:
-			return action
-	return None
+#	if ret == None:
+#		mainWindow.entry.modify_base(gtk.STATE_NORMAL,baseColor)
+#	elif ret:
+#		mainWindow.entry.modify_base(gtk.STATE_NORMAL,okColor)
+#	else:
+#		mainWindow.entry.modify_base(gtk.STATE_NORMAL,errorColor)
+	mainWindow.entry.delete(0,'end')
+	mainWindow.entry.insert('end',text)
 	
-def on_get_focus(widget, event, userData = None):
-	global baseColor
-	widget.modify_base(gtk.STATE_NORMAL,baseColor)
-	widget.set_text('')
-
-def on_entry_activate(sourceWidget, userData=None):
-	global currentSession
-	import gtk
-	text = sourceWidget.get_text()
+def run_command(text):
 	found = False
 	for action in ActionList:
 		args = action.regChecker(text)
@@ -88,14 +72,31 @@ def on_entry_activate(sourceWidget, userData=None):
 			found = True
 			break
 	if not found:
-		mainWindow.entry.modify_base(gtk.STATE_NORMAL,notFoundColor)
+		pass
+		#mainWindow.entry.modify_base(gtk.STATE_NORMAL,notFoundColor)
 	currentSession.get_history().push(text)
+
+def get_command(commandName):
+	for action in ActionList:
+		if action.__name__ == commandName:
+			return action
+	return None
+	
+def on_get_focus(event):
+	global baseColor
+	#event.widget.modify_base(gtk.STATE_NORMAL,baseColor)
+	event.widget.delete(0,'end')
+
+def on_entry_activate(event):
+	global currentSession
+	text = event.widget.get()
+	run_command(text)	
 	if currentSession.get_workspace().get_currentDocument():
-		currentSession.get_workspace().get_currentDocument().get_currentView().grab_focus()
+		currentSession.get_workspace().get_currentDocument().get_currentView().focus()
 
 def on_entry_event(widget, event, userData = None):
 	global currentSession
-	import gtk
+	#import gtk
 	if event.type == gtk.gdk.KEY_PRESS:
 		if event.keyval == __key_UP__:
 			widget.set_text(currentSession.get_history().get_previous())

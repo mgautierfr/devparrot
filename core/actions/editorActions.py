@@ -19,7 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 from actionDef import Action
-import gtk
+#import gtk
 
 class cut(Action):
 	def run(cls, args=[]):

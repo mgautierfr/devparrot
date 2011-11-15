@@ -40,7 +40,7 @@ class DocumentWrapper(object):
 		pass
 		
 	def __len__(self):
-		return controler.currentSession.get_documentManager().__len__()
+		return controler.currentSession.get_documentManager().get_nbDocuments()
 	
 	def __getitem__(self, key):
 		return controler.currentSession.get_documentManager().__getitem__(key)[0]
@@ -57,10 +57,10 @@ def __setattr__(name, value):
 		if value == None:
 			__getattr__('currentContainer').set_documentView(None)
 		elif value.documentView.is_displayed():
-			value.documentView.grab_focus()
+			value.documentView.focus()
 		else:
 			__getattr__('currentContainer').set_documentView(value.documentView)
-			value.documentView.grab_focus()
+			value.documentView.focus()
 
 		return
 	raise AttributeError
@@ -75,8 +75,7 @@ def get_file(filePath):
 	return controler.currentSession.get_documentManager().get_file(filePath)
 	
 def get_nth_file(index):
-	docManager = controler.currentSession.get_documentManager()
-	return docManager.get_value(docManager.get_iter(str(index)), 0) 
+	return controler.currentSession.get_documentManager().get_nthFile(index)
 
 def del_file(document):
 	return controler.currentSession.get_documentManager().del_file(document)
@@ -88,8 +87,8 @@ def ask_for_filename_to_open(title, defaultDir):
 	return mainWindow.Helper().ask_filenameOpen(title=title, currentFolder=defaultDir)
 
 def quit():
-	import gtk
-	gtk.main_quit()
+	import core.mainWindow
+	core.mainWindow.window.destroy()
 
 sys.modules[__name__] = ModuleWrapper(sys.modules[__name__])
 documents = DocumentWrapper()

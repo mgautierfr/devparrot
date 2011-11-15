@@ -18,12 +18,13 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import gtksourceview2
-import gtk
+#import gtksourceview2
+#import gtk
 
 import core.config
 
-class SourceBuffer(gtksourceview2.Buffer):
+if False:
+#class SourceBuffer(gtksourceview2.Buffer):
 	def __init__(self, document):
 		gtksourceview2.Buffer.__init__(self)
 		self.connect("mark-set", self.on_mark_set)

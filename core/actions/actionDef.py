@@ -47,8 +47,9 @@ class Accelerator:
 	def __init__(self, accelerator, datas=()):
 		from types import StringTypes
 		if isinstance(accelerator, StringTypes):
-			from gtk import accelerator_parse
-			self.accelerator = accelerator_parse(accelerator)
+			#from gtk import accelerator_parse
+			#self.accelerator = accelerator_parse(accelerator)
+			pass
 		else:
 			self.accelerator = accelerator
 		self.datas = datas
@@ -59,10 +60,10 @@ class Accelerator:
 	def set_function(self, function):
 		self.function = function
 
-	def connect_group(self, accelGroup):
-		accelGroup.connect_group(self.accelerator[0],self.accelerator[1],
-		                         accel_flags=0,
-		                         callback = self)
+#	def connect_group(self, accelGroup):
+#		accelGroup.connect_group(self.accelerator[0],self.accelerator[1],
+#		                         accel_flags=0,
+#		                         callback = self)
 
 	def __call__(self, accel_group, acceleratable, keyval, modifier):
 		import core.controler
