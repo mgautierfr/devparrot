@@ -94,16 +94,13 @@ def on_entry_activate(event):
 	if currentSession.get_workspace().get_currentDocument():
 		currentSession.get_workspace().get_currentDocument().get_currentView().focus()
 
-def on_entry_event(widget, event, userData = None):
+def on_entry_event(event):
 	global currentSession
-	#import gtk
-	if event.type == gtk.gdk.KEY_PRESS:
-		if event.keyval == __key_UP__:
-			widget.set_text(currentSession.get_history().get_previous())
-			widget.set_position(-1)
-			return True
-		if event.keyval == __key_DOWN__:
-			widget.set_text(currentSession.get_history().get_next())
-			widget.set_position(-1)
-			return True
+	event.widget.delete("0", "end")
+	if event.keysym == "Up":
+		event.widget.insert("end", currentSession.get_history().get_previous())
+		return True
+	if event.keysym == "Down":
+		event.widget.insert("end", currentSession.get_history().get_next())
+		return True
 	return False

@@ -18,78 +18,76 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-#import gtksourceview2
-#import gtk
+import ttk
 
 import core.config
+import core.mainWindow
 
-if False:
-#class SourceBuffer(gtksourceview2.Buffer):
+class SourceBuffer(ttk.Tkinter.Text):
 	def __init__(self, document):
-		gtksourceview2.Buffer.__init__(self)
-		self.connect("mark-set", self.on_mark_set)
+		ttk.Tkinter.Text.__init__(self,core.mainWindow.workspaceContainer)
+		self.bind("<<Selection>>", self.on_selection_changed)
 		self.document = document
-		self.searchMark = None
-		self.highlight_tag = self.create_tag(background=core.config.get('color','highlight_tag_color'))
-		self.search_tag = self.create_tag(background=core.config.get('color','search_tag_color'))
+		self.highlight_tag_protected = False
+		self.tag_configure("highlight_tag", background=core.config.get('color','highlight_tag_color'))
+		self.tag_configure("search_tag", background=core.config.get('color','search_tag_color'))
+		self.tag_lower("highlight_tag", "sel")
+		self.tag_lower("search_tag", "sel")
+		
 		
 	def get_document(self):
 		return self.document
 	
 	def set_text(self, content):
-		self.begin_not_undoable_action()
-		gtksourceview2.Buffer.set_text(self, content)
-		self.end_not_undoable_action()
-		self.set_modified(False)
+		self.replace("0.1", "end", content)
+		self.edit_reset()
+		self.edit_modified(False)
+	
+	def get_text(self):
+		return self.get("0.1", "end")
 
-	def on_mark_set(self, textbuffer, iter, textmark):
-		if textmark.get_name() in ['insert', 'selection_bound']:
-			if textbuffer.get_has_selection():
-				select = textbuffer.get_selection_bounds()
-				if select:
-					start_select , stop_select = select 
-					text = textbuffer.get_text(start_select , stop_select)
-					if len(text) >1 :
-						self.apply_tag_on_text(self.highlight_tag, text)
-					else:
-						self.apply_tag_on_text(self.highlight_tag, None)
+	def on_selection_changed(self, event):
+		if self.highlight_tag_protected : return
+		select = self.tag_ranges("sel")
+		if select:
+			start_select , stop_select = select 
+			text = self.get(start_select , stop_select)
+			if len(text)>1 :
+				self.apply_tag_on_text("highlight_tag", text)
+			else:
+				self.apply_tag_on_text("highlight_tag", None)
 
 	def apply_tag_on_text(self, tag, text):
-		start, end = self.get_bounds()
-		self.remove_tag(tag, start,end)
+		self.tag_remove(tag, "0.1","end")
 
 		if text:
-			res = start.forward_search(text, gtk.TEXT_SEARCH_TEXT_ONLY)
-			while res:
-				match_start, match_end = res
-				self.apply_tag(tag, match_start, match_end)
-				res = match_end.forward_search(text, gtk.TEXT_SEARCH_TEXT_ONLY)
+			count = ttk.Tkinter.IntVar()
+			match_start = ttk.Tkinter.Text.search(self,text, "0.1", stopindex="end", forwards=True, exact=True, count=count)
+			while match_start:
+				match_end = "%s+%ic"%(match_start,count.get())
+				self.tag_add(tag, match_start, match_end)
+				match_start = ttk.Tkinter.Text.search(self,text, match_end, stopindex="end", forwards=True, exact=True, count=count)
 
 	def search(self, backward, text):
 		if not text : return
-		self.apply_tag_on_text(self.search_tag,text)
+		self.apply_tag_on_text("search_tag",text)
 
-		if self.get_has_selection():
-			(it, selection) = self.get_selection_bounds()
+		start_search = "insert"
+		select = self.tag_ranges("sel")
+		if select:
 			if backward:
-				if it.compare(selection)>0 : it = selection
+				start_search = select[0]
 			else:
-				if it.compare(selection)<0 : it = selection
-		else:
-			it = self.get_iter_at_mark(self.get_insert())
-		if backward:
-			search_func = gtk.TextIter.backward_search
-			falldawn_iter = self.get_end_iter()
-		else:
-			search_func = gtk.TextIter.forward_search
-			falldawn_iter = self.get_start_iter()
+				start_search = select[1]
 
-		res = search_func (it,text, gtk.TEXT_SEARCH_TEXT_ONLY)
-		if not res:
-			res = search_func (falldawn_iter,text, gtk.TEXT_SEARCH_TEXT_ONLY, it)
-		if res:
-			match_start, match_end = res
-			self.select_range(match_start, match_end)
-			if backward : return match_start
-			return match_end
-		return None
+		count = ttk.Tkinter.IntVar()
+		match_start = ttk.Tkinter.Text.search(self,text, start_search, forwards=(not backward), backwards=backward, exact=True, count=count) 
+		if match_start:
+			match_end = "%s+%ic"%(match_start,count.get())
+			self.highlight_tag_protected = True
+			self.tag_remove("sel", "0.1","end")
+			self.tag_add("sel", match_start, match_end)
+			self.highlight_tag_protected = False
+			self.mark_set("insert", match_start if backward else match_end)
+			return True
+		return False

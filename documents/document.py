@@ -24,6 +24,7 @@ from views.textView import TextView
 from datetime import datetime
 import ttk
 import core.mainWindow
+from models.sourceBuffer import SourceBuffer
 
 class Document(object):
 	def __init__(self, documentSource):
@@ -32,7 +33,7 @@ class Document(object):
 		self.titleVar.set(documentSource.longTitle)
 		self.modifiedVar = ttk.Tkinter.StringVar(value="normal")
 		self.documentView = DocumentView(self)
-		self.models['text'] = ttk.Tkinter.Text(core.mainWindow.workspaceContainer)
+		self.models['text'] = SourceBuffer(self)
 		self.models['text'].bind("<<Modified>>", self.on_modified_changed)
 		self.views = []
 		self.currentView = None
@@ -98,8 +99,8 @@ class Document(object):
 	
 	def write(self):
 		model = self.models['text']
-		if self.documentSource.set_content(model.get_text(model.get_start_iter(), model.get_end_iter())):
-			model.set_modified(False)
+		if self.documentSource.set_content(model.get_text()):
+			model.edit_modified(False)
 			return True
 		return False
 		
@@ -125,9 +126,8 @@ class Document(object):
 		return False
 		
 	def search(self, backward, text):
-		foundIter = self.models['text'].search(backward,text)
-		if foundIter:
-			self.currentView.view.scroll_to_iter(foundIter, 0.2)
+		if self.models['text'].search(backward,text):
+			self.currentView.view.see("insert")
 			return True
 		return False
 

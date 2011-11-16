@@ -72,12 +72,10 @@ window = None
 entry = None
 documentListView = None
 workspaceContainer = None
-accelGroup = None
 
 def quit(event):
 	from actions.controlerActions import quit
 	quit.run()
-
 
 def init():
 	from views.documentListView import DocumentListView
@@ -85,7 +83,6 @@ def init():
 	global entry
 	global documentListView
 	global workspaceContainer
-	global accelGroup
 	window = ttk.Tkinter.Tk()
 	geom = window.wm_geometry()
 	x = geom.split('+')[1]
@@ -111,11 +108,7 @@ def init():
 	workspaceContainer = ttk.Tkinter.Frame(hpaned)
 	hpaned.add(workspaceContainer)
 	#hpaned.props.position = 200
-
-	#accelGroup = gtk.AccelGroup()
-	#window.add_accel_group(accelGroup)
 	
 	window.bind("<Control-Return>", lambda event: entry.focus())
-
-#	window.show_all()
+	window.bind_class("Text", "<Control-Return>", lambda event: "continue")
 

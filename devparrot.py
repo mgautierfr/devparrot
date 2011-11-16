@@ -33,7 +33,6 @@ class DevParrot(object):
 		core.mainWindow.init()
 		core.controler.init()
 		self.session = Session()
-		print core.mainWindow.workspaceContainer
 		if len(sys.argv) > 1:
 			command = core.controler.get_command('open')
 			command.run(sys.argv[1:])
