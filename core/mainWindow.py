@@ -30,42 +30,17 @@ class Helper:
 		self.window = window
 
 	def ask_questionYesNo(self, title, message):
-		dialog = gtk.MessageDialog(self.window,
-		                           gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-		                           gtk.MESSAGE_QUESTION,
-		                           gtk.BUTTONS_YES_NO,
-		                           message)
-		dialog.set_title(title)
-		response = dialog.run()
-		dialog.destroy()
-		return (response==gtk.RESPONSE_YES)
+		import tkMessageBox
+		return tkMessageBox.askyesno(title, message)
 
 	def ask_filenameSave(self, title):
-		chooser = gtk.FileChooserDialog(title,
-		                                self.window,
-		                                gtk.FILE_CHOOSER_ACTION_SAVE,
-		                                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-		                                 gtk.STOCK_SAVE, gtk.RESPONSE_OK))
-
-		response = None
-		if chooser.run() == gtk.RESPONSE_OK:
-			response = chooser.get_filename()
-		chooser.destroy()
-	
+		import tkFileDialog
+		response = tkFileDialog.asksaveasfilename(title=title)	
 		return response
 
 	def ask_filenameOpen(self, title, currentFolder):
-		chooser = gtk.FileChooserDialog(title,
-		                                self.window,
-		                                gtk.FILE_CHOOSER_ACTION_OPEN,
-		                                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-		                                 gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-		if currentFolder:
-			chooser.set_current_folder(currentFolder)
-		response = None
-		if chooser.run() == gtk.RESPONSE_OK:
-			response = chooser.get_filename()
-		chooser.destroy()
+		import tkFileDialog
+		response = tkFileDialog.askopenfilename(title=title, initialdir=currentFolder)
 		return response
 
 window = None
