@@ -60,7 +60,7 @@ class Document(object):
 		view.set_model(self.models[model_type])
 		self.documentView.set_view(view)
 		self.currentView = view
-		#view.view.connect_after('focus-in-event', self.on_focus_in_event)
+		view.view.bind("<FocusIn>", self.on_focus_in_event, add="+")
 		
 	def remove_view(self, model_type, view):
 		if self.models[model_type] in self.views.keys():
@@ -107,14 +107,14 @@ class Document(object):
 	def on_modified_changed(self, event):
 		self.documentView.set_bold(self.models['text'].edit_modified())
 	
-	def on_focus_in_event(self, widget, event):
+	def on_focus_in_event(self, event):
 		res = self.documentSource.need_reload()
 		if res:
 			import core.mainWindow
 			answer = core.mainWindow.Helper().ask_questionYesNo("File content changed",
 			     "The content of file %s has changed.\nDo you want to reload it?"%self.title)
 			if answer:
-				ctx = self.currentView.get_context()
+				#ctx = self.currentView.get_context()
 				self.load()
 				#glib.idle_add(self.currentView.set_context, ctx)
 
