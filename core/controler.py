@@ -18,8 +18,6 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from actions import ActionList
-
 import os,sys
 
 import mainWindow
@@ -27,9 +25,25 @@ import config
 
 currentSession = None
 baseColor = None
+alias = {}
+
+class Binder(object):
+	def __init__(self):
+		pass
+
+	def __setitem__(self, accel, command):
+		mainWindow.window.bind(accel, lambda e : run_command(command))
+
+binder = Binder()
+
+def add_alias(regex, command, prio=1):
+	if prio not in alias:
+		alias[prio] = []
+	alias[prio].append((regex, command)) 
 
 def init():
 	global baseColor,notFoundColor, okColor, errorColor
+	import core.actions
 	mainWindow.entry.bind('<Return>',on_entry_activate)
 	mainWindow.entry.bind('<FocusIn>', on_get_focus)
 	mainWindow.entry.bind('<KeyRelease-Up>', on_entry_event)
@@ -39,18 +53,11 @@ def init():
 #	notFoundColor = map.alloc_color(config.get('color','notFoundColor')) # red
 #	okColor = map.alloc_color(config.get('color','okColor')) # light green
 #	errorColor = map.alloc_color(config.get('color','errorColor')) # light red
-	connect_actions()
 	pass
 
 def set_session(session):
 	global currentSession
 	currentSession = session
-
-def connect_actions():
-	for action in ActionList:
-		for accel in action.accelerators:
-			pass
-#			accel.connect_group(mainWindow.accelGroup)
 
 def run_action(text, function,*args, **keywords):
 	ret = function(*args,**keywords)
@@ -64,23 +71,24 @@ def run_action(text, function,*args, **keywords):
 	mainWindow.entry.insert('end',text)
 	
 def run_command(text):
-	found = False
-	for action in ActionList:
-		args = action.regChecker(text)
-		if args != None :
-			run_action(text, action.run, args)
-			found = True
-			break
-	if not found:
-		pass
-		#mainWindow.entry.modify_base(gtk.STATE_NORMAL,notFoundColor)
+	def get_command(token):
+		for prio in sorted(alias, reverse=True):
+			for reg,command in alias[prio]:
+				if reg.match(token):
+					return command
+		return None
+	def expand_token(token):
+		return token
+	def launch_command(command, args):
+		mainWindow.window.event_generate("<<%s->>"%command.__name__)
+		command.run(*args)
+		mainWindow.window.event_generate("<<%s+>>"%command.__name__)
+		
+	tokens = text.split()
+	command = get_command(tokens[0])
+	if command:
+		launch_command(command, [expand_token(t) for t in tokens[1:]])
 	currentSession.get_history().push(text)
-
-def get_command(commandName):
-	for action in ActionList:
-		if action.__name__ == commandName:
-			return action
-	return None
 	
 def on_get_focus(event):
 	global baseColor

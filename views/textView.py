@@ -50,7 +50,6 @@ class TextView():
 		return self.document
 
 	def set_model(self, model):
-		from pprint import pprint
 		self.view = model
 		self.view['yscrollcommand'] = self.VScrollbar.set
 		self.view['xscrollcommand'] = self.HScrollbar.set

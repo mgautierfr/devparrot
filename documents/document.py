@@ -120,9 +120,9 @@ class Document(object):
 
 	def check_for_save(self):
 		model = self.models['text']
-		if model.get_modified():
-			import mainWindow
-			return mainWindow.Helper().ask_questionYesNo("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.get_title()})
+		if model.edit_modified():
+			import core.mainWindow
+			return core.mainWindow.Helper().ask_questionYesNo("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.get_title()})
 		return False
 		
 	def search(self, backward, text):
@@ -131,15 +131,6 @@ class Document(object):
 			return True
 		return False
 
-	def goto_line(self, line, delta = None):
-		def callback(it):
-			self.currentView.view.scroll_to_iter(it, 0.2)
-			return False
-		if delta != None:
-			current_line = self.models['text'].get_iter_at_mark(self.models['text'].get_insert()).get_line()
-			if delta == '+':
-				line = current_line + line
-			if delta == '-':
-				line = current_line - line
-		line_iter = self.models['text'].get_iter_at_line(line)
-		self.models['text'].select_range(line_iter,line_iter)
+	def goto_index(self, index):
+		self.currentView.view.mark_set("insert", index)
+		self.currentView.view.see(index)

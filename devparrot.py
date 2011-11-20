@@ -34,8 +34,7 @@ class DevParrot(object):
 		core.controler.init()
 		self.session = Session()
 		if len(sys.argv) > 1:
-			command = core.controler.get_command('open')
-			command.run(sys.argv[1:])
+			core.controler.run_command("open %s"%" ".join(sys.argv[1:]))
 
 if __name__ == "__main__":
 	app = DevParrot()

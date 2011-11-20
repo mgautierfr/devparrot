@@ -18,17 +18,18 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from actionDef import Action, Accelerator, accelerators
+from actionDef import Action
 
 import os
 import core.capi as capi
 
 import core.config
 
-class save(Action):
 
-	@accelerators(Accelerator(core.config.get('binding','save_command')))
-	def run(cls, args=[]):
+
+
+class save(Action):
+	def run(cls, *args):
 		if len(args)>=1:
 			return save.save_document(capi.currentDocument,os.path.abspath(args[0]))
 		else:
@@ -57,8 +58,8 @@ class save(Action):
 
 
 class new(Action):
-	@accelerators(Accelerator(core.config.get('binding','new_command')))
-	def run(cls, args=[]):
+
+	def run(cls, *args):
 		from documents.document import Document
 		from documents.newDocSource import NewDocSource
 		document = Document(NewDocSource())
@@ -67,7 +68,7 @@ class new(Action):
 		return True
 
 class switch(Action):
-	def run(cls, args=[]):
+	def run(cls, *args):
 		if len(args)==0:
 			return False
 		capi.currentDocument = capi.get_nth_file(int(args[0]))
@@ -75,12 +76,12 @@ class switch(Action):
 		
 		
 class close(Action):
-	def run(cls, args=[]):
+	def run(cls, *args):
 		if len(args)==0 or not args[0]:
 			document = capi.currentDocument
 		else:
-			path = args[0]
-			document = capi.documents[path]
+			index = args[0]
+			document = capi.documents[index]
 		return close.close_document(document)
 
 	@staticmethod
@@ -116,8 +117,7 @@ class open(Action):
 			doc.goto_line(lineToGo-1)
 		return True
 
-	@accelerators(Accelerator(core.config.get('binding','open_command')))
-	def run(cls, args=[]):
+	def run(cls, *args):
 		if len(args)>=1:
 			ret = True
 			for fileToOpen in args:
@@ -133,12 +133,12 @@ class open(Action):
 			return cls.open_a_file(fileToOpen)
 
 class quit(Action):
-	def run(cls, args=[]):
+	def run(cls, *args):
 		closeall()
 		return capi.quit()
 	
 class closeall(Action):
-	def run(cls, args=[]):
+	def run(cls, *args):
 		ret = True
 		while len(capi.documents):
 			ret = ret and close.close_document(capi.get_nth_file(0))
@@ -163,7 +163,7 @@ class split(Action):
 			return [cls.UNSPLIT]
 		return None
 
-	def run(cls, args=[]):
+	def run(cls, *args):
 		if args[0] == cls.SPLIT:
 			doc = capi.get_nth_file(int(args[2]))
 			if doc.documentView.is_displayed():
@@ -202,16 +202,7 @@ class search(Action):
 			return  ret
 		return None
 
-	@accelerators(Accelerator(core.config.get('binding','forward_research'), (False,)),Accelerator(core.config.get('binding','backward_research'), (True,)))
-	def research(cls, changeDirection):
-		if changeDirection:
-			direction = not cls.lastDirection
-		else:
-			direction = cls.lastDirection
-		if direction != None and cls.lastSearch != None:
-			return capi.currentDocument.search(direction, cls.lastSearch)
-
-	def run(cls, args=[]):
+	def run(cls, *args):
 		direction = cls.lastDirection
 		search = cls.lastSearch
 		if len(args) > 0:
@@ -232,13 +223,12 @@ class goto(Action):
 		if match:
 			return [match.group('line'),match.group('delta')]
 		return None
-	def run(cls, args=[]):
-		if len(args) and args[0]:
-			try :
-				delta = args[1]
-				line = int(args[0])
-				if not delta:
-					line -= 1
-				return capi.currentDocument.goto_line(line, delta)
-			except:
-				return False
+
+	def run(cls, *indexes):
+		index = " ".join(indexes)
+		capi.currentDocument.goto_index(index)
+			
+capi.bind[core.config.get('binding','save_command')] = "save" 
+capi.bind[core.config.get('binding','new_command')] = "new" 
+capi.bind[core.config.get('binding','open_command')] = "open" 
+capi.bind[core.config.get('binding','forward_research')] = "search" 

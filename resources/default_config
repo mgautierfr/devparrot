@@ -5,12 +5,12 @@ height = 600
 width = 800
 
 [binding]
-commandLine = <Control>Return
-save_command = <Control>s
-new_command = <Control>n
-open_command = <Control>o
-forward_research = F3
-backward_research = <Alt>F3
+commandLine = <Control-Return>
+save_command = <Control-s>
+new_command = <Control-n>
+open_command = <Control-o>
+forward_research = <F3>
+backward_research = <Alt-F3>
 
 [textView]
 auto_indent = true

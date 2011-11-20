@@ -50,6 +50,8 @@ def __getattr__(name):
 		return controler.currentSession.get_currentDocument()
 	if name == 'currentContainer':
 		return controler.currentSession.get_workspace().get_currentContainer()
+	if name == 'bind':
+		return controler.binder
 	raise AttributeError
 
 def __setattr__(name, value):
@@ -88,7 +90,9 @@ def ask_for_filename_to_open(title, defaultDir):
 
 def quit():
 	import core.mainWindow
-	core.mainWindow.window.destroy()
+	def destroy():
+		core.mainWindow.window.destroy()	
+	core.mainWindow.window.after_idle(destroy)
 
 sys.modules[__name__] = ModuleWrapper(sys.modules[__name__])
 documents = DocumentWrapper()

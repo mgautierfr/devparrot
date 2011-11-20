@@ -55,7 +55,6 @@ class DocumentView(ttk.LabelFrame,AbstractContainerChild):
 	
 	def on_modified(self, varname, value, mode):
 		var = ttk.Tkinter.BooleanVar(name=varname)
-		print "_____",var.get()
 		self.set_bold(var.get())		
 		return False
 
