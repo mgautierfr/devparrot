@@ -24,6 +24,27 @@ import Tkinter,ttk
 import core.controler
 
 class DocumentListView(ttk.Treeview):
+	class PseudoList(object):
+		def __init__(self, ttkTreeView):
+			self.view = ttkTreeView
+
+		def __len__(self):
+			return len(self.view.get_children(''))
+
+		def __getitem__(self, key):
+			return self.view.get_children('')[key]
+
+		def __delitem__(self, key):
+			self.view.detach(self.__getitem__(key))
+
+		def sort(self):
+			sorted_ = sorted(self)
+			for i in range(len(self)):
+				del self[0]
+			for i,p in enumerate(sorted_):
+				self.view.reattach(p, '', i)
+
+
 	def __init__(self,parent):
 		ttk.Treeview.__init__(self,parent)
 		self['columns'] = ('name')
@@ -36,12 +57,19 @@ class DocumentListView(ttk.Treeview):
 		#self.connect('drag-begin',self.on_drag_begin)
 		#self.connect('drag-data-get',self.on_drag_data_get)
 		#self.connect('drag-end',self.on_drag_end)
-	
+
+	def insert(self, document, index):
+		ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="%d"%index, values=(document.title))
+
+	def delete(self,document):
+		ttk.Treeview.delete(self, document.get_path())
+
+
 	def on_double_click(self, event):
 		selection = self.selection()
 		if selection:
-			index = self.index(selection[0])
-			core.controler.currentSession.get_documentManager().switch_to_document(index)
+			document = core.controler.currentSession.get_documentManager().get_file(selection[0])
+			core.controler.currentSession.get_documentManager().switch_to_document(document)
 	
 	def on_drag_begin(self, widget, drag_context, data=None):
 		import core.controler
@@ -65,3 +93,6 @@ class DocumentListView(ttk.Treeview):
 	def on_drag_end(self, widget, drag_context, data=None):
 		import core.controler
 		core.controler.currentSession.get_workspace().prepare_to_dnd(False)
+
+	def sort(self):
+		PseudoList(self).sort()

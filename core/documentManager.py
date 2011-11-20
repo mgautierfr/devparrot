@@ -25,53 +25,47 @@ class DocumentManager(object):
 	def __init__(self, session):
 		self.session = session
 		self.view = mainWindow.documentListView
-		self.documents = []
+		self.documents = {}
 		self.signalConnections = {}
 	
 	def get_nbDocuments(self):
 		return len(self.documents)
 	
 	def get_nthFile(self, index):
-		return self.documents[index]
-
-	def find_index(self, doc):
-		index = 0
-		for document in self.documents:
-			if document == doc:
-				return index
-			index += 1
+		index = int(index)
+		for i, doc in enumerate(sorted(self.documents)):
+			if i==index:
+				return self.documents[doc]
 		return None
 
 	def has_file(self, path):
-		for document in self.documents:
-			if document.get_path() == path:
-				return True
-		return False
+		return (path in self.documents)
 
 	def get_file(self, path):
-		for document in self.documents:
-			if document.get_path() == path:
-				return document
-		return None
+		return self.documents[path]
 
 	def del_file(self, document):
-		try:
-			self.documents.remove(doc)
-			return True
-		except:
-			return False
+		self.view.delete(document)
+		del self.documents[document.get_path()]
+		self._update_view()
+		return True
 	
-	def switch_to_document(self, index):
-		document = self.documents[index]
+	def switch_to_document(self, document):
+		import core.controler
 		if document.documentView.is_displayed():
 			document.documentView.focus()
 		else:
 			core.controler.currentSession.get_workspace().set_currentDocument(document)
-			
 
 	def add_file(self, document):
-		self.documents.append(document)
-		self.view.insert('', 'end', text=str(self.documents.index(document)), values=(document.title))
+		self.documents[document.get_path()] = document
+		self.view.insert(document, self.get_nbDocuments())
+		self._update_view()
+		self.view.sort()
+
+	def _update_view(self):
+		for (index, path) in enumerate(sorted(self.documents)):
+			self.view.item(path, text="%d"%index)
 	
 	def __str__(self):
 		return "Open Files\n[\n%(openfiles)s\n]"%{

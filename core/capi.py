@@ -43,8 +43,9 @@ class DocumentWrapper(object):
 		return controler.currentSession.get_documentManager().get_nbDocuments()
 	
 	def __getitem__(self, key):
-		return controler.currentSession.get_documentManager().__getitem__(key)[0]
-			
+		return controler.currentSession.get_documentManager().get_nthFile(key)
+
+
 def __getattr__(name):
 	if name == 'currentDocument':
 		return controler.currentSession.get_currentDocument()
