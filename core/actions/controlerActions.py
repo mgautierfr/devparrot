@@ -25,11 +25,8 @@ import core.capi as capi
 
 import core.config
 
-
-
-
 class save(Action):
-	def run(cls, *args):
+	def run(cls, cmdText, *args):
 		if len(args)>=1:
 			return save.save_document(capi.currentDocument,os.path.abspath(args[0]))
 		else:
@@ -59,7 +56,7 @@ class save(Action):
 
 class new(Action):
 
-	def run(cls, *args):
+	def run(cls, cmdText, *args):
 		from documents.document import Document
 		from documents.newDocSource import NewDocSource
 		document = Document(NewDocSource())
@@ -68,7 +65,7 @@ class new(Action):
 		return True
 
 class switch(Action):
-	def run(cls, *args):
+	def run(cls, cmdText, *args):
 		if len(args)==0:
 			return False
 		capi.currentDocument = capi.get_nth_file(int(args[0]))
@@ -76,7 +73,7 @@ class switch(Action):
 		
 		
 class close(Action):
-	def run(cls, *args):
+	def run(cls, cmdText, *args):
 		if len(args)==0 or not args[0]:
 			document = capi.currentDocument
 		else:
@@ -117,7 +114,7 @@ class open(Action):
 			doc.goto_line(lineToGo-1)
 		return True
 
-	def run(cls, *args):
+	def run(cls, cmdText, *args):
 		if len(args)>=1:
 			ret = True
 			for fileToOpen in args:
@@ -133,20 +130,18 @@ class open(Action):
 			return cls.open_a_file(fileToOpen)
 
 class quit(Action):
-	def run(cls, *args):
+	def run(cls, cmdText, *args):
 		closeall()
 		return capi.quit()
 	
 class closeall(Action):
-	def run(cls, *args):
+	def run(cls, cmdText, *args):
 		ret = True
 		while len(capi.documents):
 			ret = ret and close.close_document(capi.get_nth_file(0))
 		return ret
 
 class split(Action):
-	SPLIT = 0
-	UNSPLIT = 1
 
 	def regChecker(cls, line):
 		if line.startswith("split"):
@@ -162,15 +157,17 @@ class split(Action):
 		if line.startswith("unsplit"):
 			return [cls.UNSPLIT]
 		return None
-
-	def run(cls, *args):
-		if args[0] == cls.SPLIT:
-			doc = capi.get_nth_file(int(args[2]))
+	core.controler.add_alias("vsplit", "split", 1)
+	core.controler.add_alias("unsplit", "split", 1)
+	def run(cls, cmdText, *args):
+		if cmdText in ["split", "vsplit"]:
+			vertical = 1 if cmdText=="vsplit" else 0
+			doc = capi.get_nth_file(int(args[0]))
 			if doc.documentView.is_displayed():
 				return doc.documentView.focus()
 			else:
-				return capi.currentContainer.split(args[1], doc.documentView)
-		if args[0] == cls.UNSPLIT:
+				return capi.currentContainer.split(vertical, doc.documentView)
+		if args[0] == "unsplit":
 			if capi.currentContainer.get_parentContainer():
 				return capi.currentContainer.get_parentContainer().unsplit(toKeep=capi.currentContainer)
 		return False
@@ -202,7 +199,7 @@ class search(Action):
 			return  ret
 		return None
 
-	def run(cls, *args):
+	def run(cls, cmdText, *args):
 		direction = cls.lastDirection
 		search = cls.lastSearch
 		if len(args) > 0:
@@ -224,11 +221,11 @@ class goto(Action):
 			return [match.group('line'),match.group('delta')]
 		return None
 
-	def run(cls, *indexes):
+	def run(cls, cmdText, *indexes):
 		index = " ".join(indexes)
 		capi.currentDocument.goto_index(index)
 			
-capi.bind[core.config.get('binding','save_command')] = "save" 
-capi.bind[core.config.get('binding','new_command')] = "new" 
-capi.bind[core.config.get('binding','open_command')] = "open" 
-capi.bind[core.config.get('binding','forward_research')] = "search" 
+capi.bind[core.config.get('binding','save_command')] = "save"
+capi.bind[core.config.get('binding','new_command')] = "new"
+capi.bind[core.config.get('binding','open_command')] = "open"
+capi.bind[core.config.get('binding','forward_research')] = "search"

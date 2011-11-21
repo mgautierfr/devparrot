@@ -22,6 +22,7 @@ import types
 
 class MetaAction(type):
 	def __new__(cls, name, bases, dct):
+		print "beginnging new",name
 		#dct['accelerators'] = list()
 		for (key, value) in dct.items():
 			if isinstance(value, types.FunctionType):
@@ -31,17 +32,18 @@ class MetaAction(type):
 				#		accel.set_function(cm)
 				#		dct['accelerators'].append(accel)
 				dct[key] = cm
-
+		print "ending new",name
 		return type.__new__(cls, name, bases, dct)
 
 	def __init__(cls, name, bases, dct):
+		print "beginnging init",name
 		super(MetaAction, cls).__init__(name, bases, dct)
 		if name != "Action":
 			import core.controler
-			import re
-			core.controler.add_alias(re.compile(r"%s"%name), cls, 0)
+			core.controler.add_alias(name, cls, 0)
 			#for accel in cls.accelerators:
 			#	accel.set_cls(cls)
+		print "ending init",name
 if False:
 #class Accelerator:
 	def __init__(self, accelerator, datas=()):
@@ -64,6 +66,6 @@ if False:
 class Action:
 	__metaclass__ = MetaAction
 		
-	def run(cls, *args):
+	def run(cls, cmdText, *args):
 		if args[0] in self.__dict__:
 			self.__dict__[args[0]](*args[1:])

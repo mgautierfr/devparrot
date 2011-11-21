@@ -26,7 +26,11 @@ import core.mainWindow
 class SourceBuffer(ttk.Tkinter.Text):
 	def __init__(self, document):
 		ttk.Tkinter.Text.__init__(self,core.mainWindow.workspaceContainer)
-		self.bind("<<Selection>>", self.on_selection_changed)
+		self.bind("<<Selection>>", self.on_selection_changed) 
+		bindtags = list(self.bindtags())
+		bindtags.insert(1,"Action")
+		bindtags = " ".join(bindtags)
+		self.bindtags(bindtags)
 		self.document = document
 		self.highlight_tag_protected = False
 		self.tag_configure("highlight_tag", background=core.config.get('color','highlight_tag_color'))

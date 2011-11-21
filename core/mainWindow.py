@@ -84,6 +84,12 @@ def init():
 	hpaned.add(workspaceContainer)
 	#hpaned.props.position = 200
 	
-	window.bind("<Control-Return>", lambda event: entry.focus())
-	window.bind_class("Text", "<Control-Return>", lambda event: "continue")
+	def focus_and_break(event):
+		entry.focus()
+		return "break"
+	window.bind_class("Action", "<Control-Return>", focus_and_break)
+	bindtags = list(window.bindtags())
+	bindtags.insert(1,"Action")
+	bindtags = " ".join(bindtags)
+	window.bindtags(bindtags)
 

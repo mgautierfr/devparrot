@@ -32,14 +32,19 @@ class Binder(object):
 		pass
 
 	def __setitem__(self, accel, command):
-		mainWindow.window.bind(accel, lambda e : run_command(command))
+		def run_and_break(event):
+			run_command(command)
+			return "break"
+		mainWindow.window.bind_class("Action", accel, run_and_break)
 
 binder = Binder()
 
-def add_alias(regex, command, prio=1):
+def add_alias(regex, command, prio=2):
+	import re
+	cregex = re.compile(r"%s"%regex)
 	if prio not in alias:
 		alias[prio] = []
-	alias[prio].append((regex, command)) 
+	alias[prio].append((cregex, command)) 
 
 def init():
 	global baseColor,notFoundColor, okColor, errorColor
@@ -75,19 +80,23 @@ def run_command(text):
 		for prio in sorted(alias, reverse=True):
 			for reg,command in alias[prio]:
 				if reg.match(token):
-					return command
+					if isinstance(command, basestring):
+						token = command
+						break
+					else:
+						return command
 		return None
 	def expand_token(token):
 		return token
-	def launch_command(command, args):
+	def launch_command(command, cmdText, args):
 		mainWindow.window.event_generate("<<%s->>"%command.__name__)
-		command.run(*args)
+		command.run(cmdText, *args)
 		mainWindow.window.event_generate("<<%s+>>"%command.__name__)
 		
 	tokens = text.split()
 	command = get_command(tokens[0])
 	if command:
-		launch_command(command, [expand_token(t) for t in tokens[1:]])
+		launch_command(command, tokens[0], [expand_token(t) for t in tokens[1:]])
 	currentSession.get_history().push(text)
 	
 def on_get_focus(event):
