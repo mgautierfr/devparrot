@@ -95,4 +95,4 @@ class DocumentListView(ttk.Treeview):
 		core.controler.currentSession.get_workspace().prepare_to_dnd(False)
 
 	def sort(self):
-		PseudoList(self).sort()
+		DocumentListView.PseudoList(self).sort()
