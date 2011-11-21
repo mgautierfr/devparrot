@@ -92,8 +92,8 @@ class SplittedSpecialization(ContainerSpecialization):
 	def init(self, container1, container2):
 		self.container1 = container1
 		self.container2 = container2
-		self.uiContainer.add(container1.uiContainer)
-		self.uiContainer.add(container2.uiContainer)
+		container1.uiContainer.pack(in_=self.uiSubContainer1, expand=True, fill=ttk.Tkinter.BOTH)
+		container2.uiContainer.pack(in_=self.uiSubContainer2, expand=True, fill=ttk.Tkinter.BOTH)
 		container1.set_parentContainer(self)
 		container2.set_parentContainer(self)
 	
@@ -128,12 +128,16 @@ class SplittedSpecialization(ContainerSpecialization):
 			self.container2.destroy_tree()
 			self.container2 = None
 
+		self.uiContainer.remove(self.subContainer1)
+		self.uiContainer.remove(self.subContainer2)
+		self.subContainer1 = None
+		self.subContainer2 = None
 		self.uiContainer = None
 		CleanSpecialization(self)
 			
 	def detach_child(self, childToDetach):
 		childToDetach.set_parentContainer(None)
-		self.uiContainer.remove(childToDetach.uiContainer)
+		childToDetach.forget()
 		if self.container1 == childToDetach:
 			self.container1 = None
 		elif self.container2 == childToDetach:
@@ -165,21 +169,20 @@ class SplittedSpecialization(ContainerSpecialization):
 		return self.unsplit(toRemove = toRemove)
 	
 	def ui_attach(self, uiContainer):
-		if self.uiContainer.get_child1() == None:
-			self.uiContainer.add(uiContainer, resize=True)
-		if self.uiContainer.get_child2() == None:
-			self.uiContainer.add(uiContainer, resize=True)
+		if not self.uiSubContainer1.slaves():
+			uiContainer.pack(in_=self.uiSubContainer1, expand=True, fill=ttk.Tkinter.BOTH)
+		elif not self.uiSubContainer2.slaves():
+			uiContainer.pack(in_=self.uiSubContainer2, expand=True, fill=ttk.Tkinter.BOTH)
 
 	def attach_child(self, child):
 		if self.container1 == None:
 			self.container1 = child
-			self.uiContainer.add(child.uiContainer, resize=True)
+			child.uiContainer.pack(in_=self.uiSubContainer1, expand=True, fill=ttk.Tkinter.BOTH)
 			child.set_parentContainer(self)
 		if self.container2 == None:
 			self.container2 = child
-			self.uiContainer.add(child.uiContainer, resize=True)
+			child.uiContainer.pack(in_=self.uiSubContainer2, expand=True, fill=ttk.Tkinter.BOTH)
 			child.set_parentContainer(self)
-		#self.gtkContainer.show_all()
 	
 	def set_as_current(self):
 		if self.container1:
@@ -191,6 +194,10 @@ class HSplittedSpecialization(SplittedSpecialization):
 	def __init__(self, specialized): 
 		SplittedSpecialization.__init__(self, specialized)
 		self.uiContainer = Tkinter.PanedWindow(mainWindow.workspaceContainer,orient=Tkinter.HORIZONTAL)
+		self.uiSubContainer1 = Tkinter.Frame(self.uiContainer)
+		self.uiContainer.add(self.uiSubContainer1)
+		self.uiSubContainer2 = Tkinter.Frame(self.uiContainer)
+		self.uiContainer.add(self.uiSubContainer2)
 	
 	def set_panedPos(self, pos):
 		width = self.uiContainer.winfo_width()
@@ -200,6 +207,10 @@ class VSplittedSpecialization(SplittedSpecialization):
 	def __init__(self, specialized):
 		SplittedSpecialization.__init__(self, specialized)
 		self.uiContainer = Tkinter.PanedWindow(mainWindow.workspaceContainer,orient=Tkinter.VERTICAL)
+		self.uiSubContainer1 = Tkinter.Frame(self.uiContainer)
+		self.uiContainer.add(self.uiSubContainer1)
+		self.uiSubContainer2 = Tkinter.Frame(self.uiContainer)
+		self.uiContainer.add(self.uiSubContainer2)
 	
 	def set_panedPos(self, pos):
 		height = self.uiContainer.winfo_height()
