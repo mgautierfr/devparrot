@@ -39,7 +39,6 @@ class Document(object):
 		self.currentView = None
 		
 		self.set_path(documentSource)
-		self.load()
 
 		self.add_view('text', TextView(self))
 	
@@ -93,9 +92,7 @@ class Document(object):
 		#	self.models['text'].set_highlight_syntax(False)
 		
 	def load(self):
-		self.models['text'].delete("0.1", "end")
-		self.models['text'].insert("0.1", self.documentSource.get_content())
-		self.models['text'].edit_modified(False)
+		self.models['text'].set_text(self.documentSource.get_content())
 	
 	def write(self):
 		model = self.models['text']
