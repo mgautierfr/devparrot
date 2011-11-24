@@ -108,8 +108,8 @@ class open(Action):
 			from documents.fileDocSource import FileDocSource
 			doc = Document(FileDocSource(fileToOpen))
 			capi.add_file(doc)
-		doc.load()
 		capi.currentDocument = doc
+		doc.load()
 		if lineToGo:
 			doc.goto_line(lineToGo-1)
 		return True
@@ -167,7 +167,7 @@ class split(Action):
 				return doc.documentView.focus()
 			else:
 				return capi.currentContainer.split(vertical, doc.documentView)
-		if args[0] == "unsplit":
+		if cmdText == "unsplit":
 			if capi.currentContainer.get_parentContainer():
 				return capi.currentContainer.get_parentContainer().unsplit(toKeep=capi.currentContainer)
 		return False

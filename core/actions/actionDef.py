@@ -22,46 +22,18 @@ import types
 
 class MetaAction(type):
 	def __new__(cls, name, bases, dct):
-		print "beginnging new",name
 		#dct['accelerators'] = list()
 		for (key, value) in dct.items():
 			if isinstance(value, types.FunctionType):
 				cm = classmethod(value)
-				#if 'accelerators' in value.func_dict:
-				#	for accel in value.func_dict['accelerators']:
-				#		accel.set_function(cm)
-				#		dct['accelerators'].append(accel)
 				dct[key] = cm
-		print "ending new",name
 		return type.__new__(cls, name, bases, dct)
 
 	def __init__(cls, name, bases, dct):
-		print "beginnging init",name
 		super(MetaAction, cls).__init__(name, bases, dct)
 		if name != "Action":
 			import core.controler
 			core.controler.add_alias(name, cls, 0)
-			#for accel in cls.accelerators:
-			#	accel.set_cls(cls)
-		print "ending init",name
-if False:
-#class Accelerator:
-	def __init__(self, accelerator, datas=()):
-		self.accelerator = accelerator
-		self.datas = datas
-
-	def set_cls(self, cls):
-		self.cls = cls
-
-	def set_function(self, function):
-		self.function = function
-	
-	def bind(self, name):
-		event.add("<<name>>",self.accelerator)
-
-	def __call__(self, accel_group, acceleratable, keyval, modifier):
-		import core.controler
-		return core.controler.run_action(self.cls.__name__, self.function.__get__(None, self.cls),*self.datas)
 
 class Action:
 	__metaclass__ = MetaAction

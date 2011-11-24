@@ -80,7 +80,7 @@ def init():
 	#scrolledWin.set_policy(gtk.POLICY_NEVER,gtk.POLICY_AUTOMATIC)
 	#hpaned.add(scrolledWin)
 	#scrolledWin.add(documentListView)
-	workspaceContainer = ttk.Tkinter.Frame(hpaned)
+	workspaceContainer = ttk.Frame(hpaned, borderwidth=1, padding=0, relief="ridge")
 	hpaned.add(workspaceContainer)
 	#hpaned.props.position = 200
 	

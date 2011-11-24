@@ -23,9 +23,9 @@ from views.viewContainer import LeafSpecialization,AbstractContainerChild
 
 import core.mainWindow
 
-class DocumentView(ttk.LabelFrame,AbstractContainerChild):
+class DocumentView(ttk.Frame,AbstractContainerChild):
 	def __init__(self, document):
-		ttk.LabelFrame.__init__(self,core.mainWindow.workspaceContainer)
+		ttk.Frame.__init__(self,core.mainWindow.workspaceContainer, padding=0, relief="flat", borderwidth=0)
 		AbstractContainerChild.__init__(self)
 		self.document = document
 		self.currentView= None
@@ -35,7 +35,7 @@ class DocumentView(ttk.LabelFrame,AbstractContainerChild):
 		self.label.font = tkFont.Font(font="TkDefaultFont")
 		self.label['textvariable'] = document.titleVar
 		self.label['font'] = self.label.font
-		self['labelwidget'] = self.label
+		self.label.pack()
 
 		self.bind('<FocusIn>', self.on_focus)
 		
@@ -49,7 +49,7 @@ class DocumentView(ttk.LabelFrame,AbstractContainerChild):
 		self.currentView = child
 	
 	def lift(self):
-		ttk.LabelFrame.lift(self, self.parentContainer.uiContainer)
+		ttk.Frame.lift(self, self.parentContainer.uiContainer)
 		if self.currentView != None: 
 			self.currentView.lift(self)
 	

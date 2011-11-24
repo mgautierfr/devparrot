@@ -128,16 +128,16 @@ class SplittedSpecialization(ContainerSpecialization):
 			self.container2.destroy_tree()
 			self.container2 = None
 
-		self.uiContainer.remove(self.subContainer1)
-		self.uiContainer.remove(self.subContainer2)
-		self.subContainer1 = None
-		self.subContainer2 = None
+		self.uiContainer.remove(self.uiSubContainer1)
+		self.uiContainer.remove(self.uiSubContainer2)
+		self.uiSubContainer1 = None
+		self.uiSubContainer2 = None
 		self.uiContainer = None
 		CleanSpecialization(self)
 			
 	def detach_child(self, childToDetach):
 		childToDetach.set_parentContainer(None)
-		childToDetach.forget()
+		childToDetach.uiContainer.pack_forget()
 		if self.container1 == childToDetach:
 			self.container1 = None
 		elif self.container2 == childToDetach:
@@ -193,10 +193,10 @@ class SplittedSpecialization(ContainerSpecialization):
 class HSplittedSpecialization(SplittedSpecialization):
 	def __init__(self, specialized): 
 		SplittedSpecialization.__init__(self, specialized)
-		self.uiContainer = Tkinter.PanedWindow(mainWindow.workspaceContainer,orient=Tkinter.HORIZONTAL)
-		self.uiSubContainer1 = Tkinter.Frame(self.uiContainer)
+		self.uiContainer = Tkinter.PanedWindow(mainWindow.workspaceContainer,orient=Tkinter.HORIZONTAL, sashrelief="raised",borderwidth=0, sashwidth=3)
+		self.uiSubContainer1 = ttk.Frame(self.uiContainer, borderwidth=0, padding=0)
 		self.uiContainer.add(self.uiSubContainer1)
-		self.uiSubContainer2 = Tkinter.Frame(self.uiContainer)
+		self.uiSubContainer2 = ttk.Frame(self.uiContainer, borderwidth=0, padding=0)
 		self.uiContainer.add(self.uiSubContainer2)
 	
 	def set_panedPos(self, pos):
@@ -206,10 +206,10 @@ class HSplittedSpecialization(SplittedSpecialization):
 class VSplittedSpecialization(SplittedSpecialization):
 	def __init__(self, specialized):
 		SplittedSpecialization.__init__(self, specialized)
-		self.uiContainer = Tkinter.PanedWindow(mainWindow.workspaceContainer,orient=Tkinter.VERTICAL)
-		self.uiSubContainer1 = Tkinter.Frame(self.uiContainer)
+		self.uiContainer = Tkinter.PanedWindow(mainWindow.workspaceContainer,orient=Tkinter.VERTICAL, sashrelief="raised",borderwidth=0, sashwidth=3)
+		self.uiSubContainer1 = ttk.Frame(self.uiContainer, borderwidth=0, padding=0)
 		self.uiContainer.add(self.uiSubContainer1)
-		self.uiSubContainer2 = Tkinter.Frame(self.uiContainer)
+		self.uiSubContainer2 = ttk.Frame(self.uiContainer, borderwidth=0, padding=0)
 		self.uiContainer.add(self.uiSubContainer2)
 	
 	def set_panedPos(self, pos):
@@ -235,8 +235,9 @@ class TopSpecialization(ContainerSpecialization):
 		uiContainer.pack(in_=self.uiContainer, expand=True, fill=ttk.Tkinter.BOTH)
 	
 	def detach_child(self, childToDetach):
+		#import pdb; pdb.set_trace() 
+		childToDetach.uiContainer.pack_forget()
 		childToDetach.set_parentContainer(None)
-		childToDetach.uiContainer.forget()
 		self.childContainer = None
 	
 	def undisplay(self, toRemove):
@@ -261,7 +262,7 @@ class LeafSpecialization(ContainerSpecialization):
 	def __init__(self, specialized, uiContainer=None):
 		ContainerSpecialization.__init__(self, specialized)
 		if uiContainer == None:
-			self.uiContainer = Tkinter.Frame(mainWindow.workspaceContainer)
+			self.uiContainer = ttk.Frame(mainWindow.workspaceContainer, borderwidth=0, padding=0)
 		else:
 			self.uiContainer = uiContainer
 		self.drag_handler = None
