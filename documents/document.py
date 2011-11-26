@@ -85,11 +85,7 @@ class Document(object):
 		    self.documentSource != documentSource):
 			self.documentSource = documentSource
 			self.titleVar.set(self.documentSource.longTitle)
-		if False:
-			self.models['text'].set_language(self.documentSource.language)
-			self.models['text'].set_highlight_syntax(True)
-		#except AttributeError:
-		#	self.models['text'].set_highlight_syntax(False)
+			self.models['text'].enable_highlight(filename=self.documentSource.title)
 		
 	def load(self):
 		self.models['text'].set_text(self.documentSource.get_content())

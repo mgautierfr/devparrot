@@ -21,11 +21,9 @@
 import os,sys
 
 class FileDocSource(object):
-	#languageManager = gtksourceview2.LanguageManager()
 	def __init__(self, path):
 		self.path = os.path.abspath(path)
 		self.timestamp = None
-		#self.language = FileDocSource.languageManager.guess_language(path, None)
 		
 	def __getattr__(self, name):
 		if name == "title":
