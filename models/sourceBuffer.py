@@ -22,6 +22,7 @@ import ttk
 
 import core.config
 import core.mainWindow
+from time import time
 
 def insert_char(event):
 	if event.widget and event.char:
@@ -43,8 +44,16 @@ class CodeText(ttk.Tkinter.Text):
 		self.colorizeContext = None
 		self.last_stopToken = "1.0"
 	
+	@staticmethod
+	def _token_name(token):
+		return "_DP_SH_%s"%str(token).replace('.','_')
+	
+	def _sync_name(self):
+		return ""
+	
 	def enable_highlight(self, mimetype=None, filename=None):
 		from pygments.lexers import guess_lexer,get_lexer_for_mimetype,get_lexer_for_filename,guess_lexer_for_filename
+		from pygments.styles import get_style_by_name
 		def create_style_table():
 			self.style = get_style_by_name('default')
 		
@@ -112,27 +121,28 @@ class CodeText(ttk.Tkinter.Text):
 			distance = self.calcule_distance(startPoint, syncPoint)
 			for i,t,v in tokens:
 				if v:
-					currentPos = self.index("%s + %d c"%(startPoint, i))
+					currentPos = "%s + %d c"%(startPoint, i)
 					if isinstance(t,_ContextToken) and t[1]:
 						while i > distance:
 							next = find_next(self, syncPoint)
 							distance += self.calcule_distance(syncPoint, next)
 							syncPoint = next
 						if i == distance and self.compare(self.last_stopToken, "<=", currentPos) :
+							print "stopIter", currentPos
 							raise StopIteration
 						yield i,t,v,True
 					else:
 						yield i,t,v,False
 
-		start = find_startPoint(self,insertPoint)
-		start = self.index(start)
+		start = self.index(find_startPoint(self,insertPoint))
 		content = self.get(start,"end")
 		tokens = self.lexer.get_tokens_unprocessed(content)
 		tokens = stop_at_syncPoint(self, tokens, start, insertPoint)
-		self.colorizeContext = (tokens, start)
-		self.after_idle(self._update_a_token)	
+		self.colorizeContext = (tokens, start,time())
+		self._update_a_token(realTime=True)
+		#self.after_idle(self._update_a_token)	
 
-	def _update_a_token(self):
+	def _update_a_token(self,realTime=False):
 		def markoff(name):
 			#print "markoff", name
 			self.mark_unset(name)
@@ -147,18 +157,14 @@ class CodeText(ttk.Tkinter.Text):
 			self.tag_remove(name, start, end)
 		
 		def tagadd(name, start, end):
-			#print "tagadd",name, start, end	
+			#print "tagadd",name, start, end
 			self.tag_add(name, start, end)
 		
-		if self.colorizeContext:
-			tokens = self.colorizeContext[0]
-			startPoint = self.colorizeContext[1]
-		else:
-			return
-		try :
-			i,t,v,s = tokens.next()
-			token = {'start' : self.index("%s+%dc"%(startPoint,i)),
-				 'end'   : self.index("%s+%dc"%(startPoint,i+len(v))),
+		def process_itvs(elem):
+			i,t,v,s = elem
+			start = self.index("%s+%dc"%(startPoint,i))
+			token = {'start' : start,
+				 'end'   : "%s+%dc"%(start,len(v)),
 				 'name'  : "DP::SH::%s"%str(t).replace('.','_')
 				}
 			addToken = False
@@ -181,18 +187,25 @@ class CodeText(ttk.Tkinter.Text):
 						stopedTags[name] = pos
 			if s :
 				if len(marks) == 0:
-					markon(token['start'])
+					#markon(token['start'])
+					self.mark_set("DP::SH::_synctx_%d"%self.markNb, token['start'])
+					self.markNb += 1
 				else:
 					if self.compare(marks[0]['pos'], "!=", token['start']):
-						markon(token['start'])
-						markoff(marks[0]['name'])
+						#markon(token['start'])
+						self.mark_set("DP::SH::_synctx_%d"%self.markNb, token['start'])
+						self.markNb += 1
+						#markoff(marks[0]['name'])
+						self.mark_unset(marks[0]['name'])
 						
 					for mark in marks[1:]:
-						markoff(mark['name'])
+						#markoff(mark['name'])
+						self.mark_unset(mark['name'])
 				
 			else:
 				for mark in marks:
-					markoff(mark['name'])
+					#markoff(mark['name'])
+					self.mark_unset(mark['name'])
 			if len(stopedTags) != 0:
 				print "WARNING !! This should not append"
 			for name, pos in startedTags.items():
@@ -202,7 +215,8 @@ class CodeText(ttk.Tkinter.Text):
 					l.append({'start':startedTags[name],'end':end, 'name':name})
 					tags[name] = l
 				else:
-					tagdel(name, start, end)
+					#tagdel(name, start, end)
+					self.tag_remove(tag['name'], tag['start'], tag['end'])
 
 			if token['name'] in tags and len(tags[token['name']]) == 1 and \
 				self.compare(tags[token['name']][0]['start'], "==", token['start']) and \
@@ -213,19 +227,35 @@ class CodeText(ttk.Tkinter.Text):
 				   
 			for name, tagslist in tags.items():
 				for tag in tagslist:
-					tagdel(tag['name'], tag['start'], tag['end'])
+					#tagdel(tag['name'], tag['start'], tag['end'])
+					self.tag_remove(tag['name'], tag['start'], tag['end'])
 			
 			if addToken:
-				tagadd(token['name'], token['start'], token['end'])
+				#tagadd(token['name'], token['start'], token['end'])
+				self.tag_add(token['name'], token['start'], token['end'])
 
 			if self.compare(self.last_stopToken, "<", token['end']):
 				self.last_stopToken = token['end']
+		
+		if self.colorizeContext:
+			tokens = self.colorizeContext[0]
+			startPoint = self.colorizeContext[1]
+		else:
+			return
 
-			self.after_idle(self._update_a_token)
-
-		except StopIteration:
+		if realTime:
+			map(process_itvs, tokens)
 			self.last_stopToken = "1.0"
-			pass
+			print time()-self.colorizeContext[2]
+		else:
+			try :
+				process_itvs(tokens.next())
+				self.after_idle(self._update_a_token)
+
+			except StopIteration:
+				self.last_stopToken = "1.0"
+				print time()-self.colorizeContext[2]
+				pass
 
 
 class SourceBuffer(CodeText):
