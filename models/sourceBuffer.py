@@ -479,13 +479,17 @@ class CodeText(ttk.Tkinter.Text):
 				#tStyle['border']
 
 		if mimetype:
-			self.lexer = get_lexer_for_mimetype(mimetype)
-		if filename and not self.lexer:
-			self.lexer = get_lexer_for_filename(filename)
-		if filename and not self.lexer:
-			self.lexer = guess_lexer_for_filename(filename)
-		if not self.lexer:
-			self.lexer = guess_lexer(self.get("1.0", "end"))
+			try:
+				self.lexer = get_lexer_for_mimetype(mimetype)
+			except:
+				if filename:
+					try:
+						self.lexer = get_lexer_for_filename(filename)
+					except:
+						try:
+							self.lexer = guess_lexer_for_filename(filename)
+						except:
+							self.lexer = guess_lexer(self.get("1.0", "end"))
 		if self.lexer:
 			create_fonts()
 			create_style_table() 
