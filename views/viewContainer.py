@@ -71,7 +71,13 @@ class BasicContainer(AbstractContainerChild,Specializable):
 		Specializable.__init__(self)
 	
 	def get_parentContainer(self) : return self.parentContainer
-	def set_parentContainer(self, parent) : self.parentContainer = parent
+	def set_parentContainer(self, parent) :
+		if isinstance(self.__specialization__, LeafSpecialization):
+			if parent:
+				LeafSpecialization.leafList.append(self.__specialization__)
+			else:
+				LeafSpecialization.leafList.remove(self.__specialization__)
+		self.parentContainer = parent
 
 class TopContainer(BasicContainer):
 	def __init__(self):
@@ -109,7 +115,7 @@ class SplittedSpecialization(ContainerSpecialization):
 		if self.container2:
 			self.container2.set_parentContainer(None)
 			self.container2.uiContainer.forget()
-	
+		
 	def prepare_to_dnd(self, active, toExclude = None):
 		if self.container1:
 			self.container1.prepare_to_dnd(active, toExclude)
@@ -157,6 +163,8 @@ class SplittedSpecialization(ContainerSpecialization):
 				toKeep = self.container1
 		else:
 			return
+		print "toKeep :",toKeep
+		print "toRemove :",toRemove
 				
 		fatherContainer = self.get_parentContainer()
 		fatherContainer.detach_child(self)
@@ -221,7 +229,25 @@ class TopSpecialization(ContainerSpecialization):
 		ContainerSpecialization.__init__(self, specialized)
 		#self.uiContainer = Tkinter.Frame()
 		self.uiContainer = mainWindow.workspaceContainer
-		self.init_default()		
+		self.uiContainer.dnd_accept = self.dnd_accept 
+		self.init_default()
+	
+	def dnd_accept(self, source, event):
+		print "dnd_accept1"
+		x, y = event.x_root, event.y_root
+		target_widget = None
+		for leaf in LeafSpecialization.leafList:
+			x1 = leaf.uiContainer.winfo_rootx()
+			x2 = x1 + leaf.uiContainer.winfo_width()
+			y1 = leaf.uiContainer.winfo_rooty()
+			y2 = y1 + leaf.uiContainer.winfo_height()
+			if x>x1 and x<x2 and y>y1 and y<y2:
+				target_widget = leaf
+				break
+		if target_widget :
+			return target_widget.dnd_accept(source, event)
+		return None
+		
 	
 	def init_default(self):
 		self.childContainer = BasicContainer()
@@ -244,7 +270,7 @@ class TopSpecialization(ContainerSpecialization):
 		self.detach_child(toRemove)
 		toRemove.destroy_tree()
 		self.init_default()
-		
+	
 	def prepare_to_dnd(self, active, toExclude = None):
 		self.childContainer.prepare_to_dnd(active, toExclude)
 	
@@ -259,6 +285,8 @@ class TopSpecialization(ContainerSpecialization):
 
 class LeafSpecialization(ContainerSpecialization):
 	current = None
+	leafList = []
+	
 	def __init__(self, specialized, uiContainer=None):
 		ContainerSpecialization.__init__(self, specialized)
 		if uiContainer == None:
@@ -268,20 +296,21 @@ class LeafSpecialization(ContainerSpecialization):
 		self.drag_handler = None
 		self.documentView = None
 	
+	def dnd_accept(self, source, event):
+		if source == self.documentView:
+			return None
+		if not self.drag_handler:
+			self.drag_handler = DragHandler(self)
+		return self.drag_handler
+
 	def init(self, documentView):
 		self.set_as_child(documentView)
 		self.show_all()
-		
-	def prepare_to_dnd(self, active, toExclude = None):
-		if active:
-			if toExclude and self.get_documentView() != toExclude:
-				self.drag_handler = DragHandler(self)
-		else:
-			# the container can be a new created one. So the drag_handler is None
-			if self.drag_handler:
-				self.drag_handler.hide()
-				self.drag_handler.destroy()
-				self.drag_handle = None
+
+	def destroy_dnd(self):
+		if self.drag_handler:
+			self.drag_handler.destroy()
+			self.drag_handler = None
 
 	def set_documentView(self, documentView):
 		if self.documentView:
@@ -293,7 +322,6 @@ class LeafSpecialization(ContainerSpecialization):
 			documentView.set_parentContainer(self)
 			self.documentView = documentView
 			documentView.pack(in_=self.uiContainer, expand=True, fill=ttk.Tkinter.BOTH)
-		#self.gtkContainer.show_all()
 
 	def get_documentView(self):
 		return self.documentView
@@ -355,81 +383,101 @@ class LeafSpecialization(ContainerSpecialization):
 	def set_as_current(self):
 		LeafSpecialization.current = self
 
-if False:
-#class DragHandler(gtk.Window):
+class DragHandler(ttk.Tkinter.Toplevel):
 	def __init__(self, container):
-		gtk.Window.__init__(self,gtk.WINDOW_POPUP)
+		ttk.Tkinter.Toplevel.__init__(self, mainWindow.window)
 		self.container = container
-		self.drag_dest_set(gtk.DEST_DEFAULT_MOTION|gtk.DEST_DEFAULT_DROP, [('documentView',gtk.TARGET_SAME_APP,5)], gtk.gdk.ACTION_COPY)
-		self.connect('drag-motion', self.on_drag_motion)
-		self.connect('drag-leave', self.on_drag_leave)
-		self.connect('drag-data-received', self.on_drag_data_received)
-		self.show()
 		self.init()
 		
 	def init(self):
-		r = self.container.gtkContainer.get_allocation()
-		p = self.container.gtkContainer.window.get_origin()
+		self.wm_overrideredirect(True)
 		self.pos = 'center'
-		self.window.move_resize(r.x+p[0],r.y+p[1],r.width,r.height)
-		self.window.set_opacity(0)
+		r = "%(width)dx%(height)d+%(X)d+%(Y)d"%{
+		    "width"  : self.container.uiContainer.winfo_width(),
+		    "height" : self.container.uiContainer.winfo_height(),
+		    "X"      : self.container.uiContainer.winfo_rootx(),
+		    "Y"      : self.container.uiContainer.winfo_rooty()
+		    }
+		self.wm_geometry(r)
+		print r
 		
 	def calculate_pos(self,x,y):
-		r = self.container.gtkContainer.get_allocation()
-		if self.pos == 'right':
-			x += r.width/2
-		if self.pos == 'bottom':
-			y += r.height/2
+		geom = {
+		 'width' : self.container.uiContainer.winfo_width(),
+		 'height': self.container.uiContainer.winfo_height(),
+		 'x'     : self.container.uiContainer.winfo_rootx(),
+		 'y'     : self.container.uiContainer.winfo_rooty(),
+		}
+		geom['x2'] = geom['x']+geom['width']
+		geom['y2'] = geom['y']+geom['height']
+		geom['cx'] = geom['x']+geom['width']/2
+		geom['cy'] = geom['y']+geom['height']/2
+		
 		pos = 'center'
-		if (abs(x-r.width/2) > r.width/4) or (abs(y-r.height/2) > r.height/4):
+		
+		if (abs(x-geom['cx']) > geom['width']/4) or (abs(y-geom['cy']) > geom['height']/4):
 			l = []
-			l.append(( abs(x)            , 'left'   ))
-			l.append(( abs(x-r.width)    , 'right'  ))
-			l.append(( abs(y)            , 'top'    ))
-			l.append(( abs(y-r.height)   , 'bottom' ))
+			l.append(( abs(x-geom['x'])  , 'left'   ))
+			l.append(( abs(x-geom['x2']) , 'right'  ))
+			l.append(( abs(y-geom['y'])  , 'top'    ))
+			l.append(( abs(y-geom['y2']) , 'bottom' ))
 			pos = min(l)[1]
 		return pos
 		
-		
-	def on_drag_motion(self, widget, drag_context, x, y, time, data=None):		
-		r = self.container.gtkContainer.get_allocation()
-		p = self.container.gtkContainer.window.get_origin()
-		new =  [r.x+p[0],r.y+p[1],r.width,r.height]
-		
-		self.pos = self.calculate_pos(x,y)
-		if self.pos == 'left':
-			new[2] -= r.width/2
-		if self.pos == 'right':
-			new[0] += r.width/2
-			new[2] -= r.width/2
-		if self.pos == 'top':
-			new[3] -= r.height/2
-		if self.pos == 'bottom':
-			new[1] += r.height/2
-			new[3] -= r.height/2
+	def dnd_accept(self, source, event):
+		return self
 	
-		self.drag_highlight()
-		self.window.move_resize(*new)
-		self.window.set_opacity(0.5)				
+	def dnd_enter(self, source, event):
+		print "drag_enter"
+		pass
+	
+	def dnd_leave(self, source, event):
+		print "drag_leave"
+		self.container.destroy_dnd()
+		pass
+	
+	def dnd_motion(self, source, event):
+		x, y = event.x_root, event.y_root
+		print "drag_motion",x,y
+		new = {
+		    "width"  : self.container.uiContainer.winfo_width(),
+		    "height" : self.container.uiContainer.winfo_height(),
+		    "X"      : self.container.uiContainer.winfo_rootx(),
+		    "Y"      : self.container.uiContainer.winfo_rooty()
+		}		
+		self.pos = self.calculate_pos(x,y)
+		print self.pos
+		if self.pos == 'left':
+			new['width'] /= 2
+		if self.pos == 'right':
+			new['width'] /= 2
+			new['X'] += new['width']
+		if self.pos == 'top':
+			new['height'] /= 2
+		if self.pos == 'bottom':
+			new['height'] /= 2
+			new['Y'] += new['height']
+
+		self.wm_geometry("%(width)dx%(height)d+%(X)d+%(Y)d"%new)
+		print new
 		return True
 	
-	def on_drag_leave(self, widget,drag_context, time, data=None):
-		self.drag_unhighlight()
-		self.init()
-		
-	def on_drag_data_received(self, widget, drag_context,  x, y, selection_data, info, time,data=None):
+	def dnd_commit(self, source, event):
+		print "dnd_commit"
 		import core.controler
+		x, y = event.x_root, event.y_root
 		pos = self.calculate_pos(x,y)
-		document = core.controler.currentSession.get_documentManager().get_file(selection_data.data)
+		document = source.document
+		self.container.destroy_dnd()
 		# unprepare dnd before changing everything
-		core.controler.currentSession.get_workspace().prepare_to_dnd(False)
+		#core.controler.currentSession.get_workspace().prepare_to_dnd(False)
 		if document.documentView.is_displayed():
 			parentContainer = document.documentView.get_parentContainer()
+			print "parentContainer :",parentContainer
 			parentContainer.get_parentContainer().unsplit(toRemove=parentContainer)
 		if pos == 'center':
 			self.container.set_documentView(document.documentView)
 		if pos in ['right','left']:
-			self.container.split(0, document.documentView, first=(pos=='left'))
+			self.container.specialized.split(0, document.documentView, first=(pos=='left'))
 		if pos in ['top','bottom']:
-			self.container.split(1, document.documentView, first=(pos=='top'))
-
+			self.container.specialized.split(1, document.documentView, first=(pos=='top'))

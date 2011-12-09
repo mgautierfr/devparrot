@@ -18,7 +18,7 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import Tkinter,ttk
+import Tkinter,ttk,Tkdnd
 from views.viewContainer import LeafSpecialization,AbstractContainerChild
 
 import core.mainWindow
@@ -39,10 +39,8 @@ class DocumentView(ttk.Frame,AbstractContainerChild):
 
 		self.bind('<FocusIn>', self.on_focus)
 		
-		#self.label.drag_source_set(gtk.gdk.BUTTON1_MASK, [('documentView',gtk.TARGET_SAME_APP,5)], gtk.gdk.ACTION_COPY)
-		#self.label.connect('drag-begin',self.on_drag_begin)
-		#self.label.connect('drag-data-get',self.on_drag_data_get)
-		#self.label.connect('drag-end',self.on_drag_end)
+		self.label.bind_class("Drag","<Button-1><Button1-Motion>", self.on_drag_begin)
+		self.label.bindtags(" ".join(["Drag"]+[t for t in self.label.bindtags()]))
 		
 	def set_view(self, child):
 		child.uiContainer.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)
@@ -70,14 +68,10 @@ class DocumentView(ttk.Frame,AbstractContainerChild):
 	def on_focus_child(self, event):
 		LeafSpecialization.current = self.parentContainer
 	
-	def on_drag_begin(self, widget, drag_context, data=None):
-		import core.controler
-		core.controler.currentSession.get_workspace().prepare_to_dnd(True,self)
-	
-	def on_drag_data_get(self, widget, drag_context, selection_data, info, time, data=None):
-		selection_data.set('documentView', info, self.document.longTitle)
+	def on_drag_begin(self, event):
+		event.num = 1
+		Tkdnd.dnd_start(self, event)
 		
-	def on_drag_end(self, widget, drag_context, data=None):
-		import core.controler
-		core.controler.currentSession.get_workspace().prepare_to_dnd(False)
+	def dnd_end(self, target, event):
+		print "ending drag"	
 	
