@@ -19,27 +19,33 @@
 #    Copyright 2011 Matthieu Gautier
 
 import Tkinter,ttk,Tkdnd
-from views.viewContainer import LeafSpecialization,AbstractContainerChild
+from views.viewContainer import LeafContainer,ContainerChild
 
 import core.mainWindow
 
-class DocumentView(ttk.Frame,AbstractContainerChild):
+def on_drag_begin_label(event):
+	event.num = 1
+	Tkdnd.dnd_start(event.widget.documentView, event)
+	
+core.mainWindow.window.bind_class("Drag","<Button-1><Button1-Motion>", on_drag_begin_label)
+
+class DocumentView(ContainerChild, ttk.Frame):
 	def __init__(self, document):
+		ContainerChild.__init__(self)
 		ttk.Frame.__init__(self,core.mainWindow.workspaceContainer, padding=0, relief="flat", borderwidth=0)
-		AbstractContainerChild.__init__(self)
 		self.document = document
 		self.currentView= None
 		
 		import tkFont
 		self.label = ttk.Label(self)
 		self.label.font = tkFont.Font(font="TkDefaultFont")
+		self.label.documentView = self
 		self.label['textvariable'] = document.titleVar
 		self.label['font'] = self.label.font
 		self.label.pack()
 
 		self.bind('<FocusIn>', self.on_focus)
 		
-		self.label.bind_class("Drag","<Button-1><Button1-Motion>", self.on_drag_begin)
 		self.label.bindtags(" ".join(["Drag"]+[t for t in self.label.bindtags()]))
 		
 	def set_view(self, child):
@@ -47,7 +53,7 @@ class DocumentView(ttk.Frame,AbstractContainerChild):
 		self.currentView = child
 	
 	def lift(self):
-		ttk.Frame.lift(self, self.parentContainer.uiContainer)
+		ttk.Frame.lift(self, self.parentContainer)
 		if self.currentView != None: 
 			self.currentView.lift(self)
 	
@@ -66,12 +72,8 @@ class DocumentView(ttk.Frame,AbstractContainerChild):
 		self.currentView.focus()
 
 	def on_focus_child(self, event):
-		LeafSpecialization.current = self.parentContainer
-	
-	def on_drag_begin(self, event):
-		event.num = 1
-		Tkdnd.dnd_start(self, event)
+		LeafContainer.current = self.parentContainer
 		
 	def dnd_end(self, target, event):
-		print "ending drag"	
+		pass	
 	

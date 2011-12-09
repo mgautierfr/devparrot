@@ -43,10 +43,8 @@ class Controller(object):
    def install(self, widget):
       widgetclass = widget.winfo_class()
       # remove widget class bindings and other controllers
-      tags = [self.tag]
-      for tag in widget.bindtags():
-         if tag != widgetclass and tag[:len(PREFIX)] != PREFIX:
-            tags.append(tag)
+      tags = list(widget.bindtags())
+      tags[tags.index(widgetclass)] = self.tag
       widget.bindtags(tuple(tags))
 
    def create(self, handle):
@@ -294,7 +292,7 @@ class EnhancedTextController( KBController ):
          
          self._insert_x_pos = event.widget.bbox( 'insert' )[0]
 
-#   @bind( '<ButtonPress-1>' )
+   @bind( '<ButtonPress-1>' )
    def click( self, event ):
       event.widget.focus_set( )
       
@@ -304,7 +302,7 @@ class EnhancedTextController( KBController ):
       
       self._insert_x_pos = event.x
    
-#   @bind( '<B1-Motion>', '<Shift-Button1-Motion>' )
+   @bind( '<B1-Motion>', '<Shift-Button1-Motion>' )
    def dragSelection( self, event ):
       widget = event.widget
       
@@ -319,7 +317,7 @@ class EnhancedTextController( KBController ):
       widget.mark_set( 'insert', '@%d,%d' % (event.x+2, event.y) )
       self._insert_x_pos = event.x
    
-#   @bind( '<ButtonRelease-1>' )
+   @bind( '<ButtonRelease-1>' )
    def moveCarrot_deselect( self, event ):
       widget = event.widget
       
@@ -327,19 +325,19 @@ class EnhancedTextController( KBController ):
       widget.mark_set( 'insert', 'current' )
       self._insert_x_pos = event.x
    
-#   @bind( '<Double-ButtonPress-1>' )
+   @bind( '<Double-ButtonPress-1>' )
    def selectWord( self, event ):
       event.widget.sel_setAnchor( 'insert wordstart' )
       event.widget.mark_set( 'insert', 'insert wordend' )
       self._insert_x_pos = event.x
    
-#   @bind( '<Triple-ButtonPress-1>' )
+   @bind( '<Triple-ButtonPress-1>' )
    def selectLine( self, event ):
       event.widget.sel_setAnchor( 'insert linestart' )
       event.widget.mark_set( 'insert', 'insert lineend' )
       self._insert_x_pos = event.x
    
-#   @bind( '<Button1-Leave>' )
+   @bind( '<Button1-Leave>' )
    def scrollView( self, event ):
       widget = event.widget
       

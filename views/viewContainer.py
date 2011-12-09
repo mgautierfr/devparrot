@@ -20,136 +20,123 @@
 
 import Tkinter,ttk
 from core import mainWindow
-
-class ContainerSpecialization(object):
-	def __init__(self, specialized):
-		# remove the connection from the old specialization to the specialized
-		if specialized.__specialization__:
-			specialized.__specialization__.specialized = None
-		# set the new specialization
-		self.specialized = specialized
-		self.specialized.__specialization__ = self
 		
-class AbstractContainerChild(object):
+class ContainerChild():
 	def __init__(self):
 		self.parentContainer = None
 	
 	def get_parentContainer(self) : return self.parentContainer
 	def set_parentContainer(self, parent):
 			self.parentContainer = parent
-			
-class Specializable(object):
+
+class TopContainer(ContainerChild,Tkinter.Frame):
 	def __init__(self):
-		self.__specialization__ = None
+		ContainerChild.__init__(self)
+		Tkinter.Frame.__init__(self,mainWindow.workspaceContainer) 
+		self.pack(expand=True, fill=ttk.Tkinter.BOTH)
+		mainWindow.workspaceContainer.dnd_accept = self.dnd_accept
+		self.init_default()
 	
-	def __getattr__(self, name):
-		if self.__dict__['__specialization__'] != None :
-			att = getattr(self.__dict__['__specialization__'],name)
-			import types
-			if isinstance(att, types.MethodType):
-				#take the correspondinf function
-				att = att.im_func
-				#return the new bounded method
-				return att.__get__(self, self.__class__)
-			else:
-				return att
-		raise AttributeError
+	def dnd_accept(self, source, event):
+		x, y = event.x_root, event.y_root
+		target_widget = None
+		for leaf in LeafContainer.leafList:
+			x1 = leaf.winfo_rootx()
+			x2 = x1 + leaf.winfo_width()
+			y1 = leaf.winfo_rooty()
+			y2 = y1 + leaf.winfo_height()
+			if x>x1 and x<x2 and y>y1 and y<y2:
+				target_widget = leaf
+				break
+		if target_widget :
+			return target_widget.dnd_accept(source, event)
+		return None
+		
 	
-	def __setattr__(self, name, value):
-		if '__specialization__' not in self.__dict__ or self.__dict__['__specialization__'] == None or name =='__specialization__' :
-			object.__setattr__(self, name, value)
-			return
-
-		if name in self.__dict__['__specialization__'].__dict__:
-			object.__setattr__(self.__dict__['__specialization__'], name, value)
-		else:
-			object.__setattr__(self, name, value)
-
-class BasicContainer(AbstractContainerChild,Specializable):
-	def __init__(self):
-		AbstractContainerChild.__init__(self)
-		Specializable.__init__(self)
+	def init_default(self):
+		container = LeafContainer()
+		self.attach_child(container)
+		container.set_as_current()
 	
-	def get_parentContainer(self) : return self.parentContainer
-	def set_parentContainer(self, parent) :
-		if isinstance(self.__specialization__, LeafSpecialization):
-			if parent:
-				LeafSpecialization.leafList.append(self.__specialization__)
-			else:
-				LeafSpecialization.leafList.remove(self.__specialization__)
-		self.parentContainer = parent
-
-class TopContainer(BasicContainer):
-	def __init__(self):
-		BasicContainer.__init__(self)
-		TopSpecialization(self)
+	def attach_child(self, container):
+		self.container = container
+		self.container.set_parentContainer(self)
+		self.container.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)
+		try : container.unregister()
+		except : pass
 	
-def CleanSpecialization(specialized):
-	if specialized.__specialization__:
-		specialized.__specialization__.specialized = None
-	specialized.__specialization__ = None
+	def detach_child(self, childToDetach): 
+		childToDetach.pack_forget()
+		childToDetach.set_parentContainer(None)
+		self.childContainer = None
+		try : childToDetach.unregister()
+		except : pass
+	
+	def undisplay(self, toRemove):
+		self.detach_child(toRemove)
+		toRemove.destroy_tree()
+		self.init_default()
+	
+	def set_as_current(self):
+		self.container.set_as_current()
 
-class SplittedSpecialization(ContainerSpecialization):
-	def __init__(self, specialized):
-		ContainerSpecialization.__init__(self, specialized)
+
+class SplittedContainer(ContainerChild,Tkinter.PanedWindow):
+	def __init__(self, isVertical):
+		ContainerChild.__init__(self)
+		Tkinter.PanedWindow.__init__(self, mainWindow.workspaceContainer,
+		                             orient=Tkinter.VERTICAL if isVertical else Tkinter.HORIZONTAL,
+		                             sashrelief="raised",
+		                             borderwidth=0,
+		                             sashwidth=3)
+		self.uiSubContainer1 = ttk.Frame(self, borderwidth=0, padding=0)
+		self.add(self.uiSubContainer1)
+		self.uiSubContainer2 = ttk.Frame(self, borderwidth=0, padding=0)
+		self.add(self.uiSubContainer2)
 		self.container1 = None
 		self.container2 = None
+		self.isVertical = isVertical
+		if isVertical:
+			self.set_panedPos = self.set_vPanedPos
+		else:
+			self.set_panedPos = self.set_hPanedPos
+	
+	def set_vPanedPos(self, pos):
+		height = self.winfo_height()
+		self.sash_place(0, 0, int(height*pos))
+	def set_hPanedPos(self, pos):
+			width = self.winfo_width()
+			self.sash_place(0, int(width*pos),0)
 		
 	def init(self, container1, container2):
-		self.container1 = container1
-		self.container2 = container2
-		container1.uiContainer.pack(in_=self.uiSubContainer1, expand=True, fill=ttk.Tkinter.BOTH)
-		container2.uiContainer.pack(in_=self.uiSubContainer2, expand=True, fill=ttk.Tkinter.BOTH)
-		container1.set_parentContainer(self)
-		container2.set_parentContainer(self)
+		self.attach_child(container1)
+		self.attach_child(container2)
 	
-	def lift(self):
-		#self.uiContainer.lift(self.parentContainer.uiContainer)
-		self.container1.lift()
-		self.container2.lift()
-			
-	def __unlink_child__(self):
-		if self.container1:
-			self.container1.set_parentContainer(None)
-			self.container1.uiContainer.forget()
-		if self.container2:
-			self.container2.set_parentContainer(None)
-			self.container2.uiContainer.forget()
-		
-	def prepare_to_dnd(self, active, toExclude = None):
-		if self.container1:
-			self.container1.prepare_to_dnd(active, toExclude)
-		if self.container2:
-			self.container2.prepare_to_dnd(active, toExclude)
-		
-	def destroy_tree(self):
-		if self.container1:
-			self.container1.set_parentContainer(None)
-			self.container1.uiContainer.forget()
-			self.container1.destroy_tree()
-			self.container1 = None
-		if self.container2:
-			self.container2.set_parentContainer(None)
-			self.container2.uiContainer.forget()
-			self.container2.destroy_tree()
-			self.container2 = None
-
-		self.uiContainer.remove(self.uiSubContainer1)
-		self.uiContainer.remove(self.uiSubContainer2)
-		self.uiSubContainer1 = None
-		self.uiSubContainer2 = None
-		self.uiContainer = None
-		CleanSpecialization(self)
-			
+	def attach_child(self, child):
+		try : child.register()
+		except : pass
+		if self.container1 == None:
+			self.container1 = child
+			child.pack(in_=self.uiSubContainer1, expand=True, fill=ttk.Tkinter.BOTH)
+			child.set_parentContainer(self)
+		elif self.container2 == None:
+			self.container2 = child
+			child.pack(in_=self.uiSubContainer2, expand=True, fill=ttk.Tkinter.BOTH)
+			child.set_parentContainer(self)
+	
 	def detach_child(self, childToDetach):
 		childToDetach.set_parentContainer(None)
-		childToDetach.uiContainer.pack_forget()
+		childToDetach.pack_forget()
+		try : childToDetach.unregister()
+		except : pass
 		if self.container1 == childToDetach:
 			self.container1 = None
 		elif self.container2 == childToDetach:
 			self.container2 = None
-		
-
+	
+	def undisplay(self, toRemove):
+		return self.unsplit(toRemove = toRemove)
+	
 	def unsplit(self, toKeep=None, toRemove=None):
 		if toRemove == None and toKeep != None:
 			if self.container1 == toKeep:
@@ -163,34 +150,32 @@ class SplittedSpecialization(ContainerSpecialization):
 				toKeep = self.container1
 		else:
 			return
-		print "toKeep :",toKeep
-		print "toRemove :",toRemove
-				
+			
 		fatherContainer = self.get_parentContainer()
 		fatherContainer.detach_child(self)
 		self.detach_child(toKeep)
 		fatherContainer.attach_child(toKeep)
 		toKeep.set_as_current()
 		self.destroy_tree()
-		
-	def undisplay(self, toRemove):
-		return self.unsplit(toRemove = toRemove)
 	
-	def ui_attach(self, uiContainer):
-		if not self.uiSubContainer1.slaves():
-			uiContainer.pack(in_=self.uiSubContainer1, expand=True, fill=ttk.Tkinter.BOTH)
-		elif not self.uiSubContainer2.slaves():
-			uiContainer.pack(in_=self.uiSubContainer2, expand=True, fill=ttk.Tkinter.BOTH)
+	def lift(self):
+		self.container1.lift()
+		self.container2.lift()
+		
+	def destroy_tree(self):
+		if self.container1:
+			container = self.container1
+			self.detach_child(container)
+			container.destroy_tree()
+		if self.container2:
+			container = self.container2
+			self.detach_child(container)
+			container.destroy_tree()
 
-	def attach_child(self, child):
-		if self.container1 == None:
-			self.container1 = child
-			child.uiContainer.pack(in_=self.uiSubContainer1, expand=True, fill=ttk.Tkinter.BOTH)
-			child.set_parentContainer(self)
-		if self.container2 == None:
-			self.container2 = child
-			child.uiContainer.pack(in_=self.uiSubContainer2, expand=True, fill=ttk.Tkinter.BOTH)
-			child.set_parentContainer(self)
+		self.remove(self.uiSubContainer1)
+		self.remove(self.uiSubContainer2)
+		self.uiSubContainer1 = None
+		self.uiSubContainer2 = None	
 	
 	def set_as_current(self):
 		if self.container1:
@@ -198,103 +183,23 @@ class SplittedSpecialization(ContainerSpecialization):
 		elif self.container2:
 			self.container2.set_as_current()	
 		
-class HSplittedSpecialization(SplittedSpecialization):
-	def __init__(self, specialized): 
-		SplittedSpecialization.__init__(self, specialized)
-		self.uiContainer = Tkinter.PanedWindow(mainWindow.workspaceContainer,orient=Tkinter.HORIZONTAL, sashrelief="raised",borderwidth=0, sashwidth=3)
-		self.uiSubContainer1 = ttk.Frame(self.uiContainer, borderwidth=0, padding=0)
-		self.uiContainer.add(self.uiSubContainer1)
-		self.uiSubContainer2 = ttk.Frame(self.uiContainer, borderwidth=0, padding=0)
-		self.uiContainer.add(self.uiSubContainer2)
-	
-	def set_panedPos(self, pos):
-		width = self.uiContainer.winfo_width()
-		self.uiContainer.sash_place(0, int(width*pos),0)
 
-class VSplittedSpecialization(SplittedSpecialization):
-	def __init__(self, specialized):
-		SplittedSpecialization.__init__(self, specialized)
-		self.uiContainer = Tkinter.PanedWindow(mainWindow.workspaceContainer,orient=Tkinter.VERTICAL, sashrelief="raised",borderwidth=0, sashwidth=3)
-		self.uiSubContainer1 = ttk.Frame(self.uiContainer, borderwidth=0, padding=0)
-		self.uiContainer.add(self.uiSubContainer1)
-		self.uiSubContainer2 = ttk.Frame(self.uiContainer, borderwidth=0, padding=0)
-		self.uiContainer.add(self.uiSubContainer2)
-	
-	def set_panedPos(self, pos):
-		height = self.uiContainer.winfo_height()
-		self.uiContainer.sash_place(0, 0, int(height*pos))
 		
-class TopSpecialization(ContainerSpecialization):
-	def __init__(self, specialized):
-		ContainerSpecialization.__init__(self, specialized)
-		#self.uiContainer = Tkinter.Frame()
-		self.uiContainer = mainWindow.workspaceContainer
-		self.uiContainer.dnd_accept = self.dnd_accept 
-		self.init_default()
-	
-	def dnd_accept(self, source, event):
-		print "dnd_accept1"
-		x, y = event.x_root, event.y_root
-		target_widget = None
-		for leaf in LeafSpecialization.leafList:
-			x1 = leaf.uiContainer.winfo_rootx()
-			x2 = x1 + leaf.uiContainer.winfo_width()
-			y1 = leaf.uiContainer.winfo_rooty()
-			y2 = y1 + leaf.uiContainer.winfo_height()
-			if x>x1 and x<x2 and y>y1 and y<y2:
-				target_widget = leaf
-				break
-		if target_widget :
-			return target_widget.dnd_accept(source, event)
-		return None
-		
-	
-	def init_default(self):
-		self.childContainer = BasicContainer()
-		LeafSpecialization(self.childContainer)
-		self.childContainer.set_parentContainer(self)
-		self.ui_attach(self.childContainer.uiContainer)
-		self.childContainer.set_as_current()
-		#self.gtkContainer.show_all()
-	
-	def ui_attach(self, uiContainer):
-		uiContainer.pack(in_=self.uiContainer, expand=True, fill=ttk.Tkinter.BOTH)
-	
-	def detach_child(self, childToDetach):
-		#import pdb; pdb.set_trace() 
-		childToDetach.uiContainer.pack_forget()
-		childToDetach.set_parentContainer(None)
-		self.childContainer = None
-	
-	def undisplay(self, toRemove):
-		self.detach_child(toRemove)
-		toRemove.destroy_tree()
-		self.init_default()
-	
-	def prepare_to_dnd(self, active, toExclude = None):
-		self.childContainer.prepare_to_dnd(active, toExclude)
-	
-	def attach_child(self, child):
-		self.childContainer = child
-		child.uiContainer.pack(in_=self.uiContainer, expand=True, fill=ttk.Tkinter.BOTH)
-		child.set_parentContainer(self)
-		#self.gtkContainer.show_all()
-	
-	def set_as_current(self):
-		self.childContainer.set_as_current()
-
-class LeafSpecialization(ContainerSpecialization):
+class LeafContainer(ContainerChild,ttk.Frame):
 	current = None
-	leafList = []
+	leafList = set()
 	
-	def __init__(self, specialized, uiContainer=None):
-		ContainerSpecialization.__init__(self, specialized)
-		if uiContainer == None:
-			self.uiContainer = ttk.Frame(mainWindow.workspaceContainer, borderwidth=0, padding=0)
-		else:
-			self.uiContainer = uiContainer
+	def __init__(self):
+		ContainerChild.__init__(self)
+		ttk.Frame.__init__(self,mainWindow.workspaceContainer, borderwidth=0, padding=0)
 		self.drag_handler = None
 		self.documentView = None
+	
+	def register(self):
+		LeafContainer.leafList.add(self)
+	
+	def unregister(self):
+		LeafContainer.leafList.remove(self)
 	
 	def dnd_accept(self, source, event):
 		if source == self.documentView:
@@ -302,10 +207,16 @@ class LeafSpecialization(ContainerSpecialization):
 		if not self.drag_handler:
 			self.drag_handler = DragHandler(self)
 		return self.drag_handler
-
-	def init(self, documentView):
-		self.set_as_child(documentView)
-		self.show_all()
+	
+	def attach_child(self, child):
+		self.documentView = child
+		self.documentView.set_parentContainer(self)
+		self.documentView.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)
+	
+	def detach_child(self, child):
+		self.documentView.forget()
+		self.documentView.set_parentContainer(None)
+		self.documentView = None
 
 	def destroy_dnd(self):
 		if self.drag_handler:
@@ -314,14 +225,10 @@ class LeafSpecialization(ContainerSpecialization):
 
 	def set_documentView(self, documentView):
 		if self.documentView:
-			self.documentView.forget()
-			self.documentView.set_parentContainer(None)
-			self.documentView = None
-			
+			self.detach_child(self.documentView)
+
 		if documentView:
-			documentView.set_parentContainer(self)
-			self.documentView = documentView
-			documentView.pack(in_=self.uiContainer, expand=True, fill=ttk.Tkinter.BOTH)
+			self.attach_child(documentView)
 
 	def get_documentView(self):
 		return self.documentView
@@ -331,57 +238,41 @@ class LeafSpecialization(ContainerSpecialization):
 			self.documentView.set_parentContainer(None)
 			self.documentView.forget()
 			self.documentView = None
-
-		self.uiContainer = None
-		CleanSpecialization(self)
 	
 	def undisplay(self, toRemove):
 		return self.get_parentContainer().undisplay(self)
 		
 	def split(self, direction, newView, first = False):
 		#switch basecontainer to a SplittedContainer
-		currentUiContainer = self.uiContainer
-		currentDocumentView = self.documentView
 		fatherContainer = self.get_parentContainer()
-		self.uiContainer.forget()
+		fatherContainer.detach_child(self)
 		
-		if direction == 0:
-			HSplittedSpecialization(self)
-		else:
-			VSplittedSpecialization(self)
-		fatherContainer.ui_attach(self.uiContainer)
+		splitted = SplittedContainer(direction!=0)
 
-		# create the two leaf containers
-		container1 = BasicContainer()
-		LeafSpecialization(container1, currentUiContainer)
-		currentDocumentView.set_parentContainer(container1)
-		container1.documentView = currentDocumentView
-		
+		fatherContainer.attach_child(splitted)
 		 
-		container2 = BasicContainer()
-		LeafSpecialization(container2)
+		container2 = LeafContainer()
 		container2.set_documentView(newView)
 
 		#add the two leaf containers to the base container
 		if first:
-			self.init(container2, container1)	
+			splitted.init(container2, self)	
 		else:
-			self.init(container1, container2)
+			splitted.init(self, container2)
 		
-		self.lift()
-		#import pdb; pdb.set_trace()
+		splitted.lift()
 		
-		self.uiContainer.update()
-		self.uiContainer.after_idle(self.set_panedPos,0.5)
+		splitted.update()
+		splitted.after_idle(splitted.set_panedPos,0.5)
 		
-		container1.set_as_current()
+		container2.set_as_current()
 	
 	def lift(self):
-		self.uiContainer.lift(self.parentContainer.uiContainer)
+		ttk.Frame.lift(self, self.parentContainer)
 		self.documentView.lift()
 	
 	def set_as_current(self):
-		LeafSpecialization.current = self
+		LeafContainer.current = self
 
 class DragHandler(ttk.Tkinter.Toplevel):
 	def __init__(self, container):
@@ -393,20 +284,19 @@ class DragHandler(ttk.Tkinter.Toplevel):
 		self.wm_overrideredirect(True)
 		self.pos = 'center'
 		r = "%(width)dx%(height)d+%(X)d+%(Y)d"%{
-		    "width"  : self.container.uiContainer.winfo_width(),
-		    "height" : self.container.uiContainer.winfo_height(),
-		    "X"      : self.container.uiContainer.winfo_rootx(),
-		    "Y"      : self.container.uiContainer.winfo_rooty()
+		    "width"  : self.container.winfo_width(),
+		    "height" : self.container.winfo_height(),
+		    "X"      : self.container.winfo_rootx(),
+		    "Y"      : self.container.winfo_rooty()
 		    }
 		self.wm_geometry(r)
-		print r
 		
 	def calculate_pos(self,x,y):
 		geom = {
-		 'width' : self.container.uiContainer.winfo_width(),
-		 'height': self.container.uiContainer.winfo_height(),
-		 'x'     : self.container.uiContainer.winfo_rootx(),
-		 'y'     : self.container.uiContainer.winfo_rooty(),
+		 'width' : self.container.winfo_width(),
+		 'height': self.container.winfo_height(),
+		 'x'     : self.container.winfo_rootx(),
+		 'y'     : self.container.winfo_rooty(),
 		}
 		geom['x2'] = geom['x']+geom['width']
 		geom['y2'] = geom['y']+geom['height']
@@ -428,25 +318,21 @@ class DragHandler(ttk.Tkinter.Toplevel):
 		return self
 	
 	def dnd_enter(self, source, event):
-		print "drag_enter"
 		pass
 	
 	def dnd_leave(self, source, event):
-		print "drag_leave"
 		self.container.destroy_dnd()
 		pass
 	
 	def dnd_motion(self, source, event):
 		x, y = event.x_root, event.y_root
-		print "drag_motion",x,y
 		new = {
-		    "width"  : self.container.uiContainer.winfo_width(),
-		    "height" : self.container.uiContainer.winfo_height(),
-		    "X"      : self.container.uiContainer.winfo_rootx(),
-		    "Y"      : self.container.uiContainer.winfo_rooty()
+		    "width"  : self.container.winfo_width(),
+		    "height" : self.container.winfo_height(),
+		    "X"      : self.container.winfo_rootx(),
+		    "Y"      : self.container.winfo_rooty()
 		}		
 		self.pos = self.calculate_pos(x,y)
-		print self.pos
 		if self.pos == 'left':
 			new['width'] /= 2
 		if self.pos == 'right':
@@ -459,25 +345,21 @@ class DragHandler(ttk.Tkinter.Toplevel):
 			new['Y'] += new['height']
 
 		self.wm_geometry("%(width)dx%(height)d+%(X)d+%(Y)d"%new)
-		print new
 		return True
 	
 	def dnd_commit(self, source, event):
-		print "dnd_commit"
 		import core.controler
 		x, y = event.x_root, event.y_root
 		pos = self.calculate_pos(x,y)
 		document = source.document
-		self.container.destroy_dnd()
 		# unprepare dnd before changing everything
-		#core.controler.currentSession.get_workspace().prepare_to_dnd(False)
+		self.container.destroy_dnd()
 		if document.documentView.is_displayed():
 			parentContainer = document.documentView.get_parentContainer()
-			print "parentContainer :",parentContainer
-			parentContainer.get_parentContainer().unsplit(toRemove=parentContainer)
+			parentContainer.get_parentContainer().undisplay(parentContainer)
 		if pos == 'center':
 			self.container.set_documentView(document.documentView)
 		if pos in ['right','left']:
-			self.container.specialized.split(0, document.documentView, first=(pos=='left'))
+			self.container.split(0, document.documentView, first=(pos=='left'))
 		if pos in ['top','bottom']:
-			self.container.specialized.split(1, document.documentView, first=(pos=='top'))
+			self.container.split(1, document.documentView, first=(pos=='top'))
