@@ -19,15 +19,15 @@
 #    Copyright 2011 Matthieu Gautier
 
 import Tkinter,ttk,Tkdnd
-from views.viewContainer import LeafContainer,ContainerChild
+from views.viewContainer import NotebookContainer,ContainerChild
 
 import core.mainWindow
 
-def on_drag_begin_label(event):
-	event.num = 1
-	Tkdnd.dnd_start(event.widget.documentView, event)
-	
-core.mainWindow.window.bind_class("Drag","<Button-1><Button1-Motion>", on_drag_begin_label)
+#def on_drag_begin_label(event):
+#	event.num = 1
+#	Tkdnd.dnd_start(event.widget.documentView, event)
+#	
+#core.mainWindow.window.bind_class("Drag","<Button-1><Button1-Motion>", on_drag_begin_label)
 
 class DocumentView(ContainerChild, ttk.Frame):
 	def __init__(self, document):
@@ -46,7 +46,7 @@ class DocumentView(ContainerChild, ttk.Frame):
 
 		self.bind('<FocusIn>', self.on_focus)
 		
-		self.label.bindtags(" ".join(["Drag"]+[t for t in self.label.bindtags()]))
+#		self.label.bindtags(" ".join(["Drag"]+[t for t in self.label.bindtags()]))
 		
 	def set_view(self, child):
 		child.uiContainer.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)
@@ -72,8 +72,9 @@ class DocumentView(ContainerChild, ttk.Frame):
 		self.currentView.focus()
 
 	def on_focus_child(self, event):
-		LeafContainer.current = self.parentContainer
+		NotebookContainer.current = self.parentContainer
 		
 	def dnd_end(self, target, event):
 		pass	
 	
+			

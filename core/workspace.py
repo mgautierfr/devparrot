@@ -18,7 +18,7 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from views.viewContainer import TopContainer,LeafContainer
+from views.viewContainer import TopContainer,NotebookContainer
 
 import mainWindow
 
@@ -31,9 +31,10 @@ class Workspace(TopContainer):
 
 	def get_currentDocument(self):
 		child = self.get_currentContainer().get_documentView()
+		print child
 		if child:
 			return child.document
 		return None
 
 	def get_currentContainer(self):
-		return LeafContainer.current
+		return NotebookContainer.current

@@ -162,12 +162,9 @@ class split(Action):
 	def run(cls, cmdText, *args):
 		if cmdText in ["split", "vsplit"]:
 			vertical = 1 if cmdText=="vsplit" else 0
-			doc = capi.get_nth_file(int(args[0]))
-			if doc.documentView.is_displayed():
-				return doc.documentView.focus()
-			else:
-				return capi.currentContainer.split(vertical, doc.documentView)
+			return capi.split(vertical)
 		if cmdText == "unsplit":
+			return capi.unsplit()
 			if capi.currentContainer.get_parentContainer():
 				return capi.currentContainer.get_parentContainer().unsplit(toKeep=capi.currentContainer)
 		return False

@@ -18,9 +18,9 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import Tkinter,ttk
+import Tkinter,ttk,Tkdnd
 from core import mainWindow
-		
+
 class ContainerChild():
 	def __init__(self):
 		self.parentContainer = None
@@ -40,13 +40,13 @@ class TopContainer(ContainerChild,Tkinter.Frame):
 	def dnd_accept(self, source, event):
 		x, y = event.x_root, event.y_root
 		target_widget = None
-		for leaf in LeafContainer.leafList:
-			x1 = leaf.winfo_rootx()
-			x2 = x1 + leaf.winfo_width()
-			y1 = leaf.winfo_rooty()
-			y2 = y1 + leaf.winfo_height()
+		for notebook in NotebookContainer.notebookList:
+			x1 = notebook.winfo_rootx()
+			x2 = x1 + notebook.winfo_width()
+			y1 = notebook.winfo_rooty()
+			y2 = y1 + notebook.winfo_height()
 			if x>x1 and x<x2 and y>y1 and y<y2:
-				target_widget = leaf
+				target_widget = notebook
 				break
 		if target_widget :
 			return target_widget.dnd_accept(source, event)
@@ -54,7 +54,7 @@ class TopContainer(ContainerChild,Tkinter.Frame):
 		
 	
 	def init_default(self):
-		container = LeafContainer()
+		container = NotebookContainer()
 		self.attach_child(container)
 		container.set_as_current()
 	
@@ -62,7 +62,7 @@ class TopContainer(ContainerChild,Tkinter.Frame):
 		self.container = container
 		self.container.set_parentContainer(self)
 		self.container.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)
-		try : container.unregister()
+		try : container.register()
 		except : pass
 	
 	def detach_child(self, childToDetach): 
@@ -71,11 +71,6 @@ class TopContainer(ContainerChild,Tkinter.Frame):
 		self.childContainer = None
 		try : childToDetach.unregister()
 		except : pass
-	
-	def undisplay(self, toRemove):
-		self.detach_child(toRemove)
-		toRemove.destroy_tree()
-		self.init_default()
 	
 	def set_as_current(self):
 		self.container.set_as_current()
@@ -134,30 +129,6 @@ class SplittedContainer(ContainerChild,Tkinter.PanedWindow):
 		elif self.container2 == childToDetach:
 			self.container2 = None
 	
-	def undisplay(self, toRemove):
-		return self.unsplit(toRemove = toRemove)
-	
-	def unsplit(self, toKeep=None, toRemove=None):
-		if toRemove == None and toKeep != None:
-			if self.container1 == toKeep:
-				toRemove = self.container2
-			elif self.container2 == toKeep:
-				toRemove = self.container1
-		elif toKeep == None and toRemove != None:
-			if self.container1 == toRemove:
-				toKeep = self.container2
-			elif self.container2 == toRemove:
-				toKeep = self.container1
-		else:
-			return
-			
-		fatherContainer = self.get_parentContainer()
-		fatherContainer.detach_child(self)
-		self.detach_child(toKeep)
-		fatherContainer.attach_child(toKeep)
-		toKeep.set_as_current()
-		self.destroy_tree()
-	
 	def lift(self):
 		self.container1.lift()
 		self.container2.lift()
@@ -181,98 +152,150 @@ class SplittedContainer(ContainerChild,Tkinter.PanedWindow):
 		if self.container1:
 			self.container1.set_as_current()
 		elif self.container2:
-			self.container2.set_as_current()	
-		
+			self.container2.set_as_current()
 
-		
-class LeafContainer(ContainerChild,ttk.Frame):
+	def find_notebook_different_of(self, badNotebook=False):
+		testContainer = self.container1
+		if testContainer == badNotebook:
+			testContainer = self.container2
+		if isinstance(testContainer, NotebookContainer):
+			return testContainer
+		else:
+			return testContainer.find_notebook_different_of()	
+
+def on_drag_begin_notebook(event):
+	event.num = 1
+	notebook = event.widget
+	documentViewIndex = notebook.index("@%d,%d"%(event.x,event.y))
+	print documentViewIndex, documentViewIndex.__class__
+	if documentViewIndex != "":
+		documentView = notebook._children[documentViewIndex]
+		print repr(documentView)
+		Tkdnd.dnd_start(documentView, event)		
+
+class NotebookContainer(ContainerChild, ttk.Notebook):
+	notebookList = set()
 	current = None
-	leafList = set()
+	initialized = False
 	
 	def __init__(self):
 		ContainerChild.__init__(self)
-		ttk.Frame.__init__(self,mainWindow.workspaceContainer, borderwidth=0, padding=0)
+		ttk.Notebook.__init__(self, mainWindow.workspaceContainer, padding=0)
+		self._children = []
 		self.drag_handler = None
-		self.documentView = None
+		if not NotebookContainer.initialized:
+			self.bind_class("Drag", "<Button-1><Button1-Motion>", on_drag_begin_notebook)
+			NotebookContainer.initialized=True
+		self.bindtags(" ".join(["Drag"]+[t for t in self.bindtags()]))
 	
 	def register(self):
-		LeafContainer.leafList.add(self)
+		NotebookContainer.notebookList.add(self)
 	
 	def unregister(self):
-		LeafContainer.leafList.remove(self)
+		NotebookContainer.notebookList.remove(self)
 	
 	def dnd_accept(self, source, event):
-		if source == self.documentView:
+		if source == self.select() and len(self._children)==1:
 			return None
 		if not self.drag_handler:
 			self.drag_handler = DragHandler(self)
 		return self.drag_handler
 	
-	def attach_child(self, child):
-		self.documentView = child
-		self.documentView.set_parentContainer(self)
-		self.documentView.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)
-	
-	def detach_child(self, child):
-		self.documentView.forget()
-		self.documentView.set_parentContainer(None)
-		self.documentView = None
-
 	def destroy_dnd(self):
 		if self.drag_handler:
 			self.drag_handler.destroy()
 			self.drag_handler = None
-
+	
+	def attach_child(self, child):
+		child.set_parentContainer(self)
+		self._children.append(child)
+		self.add(child, text=child.document.title)
+	
+	def detach_child(self, child):
+		child.set_parentContainer(None)
+		self.forget(child)
+		self._children.remove(child)
+	
 	def set_documentView(self, documentView):
-		if self.documentView:
-			self.detach_child(self.documentView)
-
 		if documentView:
 			self.attach_child(documentView)
+			self.select(documentView)
 
 	def get_documentView(self):
-		return self.documentView
-		
+		return self.nametowidget(self.select())
+	
 	def destroy_tree(self):
-		if self.documentView:
-			self.documentView.set_parentContainer(None)
-			self.documentView.forget()
-			self.documentView = None
-	
-	def undisplay(self, toRemove):
-		return self.get_parentContainer().undisplay(self)
-		
-	def split(self, direction, newView, first = False):
-		#switch basecontainer to a SplittedContainer
-		fatherContainer = self.get_parentContainer()
-		fatherContainer.detach_child(self)
-		
-		splitted = SplittedContainer(direction!=0)
+		for win in self._children:
+			self.detach_child(win)
 
-		fatherContainer.attach_child(splitted)
-		 
-		container2 = LeafContainer()
-		container2.set_documentView(newView)
-
-		#add the two leaf containers to the base container
-		if first:
-			splitted.init(container2, self)	
-		else:
-			splitted.init(self, container2)
-		
-		splitted.lift()
-		
-		splitted.update()
-		splitted.after_idle(splitted.set_panedPos,0.5)
-		
-		container2.set_as_current()
-	
 	def lift(self):
-		ttk.Frame.lift(self, self.parentContainer)
-		self.documentView.lift()
+		ttk.Notebook.lift(self, self.parentContainer)
+		for win in self._children:
+			win.lift()
 	
 	def set_as_current(self):
-		LeafContainer.current = self
+		NotebookContainer.current = self
+
+def split(documentView, direction, first=True):
+	notebook = documentView.get_parentContainer()
+	if len(notebook._children) == 1:
+		# can't split if only one child
+		return
+
+	notebook.detach_child(documentView)
+	parent = notebook.get_parentContainer()
+	parent.detach_child(notebook)
+	
+	splitted = SplittedContainer(direction!=0)
+	parent.attach_child(splitted)
+	
+	newNotebook = NotebookContainer()
+	newNotebook.set_documentView(documentView)
+	
+	if first:
+		splitted.init(newNotebook, notebook)
+	else:
+		splitted.init(notebook, newNotebook)
+	
+	splitted.lift()
+	
+	splitted.update()
+	splitted.after_idle(splitted.set_panedPos,0.5)
+	
+	newNotebook.set_as_current()
+	
+def unsplit(documentView):
+	notebook = documentView.get_parentContainer()
+	parent = notebook.get_parentContainer()
+	if not isinstance(parent, SplittedContainer):
+		return
+	
+	grandParent = parent.get_parentContainer()
+	
+	leftnotebook = parent.find_notebook_different_of(notebook)
+	
+	if notebook == parent.container1:
+		goodChild = parent.container2
+	else:
+		goodChild = parent.container1
+
+	for view in list(notebook._children):
+		notebook.detach_child(view)
+		leftnotebook.attach_child(view)
+	
+	parent.detach_child(notebook)
+	parent.detach_child(goodChild)
+	grandParent.detach_child(parent)
+	parent.destroy_tree()
+	parent.destroy()
+	
+	
+	
+	grandParent.attach_child(goodChild)
+	
+	goodChild.lift()
+	leftnotebook.set_as_current()
+	leftnotebook.select(documentView)
 
 class DragHandler(ttk.Tkinter.Toplevel):
 	def __init__(self, container):
@@ -348,18 +371,57 @@ class DragHandler(ttk.Tkinter.Toplevel):
 		return True
 	
 	def dnd_commit(self, source, event):
-		import core.controler
 		x, y = event.x_root, event.y_root
 		pos = self.calculate_pos(x,y)
-		document = source.document
-		# unprepare dnd before changing everything
 		self.container.destroy_dnd()
-		if document.documentView.is_displayed():
-			parentContainer = document.documentView.get_parentContainer()
-			parentContainer.get_parentContainer().undisplay(parentContainer)
+		
+		document = source.document
+		documentView = document.documentView
+		notebook = documentView.get_parentContainer()
+		parent = notebook.get_parentContainer()
+
+		if len(notebook._children) == 1:
+			grandParent = parent.get_parentContainer()
+			if notebook == parent.container1:
+				goodChild = parent.container2
+			else:
+				goodChild = parent.container1
+	
+			parent.detach_child(notebook)
+			parent.detach_child(goodChild)
+			grandParent.detach_child(parent)
+			parent.destroy_tree()
+			parent.destroy()
+		
+			grandParent.attach_child(goodChild)				
+		
+		notebook.detach_child(documentView)
+		
 		if pos == 'center':
-			self.container.set_documentView(document.documentView)
-		if pos in ['right','left']:
-			self.container.split(0, document.documentView, first=(pos=='left'))
-		if pos in ['top','bottom']:
-			self.container.split(1, document.documentView, first=(pos=='top'))
+			self.container.set_documentView(documentView)
+			self.container.lift()
+			self.container.set_as_current()
+		else:
+			parent = self.container.get_parentContainer()
+			parent.detach_child(self.container)
+	
+			splitted = SplittedContainer(pos in ['top','bottom'])
+			parent.attach_child(splitted)
+	
+			newNotebook = NotebookContainer()
+			newNotebook.set_documentView(documentView)
+	
+			if pos in ['left', 'top']:
+				splitted.init(newNotebook, self.container)
+			else:
+				splitted.init(self.container, newNotebook)
+	
+			splitted.lift()
+	
+			splitted.update()
+			splitted.after_idle(splitted.set_panedPos,0.5)
+	
+			newNotebook.set_as_current()
+
+
+

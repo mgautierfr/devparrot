@@ -20,6 +20,7 @@
 
 
 import controler, mainWindow
+import views.viewContainer as viewContainer
 import sys
 
 class ModuleWrapper(object):
@@ -94,6 +95,12 @@ def quit():
 	def destroy():
 		core.mainWindow.window.destroy()	
 	core.mainWindow.window.after_idle(destroy)
+	
+def split(vertical, first=True):
+	return viewContainer.split(__getattr__('currentContainer').currentChild, vertical, first)
+
+def unsplit():
+	return viewContainer.unsplit(__getattr__('currentContainer').currentChild)
 
 sys.modules[__name__] = ModuleWrapper(sys.modules[__name__])
 documents = DocumentWrapper()

@@ -48,6 +48,8 @@ entry = None
 documentListView = None
 workspaceContainer = None
 
+
+
 def quit(event):
 	from actions.controlerActions import quit
 	quit.run()
@@ -90,6 +92,6 @@ def init():
 	window.bind_class("Action", "<Control-Return>", focus_and_break)
 	bindtags = list(window.bindtags())
 	bindtags.insert(1,"Action")
-	bindtags = " ".join(bindtags)
-	window.bindtags(bindtags)
+	window.bindtags(set(bindtags))
+
 
