@@ -31,331 +31,324 @@ import Tkinter
 PREFIX = "tkController"
 
 class Controller(object):
-   def __init__(self, master=None):
-      if master is None:
-         master = Tkinter._default_root
-      assert master is not None
-      self.tag = PREFIX + str(id(self))
-      def bind(event, handler):
-         master.bind_class(self.tag, event, handler)
-      self.create(bind)
+	def __init__(self, master=None):
+		if master is None:
+			master = Tkinter._default_root
+		assert master is not None
+		self.tag = PREFIX + str(id(self))
+		def bind(event, handler):
+			master.bind_class(self.tag, event, handler)
+		self.create(bind)
 
-   def install(self, widget):
-      widgetclass = widget.winfo_class()
-      # remove widget class bindings and other controllers
-      tags = list(widget.bindtags())
-      tags[tags.index(widgetclass)] = self.tag
-      widget.bindtags(tuple(tags))
+	def create(self, handle):
+		# override if necessary
+		# the default implementation looks for decorated methods
+		for key in dir(self):
+			method = getattr(self, key)
+			if hasattr(method, "tkevent") and hasattr(method, "tkmodif") and callable(method):
+				for eventSequence in method.tkevent:
+					for modif in method.tkmodif:
+						rawEventSequence = [eventSequence[1:-1]]
+						if 's' in modif: rawEventSequence.insert(0,'Shift')
+						if 'c' in modif: rawEventSequence.insert(0,'Control')
+						rawEventSequence = "-".join(rawEventSequence)
+						rawEventSequence = "<"+rawEventSequence+">" 
+						handle(rawEventSequence, lambda event, method=method, modif=modif:
+						                                   method(event, shift='s' in modif, ctrl='c' in modif))
 
-   def create(self, handle):
-      # override if necessary
-      # the default implementation looks for decorated methods
-      for key in dir(self):
-         method = getattr(self, key)
-         if hasattr(method, "tkevent") and callable(method):
-            for eventSequence in method.tkevent:
-               handle(eventSequence, method)
+class MetaController:
+	def __init__(self, master=None):
+		if master is None:
+			master = Tkinter._default_root
+		assert master is not None
+		self.subControllers = []
+	
+	def set_subControllers(self, *controllers):
+		self.subControllers.extend(controllers)
+	
+	def install(self, widget):
+		widgetclass = widget.winfo_class()
+		# remove widget class bindings and other controllers
+		tags = list(widget.bindtags())
+		tags[tags.index(widgetclass):tags.index(widgetclass)+1] = [c.tag for c in self.subControllers]
+		widget.bindtags(tuple(tags))
+
+_shift = ('s',)
+_ctrl = ('c',)
+_ctrlshift = _shiftctrl = ('s','c')
+_none = ()
 
 def bind(*events):
-   def decorator(func):
-      func.tkevent = events
-      return func
-   return decorator
+	if isinstance(events[-1], list):
+		modifiers = events[-1]
+		events = events[:-1]
+	else:
+		modifiers = [_none]
+	def decorator(func):
+		func.tkevent = events
+		func.tkmodif = modifiers
+		return func
+	return decorator
 
-class KBController( Controller ):
-	'''This class watches keypress events and records presses and releases of 
-	keys used for key combinations (shift, alt, control, etc.).  When one of
-	these keys is held down, this class's corresponding state variable is set
-	to True.'''
+class BasicTextController(Controller):
+	def __init__(self):
+		Controller.__init__(self)
+	
+	@bind('<KeyPress>')
+	def on_key_pressed(self, event, *args, **kw):
+		if event.keysym in ( 'Return','Enter','KP_Enter','Tab','BackSpace','Delete','Insert' ):
+			event.widget.sel_clear()
+			return "break"
+
+		if (len(event.char) > 0) and (32 <= ord(event.char) < 127):
+			try:
+				event.widget.sel_delete( )
+			except:
+				pass
+	      
+			event.widget.insert( 'insert', event.char )
+			event.widget.sel_clear( )
+			return "break"
+			
+	@bind('<Return>', '<KP_Enter>')
+	def on_return(self, event, *args, **kw):
+		try:
+			event.widget.sel_delete()
+		finally:
+			event.widget.insert( 'insert', '\n' )		
+
+	@bind('<Key-Tab>')
+	def on_tab(self, event, *args, **kw):
+		event.widget.insert( 'insert', '\t' )
+		return "break"
+	
+	@bind('<BackSpace>')
+	def on_backspace(self, event, *args, **kw):
+		try:
+			event.widget.delete( 'sel.first', 'sel.last' )
+		except:
+			event.widget.delete( 'insert -1 chars', 'insert' )
+	
+	@bind('<Delete>', '<KP_Delete>')
+	def on_delete(self, event, *args, **kw):
+		try:
+			event.widget.delete( 'sel.first', 'sel.last' )
+		except:
+			event.widget.delete( 'insert', 'insert +1 chars' )
+			
+	
+
+
+class CarretController( Controller ):
 	def __init__( self ):
 		Controller.__init__( self )
-		self._alt     = False
-		self._control = False
-		self._lock    = False
-		self._meta    = False
-		self._shift   = False
-   
-	@bind("<KeyPress>")      # type 2
-	def KeyPress(self, event):
-		if event.keysym in ('Alt_L', 'Alt_R'):
-			self._alt = True
-		elif event.keysym in ('Control_L', 'Control_R'):
-			self._control = True
-		elif event.keysym == 'Caps_Lock':
-			self._lock = True
-		elif event.keysym in ('Meta_L', 'Meta_R'):
-			self._meta = True
-		elif event.keysym in ( 'Shift_L', 'Shift_R'):
-			self._shift = True
-		elif (len(event.char) > 0) and (32 <= ord(event.char) < 127):
-			self.onTypedCharacterKey( event )
+	
+	def _handle_shift(self, shift, event):
+		if shift:
+			if not event.widget.sel_isAnchorSet():
+				event.widget.sel_setAnchor( 'insert' )
 		else:
-			self.onTypedSpecialKey( event )
+			event.widget.sel_clear( )
+	
+	@bind( "<Home>", "<KP_Home>", [_none,_shift,_ctrl,_shiftctrl])
+	def home(self, event, shift, ctrl, *args, **kw):
+		self._handle_shift(shift,event)
+		if ctrl:
+			event.widget.mark_set( 'insert', '1.0' )
+		else:
+			event.widget.mark_set( 'insert', 'insert linestart' )
+		event.widget.see('insert')
+	
+	@bind("<End>", "<KP_End>", [_none,_shift,_ctrl,_shiftctrl])
+	def end(self, event, shift, ctrl, *args, **kw):
+		self._handle_shift(shift, event)
+		if ctrl:
+			event.widget.mark_set( 'insert', 'end' )
+		else:
+			event.widget.mark_set( 'insert', 'insert lineend' )
+		event.widget.see( 'insert' )
+	
+	@bind("<Right>", [_none,_shift,_ctrl,_shiftctrl])
+	def right(self, event, shift, ctrl, *args, **kw):
+		self._handle_shift(shift, event)
+		if ctrl:
+			currentPos = event.widget.index( 'insert' )
+			maxPos     = event.widget.index( 'end wordstart' )
+	    
+			if currentPos == maxPos:
+				return
+	    
+			offset = 1
+			while event.widget.compare( currentPos, '==', event.widget.index('insert') ):
+				event.widget.mark_set( 'insert', 'insert wordend +%dc wordstart' % offset )
+				offset += 1
+		else:
+			event.widget.mark_set( 'insert', 'insert +1 chars' )
+		event.widget.see( 'insert' )
+	
+	@bind("<Left>", [_none,_shift,_ctrl,_shiftctrl])
+	def left(self, event, shift, ctrl, *args, **kw):
+		self._handle_shift(shift, event)
+		if ctrl:
+			currentPos = event.widget.index( 'insert' )
+			minPos     = event.widget.index( '1.0 wordstart' )
+	    
+			if currentPos == minPos:
+				return
+	    
+			offset = 2
+			event.widget.mark_set( 'insert', 'insert wordstart' )
+			while event.widget.compare( currentPos, '==', event.widget.index('insert') ):
+				event.widget.mark_set( 'insert', 'insert -%dc wordstart' % offset )
+				offset += 1
+		else:
+			event.widget.mark_set( 'insert', 'insert -1 chars' )
+		event.widget.see( 'insert' )
+	
+	@bind("<Down>", [_none,_shift,_ctrl,_shiftctrl])
+	def down(self, event, shift, ctrl, *args, **kw):
+		if ctrl: return
+		self._handle_shift(shift, event)
+		event.widget.mark_set( 'insert', 'insert +1 lines' )
+		event.widget.see( 'insert' )
+	
+	@bind("<Up>", [_none,_shift,_ctrl,_shiftctrl])
+	def up(self, event, shift, ctrl, *args, **kw):
+		if ctrl: return
+		self._handle_shift(shift, event)
+		event.widget.mark_set( 'insert', 'insert -1 lines' )
+		event.widget.see( 'insert' )
 
-	@bind("<KeyRelease>")   # type 3
-	def KeyRelease( self, event ):
-		if event.keysym in ('Alt_L', 'Alt_R'):
-			self._alt = False
-		elif event.keysym in ('Control_L', 'Control_R'):
-			self._control = False
-		elif event.keysym == 'Caps_Lock':
-			self._lock = False
-		elif event.keysym in ('Meta_L', 'Meta_R'):
-			self._meta = False
-		elif event.keysym in ('Shift_L', 'Shift_R'):
-			self._shift = False
-   
-	def onTypedCharacterKey( self, event ):
-		'''Override to handle typing of any printable keyboard character,
-		The typed character is in event.char (which accounts for shift).'''
-		pass
-   
-	def onTypedSpecialKey( self, event ):
-		'''Override to handle typing of any special characters (tab, \n, backspace,
-		delete, home, prior, insert, etc.  And any key combinations involving
-		Alt or Control.'''
-		pass
+	@bind("<Prior>", [_none,_shift,_ctrl,_shiftctrl])
+	def prior(self, event, shift, ctrl, *args, **kw):
+		if ctrl : return
+		self._handle_shift(shift, event)
+		event.widget.yview_scroll( -1, 'pages' )
+		event.widget.see( 'insert' )
+	
+	@bind("<Next>", [_none,_shift,_ctrl,_shiftctrl])
+	def next(self, event, shift, ctrl, *args, **kw):
+		if ctrl : return
+		self._handle_shift(shift, event)
+		event.widget.yview_scroll( 1, 'pages' )
+		event.widget.see( 'insert' )
 
+class AdvancedTextController(Controller):
+	def __init__( self ):
+		Controller.__init__( self )
+	
+	@bind('<Control-a>')
+	def on_ctrl_a(self, event, *args, **kw):
+		self._selectionAnchor = '1.0'
+		event.widget.mark_set( 'insert', 'end' )
+	
+	@bind('<Control-c>')
+	def on_ctrl_c(self, event, *args, **kw):
+		try:
+			event.widget.clipboard_append( event.widget.get( 'sel.first', 'sel.last' ) )
+		except:
+			pass
+	
+	@bind('<Control-r>')
+	def on_ctrl_r(self, event, *args, **kw):
+		try:
+			event.widget.edit_redo( )
+		except:
+			pass
+		event.widget.sel_clear( )
+	
+	@bind('<Control-v>')
+	def on_ctrl_v(self, event, *args, **kw):
+		try:
+			event.widget.mark_set( 'insert', 'sel.first' )
+			event.widget.delete( 'sel.first', 'sel.last' )
+		except:
+			pass
+    
+		event.widget.insert( 'insert', event.widget.clipboard_get( ) )
+		self.sel_clear( )
+	
+	@bind('<Control-x>')
+	def on_ctrl_x(self, event, *args, **kw):
+		try:
+			event.widget.clipboard_append( event.widget.get( 'sel.first', 'sel.last' ) )
+			event.widget.delete( 'sel.first', 'sel.last' )
+			event.widget.ins_updateTags( )
+		except:
+			pass
+		event.widget.sel_clear( )
+	
+	@bind('<Control-z>')
+	def on_ctrl_z(self, event, *args, **kw):
+		try:
+			event.widget.edit_undo( )
+		except:
+			pass
+			event.widget.sel_clear( )
 
-class EnhancedTextController( KBController ):
-   def __init__( self ):
-      KBController.__init__( self )
-      self._insert_x_pos    = None
-   
-   def onTypedCharacterKey( self, event ):
-      try:
-         event.widget.sel_delete( )
-      except:
-         pass
-      
-      event.widget.insert( 'insert', event.char )
-      event.widget.sel_clear( )
-      
-      self._insert_x_pos = event.widget.bbox( 'insert' )[0]
-   
-   def moveCarrot( self, event ):
-      widget = event.widget
-      
-      if self._shift:
-         if not widget.sel_isAnchorSet():
-            widget.sel_setAnchor( 'insert' )
-      else:
-         widget.sel_clear( )
-      
-      if event.keysym in ( 'Home', 'KP_Home' ):
-         if self._control:
-            # Move to beginning of text
-            widget.mark_set( 'insert', '1.0' )
-         else:
-            # Move to front of line
-            widget.mark_set( 'insert', 'insert linestart' )
-      elif event.keysym in ( 'End', 'KP_End' ):
-         if self._control:
-            # Move to end of text
-            widget.mark_set( 'insert', 'end' )
-         else:
-            # Move to end of line
-            widget.mark_set( 'insert', 'insert lineend' )
-      elif event.keysym == 'Right':
-         if self._control:
-            # Move by word
-            currentPos = widget.index( 'insert' )
-            maxPos     = widget.index( 'end wordstart' )
-            
-            if currentPos == maxPos:
-               return
-            
-            offset = 1
-            while widget.compare( currentPos, '==', widget.index('insert') ):
-               widget.mark_set( 'insert', 'insert wordend +%dc wordstart' % offset )
-               offset += 1
-         else:
-            # Move by character
-            widget.mark_set( 'insert', 'insert +1 chars' )
-      elif event.keysym == 'Left':
-         if self._control:
-            # Move by word
-            currentPos = widget.index( 'insert' )
-            minPos     = widget.index( '1.0 wordstart' )
-            
-            if currentPos == minPos:
-               return
-            
-            offset = 2
-            widget.mark_set( 'insert', 'insert wordstart' )
-            while widget.compare( currentPos, '==', widget.index('insert') ):
-               widget.mark_set( 'insert', 'insert -%dc wordstart' % offset )
-               offset += 1
-         else:
-            # Move by character
-            widget.mark_set( 'insert', 'insert -1 chars' )
-      elif event.keysym == 'Down':
-            widget.mark_set( 'insert', 'insert +1 lines' )
-      elif event.keysym == 'Up':
-            widget.mark_set( 'insert', 'insert -1 lines' )
-      elif event.keysym == 'Prior':
-         if self._control:
-            pass
-         else:
-            # Move by page
-            event.widget.yview_scroll( -1, 'pages' )
-      elif event.keysym == 'Next':
-         if self._control:
-            pass
-         else:
-            # Move by page
-            event.widget.yview_scroll( 1, 'pages' )
-      
-      widget.see( 'insert' )
-      
-      if event.keysym not in ('Up','Down'):
-         self._insert_x_pos = event.widget.bbox( 'insert' )[0]
+class MouseController(Controller):
+	def __init__(self):
+		Controller.__init__(self)
 
-   def typeSpecial( self, event ):
-      widget = event.widget
-      
-      if event.keysym in ( 'Return', 'Enter', 'KP_Enter' ):
-         try:
-            widget.sel_delete( )
-         finally:
-            widget.insert( 'insert', '\n' )
-      elif event.keysym == 'Tab':
-         widget.insert( 'insert', '\t' )
-      elif event.keysym == 'BackSpace':
-         try:
-            widget.delete( 'sel.first', 'sel.last' )
-         except:
-            widget.delete( 'insert -1 chars', 'insert' )
-      elif event.keysym in ( 'Delete', 'KP_Delete' ):
-         try:
-            widget.delete( 'sel.first', 'sel.last' )
-         except:
-            widget.delete( 'insert', 'insert +1 chars' )
-      
-      widget.sel_clear()
-      self._insert_x_pos = event.widget.bbox( 'insert' )[0]
+	@bind( '<ButtonPress-1>' )
+	def click( self, event, *args, **kw):
+		event.widget.focus_set( )
 
-   def onTypedSpecialKey( self, event ):
-      widget = event.widget
-      
-      if event.keysym in ( 'Return','Enter','KP_Enter','Tab','BackSpace','Delete','Insert' ):
-         self.typeSpecial( event )
-      
-      elif event.keysym in ( 'Up', 'Down', 'Left', 'Right', 'Home', 'End', 'Prior', 'Next'
-                             'KP_Up', 'KP_Down', 'KP_Left', 'KP_Right', 'KP_Home', 'KP_End', 'KP_Prior', 'KP_Next' ):
-         self.moveCarrot( event )
-      
-      elif self._control:
-         if event.keysym == 'a':
-            # select all
-            self._selectionAnchor = '1.0'
-            widget.mark_set( 'insert', 'end' )
-         elif event.keysym == 'c':
-            # copy
-            try:
-               widget.clipboard_append( widget.get( 'sel.first', 'sel.last' ) )
-            except:
-               pass
-         elif event.keysym == 'r':
-            # Redo
-            try:
-               widget.edit_redo( )
-            except:
-               pass
-            widget.sel_clear( )
-         elif event.keysym == 'v':
-            # paste
-            try:
-               widget.mark_set( 'insert', 'sel.first' )
-               widget.delete( 'sel.first', 'sel.last' )
-            except:
-               pass
-            
-            widget.insert( 'insert', widget.clipboard_get( ) )
-            self.sel_clear( )
-         elif event.keysym == 'x':
-            # cut
-            try:
-               widget.clipboard_append( widget.get( 'sel.first', 'sel.last' ) )
-               widget.delete( 'sel.first', 'sel.last' )
-               widget.ins_updateTags( )
-            except:
-               pass
-            widget.sel_clear( )
-         elif event.keysym == 'z':
-            # Undo
-            try:
-               widget.edit_undo( )
-            except:
-               pass
-            widget.sel_clear( )
-         
-         self._insert_x_pos = event.widget.bbox( 'insert' )[0]
+		#if not self._shift and not self._control:
+		if True:
+			event.widget.sel_clear( )
+			event.widget.sel_setAnchor( 'current' )
 
-   @bind( '<ButtonPress-1>' )
-   def click( self, event ):
-      event.widget.focus_set( )
-      
-      if not self._shift and not self._control:
-         event.widget.sel_clear( )
-         event.widget.sel_setAnchor( 'current' )
-      
-      self._insert_x_pos = event.x
+	@bind( '<B1-Motion>', '<Shift-Button1-Motion>' )
+	def dragSelection( self, event, *args, **kw):
+		widget = event.widget
+
+		if event.y < 0:
+			widget.yview_scroll( -1, 'units' )
+		elif event.y >= widget.winfo_height():
+			widget.yview_scroll( 1, 'units' )
+
+		if not widget.sel_isAnchorSet( ):
+			widget.self_setAnchor( '@%d,%d' % (event.x+2, event.y) )
+
+		widget.mark_set( 'insert', '@%d,%d' % (event.x+2, event.y) )
    
-   @bind( '<B1-Motion>', '<Shift-Button1-Motion>' )
-   def dragSelection( self, event ):
-      widget = event.widget
-      
-      if event.y < 0:
-         widget.yview_scroll( -1, 'units' )
-      elif event.y >= widget.winfo_height():
-         widget.yview_scroll( 1, 'units' )
-      
-      if not widget.sel_isAnchorSet( ):
-         widget.self_setAnchor( '@%d,%d' % (event.x+2, event.y) )
-      
-      widget.mark_set( 'insert', '@%d,%d' % (event.x+2, event.y) )
-      self._insert_x_pos = event.x
+	@bind( '<ButtonRelease-1>')
+	def moveCarrot_deselect( self, event, *args, **kw):
+		widget = event.widget
+
+		widget.grab_release()
+		widget.mark_set( 'insert', 'current' )
    
-   @bind( '<ButtonRelease-1>' )
-   def moveCarrot_deselect( self, event ):
-      widget = event.widget
-      
-      widget.grab_release()
-      widget.mark_set( 'insert', 'current' )
-      self._insert_x_pos = event.x
+	@bind( '<Double-ButtonPress-1>' )
+	def selectWord( self, event, *args, **kw):
+		event.widget.sel_setAnchor( 'insert wordstart' )
+		event.widget.mark_set( 'insert', 'insert wordend' )
    
-   @bind( '<Double-ButtonPress-1>' )
-   def selectWord( self, event ):
-      event.widget.sel_setAnchor( 'insert wordstart' )
-      event.widget.mark_set( 'insert', 'insert wordend' )
-      self._insert_x_pos = event.x
+	@bind( '<Triple-ButtonPress-1>' )
+	def selectLine( self, event, *args, **kw):
+		event.widget.sel_setAnchor( 'insert linestart' )
+		event.widget.mark_set( 'insert', 'insert lineend' )
    
-   @bind( '<Triple-ButtonPress-1>' )
-   def selectLine( self, event ):
-      event.widget.sel_setAnchor( 'insert linestart' )
-      event.widget.mark_set( 'insert', 'insert lineend' )
-      self._insert_x_pos = event.x
+	@bind( '<Button1-Leave>' )
+	def scrollView( self, event, *args, **kw):
+		widget = event.widget
+
+		if event.y < 0:
+			widget.yview_scroll( -1, 'units' )
+		elif event.y >= widget.winfo_height():
+			widget.yview_scroll( 1, 'units' )
+
+		widget.grab_set( )
    
-   @bind( '<Button1-Leave>' )
-   def scrollView( self, event ):
-      widget = event.widget
-      
-      if event.y < 0:
-         widget.yview_scroll( -1, 'units' )
-      elif event.y >= widget.winfo_height():
-         widget.yview_scroll( 1, 'units' )
-      
-      widget.grab_set( )
-   
-   @bind( '<MouseWheel>' )
-   def wheelScroll( self, event ):
-      widget = event.widget
-      
-      if event.delta < 0:
-         widget.yview_scroll( 1, 'units' )
-      else:
-         widget.yview_scroll( -1, 'units' )
+	@bind( '<MouseWheel>' )
+	def wheelScroll( self, event, *args, **kw):
+		widget = event.widget
+
+		if event.delta < 0:
+			widget.yview_scroll( 1, 'units' )
+		else:
+			widget.yview_scroll( -1, 'units' )
 
 def insert_char(event):
 	if event.widget and event.char:
@@ -377,7 +370,8 @@ class CodeText(ttk.Tkinter.Text):
 		self.markNb=0
 		self.colorizeContext = None
 		self.last_stopToken = "1.0"
-		controller = EnhancedTextController( )
+		controller = MetaController()
+		controller.set_subControllers(BasicTextController(), CarretController(), AdvancedTextController(), MouseController() )
 		controller.install( self )
 		
 	
@@ -480,14 +474,20 @@ class CodeText(ttk.Tkinter.Text):
 			try:
 				self.lexer = get_lexer_for_mimetype(mimetype)
 			except:
-				if filename:
-					try:
-						self.lexer = get_lexer_for_filename(filename)
-					except:
-						try:
-							self.lexer = guess_lexer_for_filename(filename)
-						except:
-							self.lexer = guess_lexer(self.get("1.0", "end"))
+				pass
+		if not self.lexer and filename:
+			try:
+				self.lexer = get_lexer_for_filename(filename)
+			except:
+				pass
+		if not self.lexer and filename:
+			try:
+				self.lexer = guess_lexer_for_filename(filename)
+			except:
+				pass
+		if not self.lexer:
+			self.lexer = guess_lexer(self.get("1.0", "end"))
+
 		if self.lexer:
 			create_fonts()
 			create_style_table() 
@@ -549,7 +549,7 @@ class CodeText(ttk.Tkinter.Text):
 		content = self.get(start,"end")
 		tokens = self.lexer.get_tokens_unprocessed(content)
 		tokens = stop_at_syncPoint(self, tokens, start, insertPoint)
-		self.colorizeContext = [tokens, start, start, time()]
+		self.colorizeContext = [tokens, start, start]
 		#self._update_a_token(realTime=True)
 		self.after_idle(self._update_a_token)	
 
@@ -652,7 +652,6 @@ class CodeText(ttk.Tkinter.Text):
 		if realTime:
 			map(process_itvs, tokens)
 			self.last_stopToken = "1.0"
-			print time()-self.colorizeContext[3]
 		else:
 			try :
 				process_itvs(tokens.next())
@@ -660,7 +659,6 @@ class CodeText(ttk.Tkinter.Text):
 
 			except StopIteration:
 				self.last_stopToken = "1.0"
-				print time()-self.colorizeContext[3]
 				pass
 
 
@@ -731,3 +729,4 @@ class SourceBuffer(CodeText):
 			self.mark_set("insert", match_start if backward else match_end)
 			return True
 		return False
+
