@@ -245,6 +245,7 @@ class AdvancedTextController(Controller):
 	@bind('<Control-c>')
 	def on_ctrl_c(self, event, *args, **kw):
 		try:
+			event.widget.clipboard_clear()
 			event.widget.clipboard_append( event.widget.get( 'sel.first', 'sel.last' ) )
 		except:
 			pass
@@ -266,11 +267,12 @@ class AdvancedTextController(Controller):
 			pass
     
 		event.widget.insert( 'insert', event.widget.clipboard_get( ) )
-		self.sel_clear( )
+		event.widget.sel_clear( )
 	
 	@bind('<Control-x>')
 	def on_ctrl_x(self, event, *args, **kw):
 		try:
+			event.widget.clipboard_clear()
 			event.widget.clipboard_append( event.widget.get( 'sel.first', 'sel.last' ) )
 			event.widget.delete( 'sel.first', 'sel.last' )
 			event.widget.ins_updateTags( )
@@ -284,7 +286,7 @@ class AdvancedTextController(Controller):
 			event.widget.edit_undo( )
 		except:
 			pass
-			event.widget.sel_clear( )
+		event.widget.sel_clear( )
 
 class MouseController(Controller):
 	def __init__(self):
@@ -497,12 +499,12 @@ class CodeText(ttk.Tkinter.Text):
 		if kword.get('forceUpdate', False):
 			self.update()
 		if self.lexer:
-			self._update_highlight(index)
+			self._update_highlight(self.index(index))
 	
 	def delete(self, index1, index2):
 		ttk.Tkinter.Text.delete(self, index1, index2)
 		if self.lexer:
-			self._update_highlight(index1)
+			self._update_highlight(self.index(index1))
 	
 	def calcule_distance(self, first, second):
 		return self.tk.call(self._w, "count", "-chars", first, second)
@@ -729,4 +731,5 @@ class SourceBuffer(CodeText):
 			self.mark_set("insert", match_start if backward else match_end)
 			return True
 		return False
+
 
