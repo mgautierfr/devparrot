@@ -293,11 +293,10 @@ class MouseController(Controller):
 		Controller.__init__(self)
 
 	@bind( '<ButtonPress-1>' )
-	def click( self, event, *args, **kw):
+	def click( self, event, shift=False, ctrl=False, *args, **kw):
 		event.widget.focus_set( )
 
-		#if not self._shift and not self._control:
-		if True:
+		if not shift and not control:
 			event.widget.sel_clear( )
 			event.widget.sel_setAnchor( 'current' )
 
