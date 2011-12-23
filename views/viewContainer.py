@@ -222,7 +222,10 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
 			self.select(documentView)
 
 	def get_documentView(self):
-		return self.nametowidget(self.select())
+		selected = self.select()
+		if selected :
+			return self.nametowidget(selected)
+		return None
 	
 	def destroy_tree(self):
 		for win in self._children:
