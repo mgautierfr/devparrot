@@ -92,6 +92,7 @@ def init():
 	window.bind_class("Action", "<Control-Return>", focus_and_break)
 	bindtags = list(window.bindtags())
 	bindtags.insert(1,"Action")
-	window.bindtags(set(bindtags))
+	bindtags = " ".join(bindtags)
+	window.bindtags(bindtags)
 
-
+ 
