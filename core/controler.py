@@ -26,6 +26,7 @@ import config
 currentSession = None
 baseColor = None
 alias = {}
+lineExpenders = []
 
 class Binder(object):
 	def __init__(self):
@@ -45,6 +46,9 @@ def add_alias(regex, command, prio=2):
 	if prio not in alias:
 		alias[prio] = []
 	alias[prio].append((cregex, command)) 
+
+def add_expender(expender):
+	lineExpenders.append(expender)
 
 def init():
 	global baseColor,notFoundColor, okColor, errorColor
@@ -76,6 +80,12 @@ def run_action(text, function,*args, **keywords):
 	mainWindow.entry.insert('end',text)
 	
 def run_command(text):
+	def find_tokens():
+		for expender in lineExpenders:
+			tokens = expender(text)
+			if tokens:
+				return tokens
+		return text.split()
 	def get_command(token):
 		for prio in sorted(alias, reverse=True):
 			for reg,command in alias[prio]:
@@ -92,8 +102,8 @@ def run_command(text):
 		mainWindow.window.event_generate("<<%s->>"%command.__name__)
 		command.run(cmdText, *args)
 		mainWindow.window.event_generate("<<%s+>>"%command.__name__)
-		
-	tokens = text.split()
+	
+	tokens = find_tokens()
 	command = get_command(tokens[0])
 	if command:
 		launch_command(command, tokens[0], [expand_token(t) for t in tokens[1:]])
@@ -121,3 +131,4 @@ def on_entry_event(event):
 		event.widget.insert("end", currentSession.get_history().get_next())
 		return True
 	return False
+
