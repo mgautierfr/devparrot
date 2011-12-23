@@ -494,16 +494,18 @@ class CodeText(ttk.Tkinter.Text):
 			create_style_table() 
 		
 	def insert(self, index, *args, **kword):
+		index = self.index(index)
 		ttk.Tkinter.Text.insert(self, index, *args)
 		if kword.get('forceUpdate', False):
 			self.update()
 		if self.lexer:
-			self._update_highlight(self.index(index))
+			self._update_highlight(index)
 	
 	def delete(self, index1, index2):
+		index1 = self.index(index1)
 		ttk.Tkinter.Text.delete(self, index1, index2)
 		if self.lexer:
-			self._update_highlight(self.index(index1))
+			self._update_highlight(index1)
 	
 	def calcule_distance(self, first, second):
 		return self.tk.call(self._w, "count", "-chars", first, second)
