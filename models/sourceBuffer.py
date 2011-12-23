@@ -358,7 +358,7 @@ def insert_char(event):
 
 class CodeText(ttk.Tkinter.Text):
 	def __init__(self):
-		ttk.Tkinter.Text.__init__(self, core.mainWindow.workspaceContainer)
+		ttk.Tkinter.Text.__init__(self, core.mainWindow.workspaceContainer, undo=True)
 		self.bind("<<Selection>>", self.on_selection_changed)
 		self.bind_class("Text","<Key>",insert_char)
 		bindtags = list(self.bindtags())
