@@ -142,21 +142,6 @@ class closeall(Action):
 		return ret
 
 class split(Action):
-
-	def regChecker(cls, line):
-		if line.startswith("split"):
-			args = line.split()
-			if len(args) != 2:
-				return None
-			return [cls.SPLIT, 0, args[1] ]
-		if line.startswith("vsplit"):
-			args = line.split()
-			if len(args) != 2:
-				return None
-			return [cls.SPLIT, 1, args[1] ]
-		if line.startswith("unsplit"):
-			return [cls.UNSPLIT]
-		return None
 	core.controler.add_alias("vsplit", "split", 1)
 	core.controler.add_alias("unsplit", "split", 1)
 	def run(cls, cmdText, *args):
@@ -170,54 +155,44 @@ class split(Action):
 		return False
 
 class search(Action):
-	import re
-	lastDirection = None
 	lastSearch = None
-	FORWARD=False
-	BACKWARD=True
 
-	def regChecker(cls, line):
+	@staticmethod
+	def regChecker(line):
 		import re
-		if line.startswith("search"):
-			ret = [cls.FORWARD]
-			ret.extend(line.split(' ')[1:])
-			return ret
-		if line.startswith("next"):
-			return [cls.lastDirection, cls.lastSearch]
 		match = re.match(r"^/(.*)$", line)
 		if match:
-			ret = [cls.FORWARD]
+			ret = ["search"]
 			ret.extend(match.groups())
 			return ret
 		match = re.match(r"^\?(.*)$", line)
 		if match:
-			ret = [cls.BACKWARD]
+			ret = ["bsearch"]
 			ret.extend(match.groups())
 			return  ret
 		return None
 
+	core.controler.add_expender(lambda line : search.regChecker(line))
+	core.controler.add_alias("bsearch", "search", 1)
 	def run(cls, cmdText, *args):
-		direction = cls.lastDirection
+		backward = (cmdText == "bsearch")
 		search = cls.lastSearch
-		if len(args) > 0:
-			direction = args[0]
-			cls.lastDirection = direction
-		if len(args) > 1:
-			search = args[1]
+		try:
+			search = args[0]
 			cls.lastSearch = search
-		if direction != None and search != None:
-			return capi.currentDocument.search(direction, search)
+		except : pass
+		if search != None:
+			return capi.currentDocument.search(backward, search)
 
 class goto(Action):
-	def regChecker(cls, line):
+	@staticmethod
+	def regChecker(line):
 		import re
-		if line.startswith("goto"):
-			return line.split(' ')[1:]
-		match = re.match(r"^g(?P<delta>[+-]?)(?P<line>[0-9]*)$", line)
+		match = re.match(r"^g(?P<line>[0-9]+)(?P<dot>\.)?(?(dot)(?P<char>[0-9]+))$", line)
 		if match:
-			return [match.group('line'),match.group('delta')]
+			return ["goto","%s.%s"%(match.group('line'),match.group('char') or '0')]
 		return None
-
+	core.controler.add_expender(lambda line : goto.regChecker(line))
 	def run(cls, cmdText, *indexes):
 		index = " ".join(indexes)
 		capi.currentDocument.goto_index(index)
@@ -226,3 +201,4 @@ capi.bind[core.config.get('binding','save_command')] = "save"
 capi.bind[core.config.get('binding','new_command')] = "new"
 capi.bind[core.config.get('binding','open_command')] = "open"
 capi.bind[core.config.get('binding','forward_research')] = "search"
+capi.bind[core.config.get('binding','backward_research')] = "bsearch"
