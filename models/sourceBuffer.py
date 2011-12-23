@@ -296,7 +296,7 @@ class MouseController(Controller):
 	def click( self, event, shift=False, ctrl=False, *args, **kw):
 		event.widget.focus_set( )
 
-		if not shift and not control:
+		if not shift and not ctrl:
 			event.widget.sel_clear( )
 			event.widget.sel_setAnchor( 'current' )
 
@@ -732,5 +732,6 @@ class SourceBuffer(CodeText):
 			self.mark_set("insert", match_start if backward else match_end)
 			return True
 		return False
+
 
 
