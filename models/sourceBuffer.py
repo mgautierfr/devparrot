@@ -397,7 +397,7 @@ class CodeText(ttk.Tkinter.Text):
 		self.colorizeContext = None
 		self.last_stopToken = "1.0"
 		controller = MetaController()
-		controller.set_subControllers(BasicTextController(), CarretController(), AdvancedTextController(), MouseController() )
+		controller.set_subControllers(CarretController(), AdvancedTextController(), BasicTextController(), MouseController() )
 		controller.install( self )
 		
 	
