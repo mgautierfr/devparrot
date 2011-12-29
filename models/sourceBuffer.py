@@ -125,6 +125,7 @@ class BasicTextController(Controller):
 	def on_backspace(self, event, *args, **kw):
 		try:
 			event.widget.delete( 'sel.first', 'sel.last' )
+			event.widget.sel_clear()
 		except:
 			event.widget.delete( 'insert -1 chars', 'insert' )
 	
@@ -132,6 +133,7 @@ class BasicTextController(Controller):
 	def on_delete(self, event, *args, **kw):
 		try:
 			event.widget.delete( 'sel.first', 'sel.last' )
+			event.widget.sel_clear()
 		except:
 			event.widget.delete( 'insert', 'insert +1 chars' )
 			
