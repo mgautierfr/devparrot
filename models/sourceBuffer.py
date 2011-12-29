@@ -445,7 +445,7 @@ class CodeText(ttk.Tkinter.Text):
    
 	def sel_delete( self ):
 		try:
-			Tkinter.Text.delete( self, 'sel.first', 'sel.last' )
+			self.delete('sel.first', 'sel.last' )
 		except:
 			pass
 		
@@ -583,25 +583,13 @@ class CodeText(ttk.Tkinter.Text):
 
 	def _update_a_token(self,realTime=False):
 		prefix = "DP::SH::"
-#		def markoff(name):
-#			print "markoff", name
-#			self.mark_unset(name)
 		markoff = self.mark_unset
+		tagdel = self.tag_remove
+		tagadd = self.tag_add
 		
 		def markon(pos):
-			#print "markon", "DP::SH::_synctx_%d"%self.markNb, pos
 			self.mark_set("DP::SH::_synctx_%d"%self.markNb, pos)
 			self.markNb += 1
-		
-#		def tagdel(name, start, end):
-#			print "tagdel",name, start, end
-#			self.tag_remove(name, start, end)
-		tagdel = self.tag_remove
-		
-#		def tagadd(name, start, end):
-#			print "tagadd",name, start, end
-#			self.tag_add(name, start, end)
-		tagadd = self.tag_add
 		
 		def process_itvs(elem):
 			i,t,v,s = elem
@@ -751,12 +739,9 @@ class SourceBuffer(CodeText):
 		if match_start:
 			match_end = "%s+%ic"%(match_start,count.get())
 			self.highlight_tag_protected = True
-			self.tag_remove("sel", "0.1","end")
+			self.sel_clear()
 			self.tag_add("sel", match_start, match_end)
 			self.highlight_tag_protected = False
 			self.mark_set("insert", match_start if backward else match_end)
 			return True
 		return False
-
-
-

@@ -31,7 +31,6 @@ class Workspace(TopContainer):
 
 	def get_currentDocument(self):
 		child = self.get_currentContainer().get_documentView()
-		print child
 		if child:
 			return child.document
 		return None
