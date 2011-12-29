@@ -99,8 +99,7 @@ class BasicTextController(Controller):
 		if event.keysym in ( 'Return','Enter','KP_Enter','Tab','BackSpace','Delete','Insert' ):
 			event.widget.sel_clear()
 			return "break"
-
-		if (len(event.char) > 0) and (32 <= ord(event.char) < 127):
+		if len(event.char) > 0:
 			try:
 				event.widget.sel_delete( )
 			except:
