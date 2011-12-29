@@ -257,6 +257,7 @@ class AdvancedTextController(Controller):
 	def on_ctrl_a(self, event, *args, **kw):
 		self._selectionAnchor = '1.0'
 		event.widget.mark_set( 'insert', 'end' )
+		return "break"
 	
 	@bind('<Control-c>')
 	def on_ctrl_c(self, event, *args, **kw):
@@ -265,6 +266,7 @@ class AdvancedTextController(Controller):
 			event.widget.clipboard_append( event.widget.get( 'sel.first', 'sel.last' ) )
 		except:
 			pass
+		return "break"
 	
 	@bind('<Control-r>')
 	def on_ctrl_r(self, event, *args, **kw):
@@ -273,6 +275,7 @@ class AdvancedTextController(Controller):
 		except:
 			pass
 		event.widget.sel_clear( )
+		return "break"
 	
 	@bind('<Control-v>')
 	def on_ctrl_v(self, event, *args, **kw):
@@ -284,6 +287,7 @@ class AdvancedTextController(Controller):
     
 		event.widget.insert( 'insert', event.widget.clipboard_get( ) )
 		event.widget.sel_clear( )
+		return "break"
 	
 	@bind('<Control-x>')
 	def on_ctrl_x(self, event, *args, **kw):
@@ -295,6 +299,7 @@ class AdvancedTextController(Controller):
 		except:
 			pass
 		event.widget.sel_clear( )
+		return "break"
 	
 	@bind('<Control-z>')
 	def on_ctrl_z(self, event, *args, **kw):
@@ -303,6 +308,7 @@ class AdvancedTextController(Controller):
 		except:
 			pass
 		event.widget.sel_clear( )
+		return "break"
 
 class MouseController(Controller):
 	def __init__(self):
