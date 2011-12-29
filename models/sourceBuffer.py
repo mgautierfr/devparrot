@@ -159,6 +159,7 @@ class CarretController( Controller ):
 		else:
 			event.widget.mark_set( 'insert', 'insert linestart' )
 		event.widget.see('insert')
+		event.widget.update_idletasks()
 	
 	@bind("<End>", "<KP_End>", [_none,_shift,_ctrl,_shiftctrl])
 	def end(self, event, shift, ctrl, *args, **kw):
@@ -168,6 +169,7 @@ class CarretController( Controller ):
 		else:
 			event.widget.mark_set( 'insert', 'insert lineend' )
 		event.widget.see( 'insert' )
+		event.widget.update_idletasks()
 	
 	@bind("<Right>", [_none,_shift,_ctrl,_shiftctrl])
 	def right(self, event, shift, ctrl, *args, **kw):
@@ -186,6 +188,7 @@ class CarretController( Controller ):
 		else:
 			event.widget.mark_set( 'insert', 'insert +1 chars' )
 		event.widget.see( 'insert' )
+		event.widget.update_idletasks()
 	
 	@bind("<Left>", [_none,_shift,_ctrl,_shiftctrl])
 	def left(self, event, shift, ctrl, *args, **kw):
@@ -205,6 +208,7 @@ class CarretController( Controller ):
 		else:
 			event.widget.mark_set( 'insert', 'insert -1 chars' )
 		event.widget.see( 'insert' )
+		event.widget.update_idletasks()
 	
 	@bind("<Down>", [_none,_shift,_ctrl,_shiftctrl])
 	def down(self, event, shift, ctrl, *args, **kw):
@@ -212,6 +216,7 @@ class CarretController( Controller ):
 		self._handle_shift(shift, event)
 		event.widget.mark_set( 'insert', 'insert +1 lines' )
 		event.widget.see( 'insert' )
+		event.widget.update_idletasks()
 	
 	@bind("<Up>", [_none,_shift,_ctrl,_shiftctrl])
 	def up(self, event, shift, ctrl, *args, **kw):
@@ -219,6 +224,7 @@ class CarretController( Controller ):
 		self._handle_shift(shift, event)
 		event.widget.mark_set( 'insert', 'insert -1 lines' )
 		event.widget.see( 'insert' )
+		event.widget.update_idletasks()
 
 	@bind("<Prior>", [_none,_shift,_ctrl,_shiftctrl])
 	def prior(self, event, shift, ctrl, *args, **kw):
@@ -226,6 +232,7 @@ class CarretController( Controller ):
 		self._handle_shift(shift, event)
 		event.widget.yview_scroll( -1, 'pages' )
 		event.widget.see( 'insert' )
+		event.widget.update_idletasks()
 	
 	@bind("<Next>", [_none,_shift,_ctrl,_shiftctrl])
 	def next(self, event, shift, ctrl, *args, **kw):
@@ -233,6 +240,7 @@ class CarretController( Controller ):
 		self._handle_shift(shift, event)
 		event.widget.yview_scroll( 1, 'pages' )
 		event.widget.see( 'insert' )
+		event.widget.update_idletasks()
 
 class AdvancedTextController(Controller):
 	def __init__( self ):
