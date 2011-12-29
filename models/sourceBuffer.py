@@ -226,19 +226,26 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 
+	@staticmethod
+	def find_nbLine(widget):
+		nbLine = widget.tk.call(widget._w, "count", "-displaylines", "@0,0", "@%d,%d"%(widget.winfo_width(),widget.winfo_height()))
+		return nbLine
+
 	@bind("<Prior>", [_none,_shift,_ctrl,_shiftctrl])
 	def prior(self, event, shift, ctrl, *args, **kw):
+		event.widget.yview_scroll( -1, 'pages' )
 		if ctrl : return
 		self._handle_shift(shift, event)
-		event.widget.yview_scroll( -1, 'pages' )
+		event.widget.mark_set('insert', 'insert -%d lines'%CarretController.find_nbLine(event.widget))
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
 	@bind("<Next>", [_none,_shift,_ctrl,_shiftctrl])
 	def next(self, event, shift, ctrl, *args, **kw):
+		event.widget.yview_scroll( 1, 'pages' )
 		if ctrl : return
 		self._handle_shift(shift, event)
-		event.widget.yview_scroll( 1, 'pages' )
+		event.widget.mark_set('insert', 'insert +%d lines'%CarretController.find_nbLine(event.widget))
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 
