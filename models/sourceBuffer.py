@@ -352,6 +352,9 @@ class MouseController(Controller):
 	def selectLine( self, event, *args, **kw):
 		event.widget.sel_setAnchor( 'insert linestart' )
 		event.widget.mark_set( 'insert', 'insert lineend' )
+
+	@bind( '<Double-ButtonRelease-1>', '<Triple-ButtonRelease-1>' )
+	def bypass_deselect(self, event, *args, **kw): return "break"
    
 	@bind( '<Button1-Leave>' )
 	def scrollView( self, event, *args, **kw):
