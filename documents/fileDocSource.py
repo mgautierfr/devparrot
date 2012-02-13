@@ -39,6 +39,9 @@ class FileDocSource(object):
 		
 	def get_path(self):
 		return self.path
+
+	def has_path(self):
+		return True
 	
 	def get_content(self):
 		if not os.path.exists(self.path):
@@ -73,3 +76,4 @@ class FileDocSource(object):
 		if not self.timestamp: return False
 		modif = os.stat(self.path).st_mtime
 		return  modif > self.timestamp
+

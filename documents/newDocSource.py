@@ -37,7 +37,10 @@ class NewDocSource(object):
 		return False
 		
 	def get_path(self):
-		return None
+		return self.title
+
+	def has_path(self):
+		return False
 		
 	def get_content(self):
 		return ""
@@ -47,3 +50,4 @@ class NewDocSource(object):
 
 	def need_reload(self):
 		return False
+

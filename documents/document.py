@@ -75,7 +75,7 @@ class Document(object):
 		return self.models['text'].get_modified()
 	
 	def has_a_path(self):
-		return self.documentSource.get_path() != None
+		return self.documentSource.has_path()
 	
 	def get_path(self):
 		return self.documentSource.get_path()
