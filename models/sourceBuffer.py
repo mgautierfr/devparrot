@@ -30,6 +30,16 @@ import Tkinter
 
 PREFIX = "tkController"
 
+class Modifiers(object):
+	def __init__(self, modifiers):
+		self.modifiers = modifiers
+
+	def __getattr__(self, name):
+		if name in ["shift", "ctrl", "meta", "super", "lock"]:
+			return name in self.modifiers
+		raise AttibuteError
+			
+
 class Controller(object):
 	def __init__(self, master=None):
 		if master is None:
@@ -49,12 +59,13 @@ class Controller(object):
 				for eventSequence in method.tkevent:
 					for modif in method.tkmodif:
 						rawEventSequence = [eventSequence[1:-1]]
-						if 's' in modif: rawEventSequence.insert(0,'Shift')
-						if 'c' in modif: rawEventSequence.insert(0,'Control')
+						if 'shift' in modif: rawEventSequence.insert(0, 'Shift')
+						if 'ctrl' in modif: rawEventSequence.insert(0, 'Control')
+						if 'alt' in modif: rawEventSequence.insert(0, 'Alt')
 						rawEventSequence = "-".join(rawEventSequence)
 						rawEventSequence = "<"+rawEventSequence+">" 
 						handle(rawEventSequence, lambda event, method=method, modif=modif:
-						                                   method(event, shift='s' in modif, ctrl='c' in modif))
+						                                   method(event, Modifiers(modif)))
 
 class MetaController:
 	def __init__(self, master=None):
@@ -73,10 +84,33 @@ class MetaController:
 		tags[tags.index(widgetclass):tags.index(widgetclass)+1] = [c.tag for c in self.subControllers]
 		widget.bindtags(tuple(tags))
 
-_shift = ('s',)
-_ctrl = ('c',)
-_ctrlshift = _shiftctrl = ('s','c')
+
 _none = ()
+_shift = ('shift',)
+_lock = ('lock',)
+_ctrl = ('ctrl',)
+_alt = ('alt',)
+_super = ('super',)
+_shiftctrl = ('shift','ctrl')
+_shiftalt  = ('shift','alt')
+_shiftsuper= ('shift','super')
+_lockctrl = ('lock','ctrl')
+_lockalt  = ('lock','alt')
+_locksuper= ('lock','super')
+_ctrlalt   = ('ctrl', 'alt')
+_ctrlsuper = ('ctrl', 'super')
+_altsuper  = ('alt', 'super')
+_shiftctrlalt = ('shift', 'ctrl', 'alt')
+_shiftctrlsuper = ('shift', 'ctrl', 'super')
+_shiftaltsuper = ('shift', 'alt', 'super')
+_lockctrlalt = ('lock', 'ctrl', 'alt')
+_lockctrlsuper = ('lock', 'ctrl', 'super')
+_lockaltsuper = ('lock', 'alt', 'super')
+_ctrlaltsuper = ('ctrl', 'alt', 'super')
+_shiftctrlaltsuper = ('shift', 'ctrl', 'alt', 'super')
+_lockctrlaltsuper = ('lock', 'ctrl', 'alt', 'super')
+
+
 
 def bind(*events):
 	if isinstance(events[-1], list):
@@ -90,12 +124,26 @@ def bind(*events):
 		return func
 	return decorator
 
+def _bind(modifiersList, *events):
+	def decorator(func):
+		func.tkevent = events
+		func.tkmodif = modifiersList
+		return func
+	return decorator
+
+def bind(*events):
+	return _bind([_none], *events)
+
+def mbind(*events):
+	return _bind([_none, _shift, _ctrl, _alt, _lock, _super, _shiftctrl, _shiftalt, _shiftsuper, _ctrlalt, _ctrlsuper, _altsuper, _lockctrl, _lockalt, _locksuper, _shiftctrlalt, _shiftctrlsuper, _shiftaltsuper, _ctrlaltsuper, _shiftctrlaltsuper, _lockctrlalt, _lockctrlsuper, _lockaltsuper, _lockctrlaltsuper],
+	*events)
+
 class BasicTextController(Controller):
 	def __init__(self):
 		Controller.__init__(self)
 	
 	@bind('<KeyPress>')
-	def on_key_pressed(self, event, *args, **kw):
+	def on_key_pressed(self, event, modifiers):
 		if event.keysym in ( 'Return','Enter','KP_Enter','Tab','BackSpace','Delete','Insert' ):
 			event.widget.sel_clear()
 			return "break"
@@ -110,19 +158,19 @@ class BasicTextController(Controller):
 			return "break"
 			
 	@bind('<Return>', '<KP_Enter>')
-	def on_return(self, event, *args, **kw):
+	def on_return(self, event, modifiers):
 		try:
 			event.widget.sel_delete()
 		finally:
 			event.widget.insert( 'insert', '\n' )		
 
 	@bind('<Key-Tab>')
-	def on_tab(self, event, *args, **kw):
+	def on_tab(self, event, modifier):
 		event.widget.insert( 'insert', '\t' )
 		return "break"
 	
 	@bind('<BackSpace>')
-	def on_backspace(self, event, *args, **kw):
+	def on_backspace(self, event, modifiers):
 		try:
 			event.widget.delete( 'sel.first', 'sel.last' )
 			event.widget.sel_clear()
@@ -130,7 +178,7 @@ class BasicTextController(Controller):
 			event.widget.delete( 'insert -1 chars', 'insert' )
 	
 	@bind('<Delete>', '<KP_Delete>')
-	def on_delete(self, event, *args, **kw):
+	def on_delete(self, event, modifiers):
 		try:
 			event.widget.delete( 'sel.first', 'sel.last' )
 			event.widget.sel_clear()
@@ -151,30 +199,30 @@ class CarretController( Controller ):
 		else:
 			event.widget.sel_clear( )
 	
-	@bind( "<Home>", "<KP_Home>", [_none,_shift,_ctrl,_shiftctrl])
-	def home(self, event, shift, ctrl, *args, **kw):
-		self._handle_shift(shift,event)
-		if ctrl:
+	@mbind( "<Home>", "<KP_Home>")
+	def home(self, event, modifiers):
+		self._handle_shift(modifiers.shift,event)
+		if modifiers.ctrl:
 			event.widget.mark_set( 'insert', '1.0' )
 		else:
 			event.widget.mark_set( 'insert', 'insert linestart' )
 		event.widget.see('insert')
 		event.widget.update_idletasks()
 	
-	@bind("<End>", "<KP_End>", [_none,_shift,_ctrl,_shiftctrl])
-	def end(self, event, shift, ctrl, *args, **kw):
-		self._handle_shift(shift, event)
-		if ctrl:
+	@mbind("<End>", "<KP_End>",)
+	def end(self, event, modifiers):
+		self._handle_shift(modifiers.shift, event)
+		if modifiers.ctrl:
 			event.widget.mark_set( 'insert', 'end' )
 		else:
 			event.widget.mark_set( 'insert', 'insert lineend' )
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@bind("<Right>", [_none,_shift,_ctrl,_shiftctrl])
-	def right(self, event, shift, ctrl, *args, **kw):
-		self._handle_shift(shift, event)
-		if ctrl:
+	@mbind("<Right>")
+	def right(self, event, modifiers):
+		self._handle_shift(modifiers.shift, event)
+		if modifiers.ctrl:
 			currentPos = event.widget.index( 'insert' )
 			maxPos     = event.widget.index( 'end wordstart' )
 	    
@@ -190,10 +238,10 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@bind("<Left>", [_none,_shift,_ctrl,_shiftctrl])
-	def left(self, event, shift, ctrl, *args, **kw):
-		self._handle_shift(shift, event)
-		if ctrl:
+	@mbind("<Left>")
+	def left(self, event, modifiers):
+		self._handle_shift(modifiers.shift, event)
+		if modifiers.ctrl:
 			currentPos = event.widget.index( 'insert' )
 			minPos     = event.widget.index( '1.0 wordstart' )
 	    
@@ -210,18 +258,18 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@bind("<Down>", [_none,_shift,_ctrl,_shiftctrl])
-	def down(self, event, shift, ctrl, *args, **kw):
-		if ctrl: return
-		self._handle_shift(shift, event)
+	@mbind("<Down>")
+	def down(self, event, modifiers):
+		if modifiers.ctrl: return
+		self._handle_shift(modifiers.shift, event)
 		event.widget.mark_set( 'insert', 'insert +1 lines' )
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@bind("<Up>", [_none,_shift,_ctrl,_shiftctrl])
-	def up(self, event, shift, ctrl, *args, **kw):
-		if ctrl: return
-		self._handle_shift(shift, event)
+	@mbind("<Up>")
+	def up(self, event, modifiers):
+		if modifiers.ctrl: return
+		self._handle_shift(modifiers.shift, event)
 		event.widget.mark_set( 'insert', 'insert -1 lines' )
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
@@ -231,20 +279,20 @@ class CarretController( Controller ):
 		nbLine = widget.tk.call(widget._w, "count", "-displaylines", "@0,0", "@%d,%d"%(widget.winfo_width(),widget.winfo_height()))
 		return nbLine
 
-	@bind("<Prior>", [_none,_shift,_ctrl,_shiftctrl])
-	def prior(self, event, shift, ctrl, *args, **kw):
+	@mbind("<Prior>")
+	def prior(self, event, modifiers):
 		event.widget.yview_scroll( -1, 'pages' )
-		if ctrl : return
-		self._handle_shift(shift, event)
+		if modifiers.ctrl : return
+		self._handle_shift(modifiers.shift, event)
 		event.widget.mark_set('insert', 'insert -%d lines'%CarretController.find_nbLine(event.widget))
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@bind("<Next>", [_none,_shift,_ctrl,_shiftctrl])
-	def next(self, event, shift, ctrl, *args, **kw):
+	@mbind("<Next>")
+	def next(self, event, modifiers):
 		event.widget.yview_scroll( 1, 'pages' )
-		if ctrl : return
-		self._handle_shift(shift, event)
+		if modifiers.ctrl : return
+		self._handle_shift(modifiers.shift, event)
 		event.widget.mark_set('insert', 'insert +%d lines'%CarretController.find_nbLine(event.widget))
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
@@ -254,13 +302,13 @@ class AdvancedTextController(Controller):
 		Controller.__init__( self )
 	
 	@bind('<Control-a>')
-	def on_ctrl_a(self, event, *args, **kw):
+	def on_ctrl_a(self, event, modifiers):
 		self._selectionAnchor = '1.0'
 		event.widget.mark_set( 'insert', 'end' )
 		return "break"
 	
 	@bind('<Control-c>')
-	def on_ctrl_c(self, event, *args, **kw):
+	def on_ctrl_c(self, event, modifiers):
 		try:
 			event.widget.clipboard_clear()
 			event.widget.clipboard_append( event.widget.get( 'sel.first', 'sel.last' ) )
@@ -269,7 +317,7 @@ class AdvancedTextController(Controller):
 		return "break"
 	
 	@bind('<Control-r>')
-	def on_ctrl_r(self, event, *args, **kw):
+	def on_ctrl_r(self, event, modifiers):
 		try:
 			event.widget.edit_redo( )
 		except:
@@ -278,7 +326,7 @@ class AdvancedTextController(Controller):
 		return "break"
 	
 	@bind('<Control-v>')
-	def on_ctrl_v(self, event, *args, **kw):
+	def on_ctrl_v(self, event, modifiers):
 		try:
 			event.widget.mark_set( 'insert', 'sel.first' )
 			event.widget.delete( 'sel.first', 'sel.last' )
@@ -290,7 +338,7 @@ class AdvancedTextController(Controller):
 		return "break"
 	
 	@bind('<Control-x>')
-	def on_ctrl_x(self, event, *args, **kw):
+	def on_ctrl_x(self, event, modifiers):
 		try:
 			event.widget.clipboard_clear()
 			event.widget.clipboard_append( event.widget.get( 'sel.first', 'sel.last' ) )
@@ -302,7 +350,7 @@ class AdvancedTextController(Controller):
 		return "break"
 	
 	@bind('<Control-z>')
-	def on_ctrl_z(self, event, *args, **kw):
+	def on_ctrl_z(self, event, modifiers):
 		try:
 			event.widget.edit_undo( )
 		except:
@@ -314,16 +362,16 @@ class MouseController(Controller):
 	def __init__(self):
 		Controller.__init__(self)
 
-	@bind( '<ButtonPress-1>' )
-	def click( self, event, shift=False, ctrl=False, *args, **kw):
+	@mbind( '<ButtonPress-1>' )
+	def click( self, event, modifiers):
 		event.widget.focus_set( )
 
-		if not shift and not ctrl:
+		if not modifiers.shift and not modifiers.ctrl:
 			event.widget.sel_clear( )
 			event.widget.sel_setAnchor( 'current' )
 
 	@bind( '<B1-Motion>', '<Shift-Button1-Motion>' )
-	def dragSelection( self, event, *args, **kw):
+	def dragSelection( self, event, modifiers):
 		widget = event.widget
 
 		if event.y < 0:
@@ -337,27 +385,27 @@ class MouseController(Controller):
 		widget.mark_set( 'insert', '@%d,%d' % (event.x+2, event.y) )
    
 	@bind( '<ButtonRelease-1>')
-	def moveCarrot_deselect( self, event, *args, **kw):
+	def moveCarrot_deselect( self, event, modifiers):
 		widget = event.widget
 
 		widget.grab_release()
 		widget.mark_set( 'insert', 'current' )
    
 	@bind( '<Double-ButtonPress-1>' )
-	def selectWord( self, event, *args, **kw):
+	def selectWord( self, event, modifiers):
 		event.widget.sel_setAnchor( 'insert wordstart' )
 		event.widget.mark_set( 'insert', 'insert wordend' )
    
 	@bind( '<Triple-ButtonPress-1>' )
-	def selectLine( self, event, *args, **kw):
+	def selectLine( self, event, modifiers):
 		event.widget.sel_setAnchor( 'insert linestart' )
 		event.widget.mark_set( 'insert', 'insert lineend' )
 
 	@bind( '<Double-ButtonRelease-1>', '<Triple-ButtonRelease-1>' )
-	def bypass_deselect(self, event, *args, **kw): return "break"
+	def bypass_deselect(self, event, modifiers): return "break"
    
 	@bind( '<Button1-Leave>' )
-	def scrollView( self, event, *args, **kw):
+	def scrollView( self, event, modifiers):
 		widget = event.widget
 
 		if event.y < 0:
@@ -368,7 +416,7 @@ class MouseController(Controller):
 		widget.grab_set( )
    
 	@bind( '<MouseWheel>' )
-	def wheelScroll( self, event, *args, **kw):
+	def wheelScroll( self, event, modifiers):
 		widget = event.widget
 
 		if event.delta < 0:
@@ -745,3 +793,6 @@ class SourceBuffer(CodeText):
 			self.mark_set("insert", match_start if backward else match_end)
 			return True
 		return False
+
+
+
