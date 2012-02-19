@@ -162,7 +162,8 @@ class BasicTextController(Controller):
 		try:
 			event.widget.sel_delete()
 		finally:
-			event.widget.insert( 'insert', '\n' )		
+			event.widget.insert( 'insert', '\n' )
+			event.widget.see('insert')
 
 	@bind('<Key-Tab>')
 	def on_tab(self, event, modifier):
