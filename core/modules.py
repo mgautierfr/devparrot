@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 #    This file is part of DevParrot.
 #
 #    Author: Matthieu Gautier <matthieu.gautier@mgautier.fr>
@@ -20,26 +18,32 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
+import os
 
-import sys
+def init(path):
+	path = os.path.join(path, 'modules')
+	moduleList = os.listdir(path)
+	for module in moduleList:
+		m = load_module(path, module)
+		m.activate()
+	pass
 
-import core.config
-import core.mainWindow
-from core.session import Session
-import core.controler
-import core.modules
-import os.path
+def load_module(path, name):
+	import imp
+	if name.endswith('.pyc'):
+		return
+	if name.endswith('.py'):
+		name = name[:-3]
+	fp, pathname, description = imp.find_module(name, [path])
 
-class DevParrot(object):
-	def __init__(self):
-		core.mainWindow.init()
-		core.controler.init()
-		core.modules.init(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-		self.session = Session()
-		if len(sys.argv) > 1:
-			core.controler.run_command("open %s"%" ".join(sys.argv[1:]))
+	try:
+		return imp.load_module(name, fp, pathname, description)
+	finally:
+		# Since we may exit via an exception, close fp explicitly.
+		if fp:
+			fp.close()
 
-if __name__ == "__main__":
-	app = DevParrot()
-	core.mainWindow.window.mainloop()
+
+
+
 

@@ -37,10 +37,8 @@ class Document(object):
 		self.models['text'] = SourceBuffer(self)
 		self.models['text'].bind("<<Modified>>", self.on_modified_changed)
 		self.views = []
-		self.currentView = None
-		
+		self.currentView = None	
 		self.set_path(documentSource)
-
 		self.add_view('text', TextView(self))
 		core.controler.eventSystem.event("newDocument")(self)
 	

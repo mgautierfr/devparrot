@@ -25,13 +25,11 @@ class Event:
 		pass
 
 	def __call__(self, *args, **kwords):
-		print "listeners :", self.listeners
 		for listener in self.listeners:
 			listener(*args, **kwords)
 	
 	
 	def connect(self, listener):
-		print "adding listener", listener
 		self.listeners.add(listener)
 	__iadd__ = connect
 
@@ -47,7 +45,6 @@ class EventSource:
 
 	def connect(self, eventName, listener):
 		self.events.setdefault(eventName, Event()).connect(listener)
-		print "events are", self.events
 
 	def event(self, eventName):
 		return self.events.get(eventName, Event())
