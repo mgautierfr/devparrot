@@ -24,6 +24,7 @@ from views.textView import TextView
 from datetime import datetime
 import ttk
 import core.mainWindow
+import core.controler
 from models.sourceBuffer import SourceBuffer
 
 class Document(object):
@@ -41,6 +42,7 @@ class Document(object):
 		self.set_path(documentSource)
 
 		self.add_view('text', TextView(self))
+		core.controler.eventSystem.event("newDocument")(self)
 	
 	def __getattr__(self, name):
 		if name in ["title", "longTitle"]:

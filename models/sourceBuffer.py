@@ -28,6 +28,8 @@ import tkFont
 
 import Tkinter
 
+import utils.event
+
 PREFIX = "tkController"
 
 class Modifiers(object):
@@ -430,10 +432,12 @@ def insert_char(event):
 		event.widget.insert('insert',event.char)
 
 
-class CodeText(ttk.Tkinter.Text):
+class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 	def __init__(self):
 		ttk.Tkinter.Text.__init__(self, core.mainWindow.workspaceContainer, undo=True)
+		utils.event.EventSource.__init__(self)
 		self.bind("<<Selection>>", self.on_selection_changed)
+		self.connect('<<insert>>', on_insert)
 		self.bind_class("Text","<Key>",insert_char)
 		bindtags = list(self.bindtags())
 		bindtags.insert(1,"Action")

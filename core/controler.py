@@ -22,11 +22,13 @@ import os,sys
 
 import mainWindow
 import config
+import utils.event
 
 currentSession = None
 baseColor = None
 alias = {}
 lineExpenders = []
+eventSystem = utils.event.EventSource()
 
 class Binder(object):
 	def __init__(self):
@@ -99,9 +101,9 @@ def run_command(text):
 	def expand_token(token):
 		return token
 	def launch_command(command, cmdText, args):
-		mainWindow.window.event_generate("<<%s->>"%command.__name__)
+		eventSystem.event("%s-"%command.__name__)(cmdText, args)
 		command.run(cmdText, *args)
-		mainWindow.window.event_generate("<<%s+>>"%command.__name__)
+		eventSystem.event("%s+"%command.__name__)(cmdText, args)
 	
 	tokens = find_tokens()
 	command = get_command(tokens[0])
