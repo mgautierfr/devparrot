@@ -434,7 +434,7 @@ def insert_char(event):
 
 class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 	def __init__(self):
-		ttk.Tkinter.Text.__init__(self, core.mainWindow.workspaceContainer, undo=True)
+		ttk.Tkinter.Text.__init__(self, core.mainWindow.workspaceContainer, undo=True, wrap="none")
 		utils.event.EventSource.__init__(self)
 		self.bind("<<Selection>>", self.on_selection_changed)
 		self.bind_class("Text","<Key>",insert_char)
