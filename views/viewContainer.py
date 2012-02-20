@@ -167,10 +167,8 @@ def on_drag_begin_notebook(event):
 	event.num = 1
 	notebook = event.widget
 	documentViewIndex = notebook.index("@%d,%d"%(event.x,event.y))
-	print documentViewIndex, documentViewIndex.__class__
 	if documentViewIndex != "":
 		documentView = notebook._children[documentViewIndex]
-		print repr(documentView)
 		Tkdnd.dnd_start(documentView, event)		
 
 class NotebookContainer(ContainerChild, ttk.Notebook):
@@ -425,6 +423,7 @@ class DragHandler(ttk.Tkinter.Toplevel):
 			splitted.after_idle(splitted.set_panedPos,0.5)
 	
 			newNotebook.set_as_current()
+
 
 
 
