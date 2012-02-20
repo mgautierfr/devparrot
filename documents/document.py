@@ -25,10 +25,13 @@ from datetime import datetime
 import ttk
 import core.mainWindow
 import core.controler
+import utils.event
 from models.sourceBuffer import SourceBuffer
 
-class Document(object):
+
+class Document(utils.event.EventSource):
 	def __init__(self, documentSource):
+		utils.event.EventSource.__init__(self)
 		self.models = {}
 		self.titleVar = ttk.Tkinter.StringVar()
 		self.titleVar.set(documentSource.longTitle)
@@ -85,7 +88,7 @@ class Document(object):
 		    self.documentSource != documentSource):
 			self.documentSource = documentSource
 			self.titleVar.set(self.documentSource.longTitle)
-			self.models['text'].enable_highlight(filename=self.documentSource.title)
+			self.event('textSet')(self)
 		
 	def load(self):
 		self.models['text'].set_text(self.documentSource.get_content())
@@ -127,3 +130,4 @@ class Document(object):
 	def goto_index(self, index):
 		self.currentView.view.mark_set("insert", index)
 		self.currentView.view.see(index)
+

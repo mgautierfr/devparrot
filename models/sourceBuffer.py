@@ -24,8 +24,6 @@ import core.config
 import core.mainWindow
 from time import time
 
-import tkFont
-
 import Tkinter
 
 import utils.event
@@ -442,12 +440,6 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 		bindtags.insert(1,"Action")
 		bindtags = " ".join(bindtags)
 		self.bindtags(bindtags)
-		self.styles = {}
-		self.fonts = {}
-		self.lexer = None
-		self.markNb=0
-		self.colorizeContext = None
-		self.last_stopToken = "1.0"
 		controller = MetaController()
 		controller.set_subControllers(CarretController(), AdvancedTextController(), BasicTextController(), MouseController() )
 		controller.install( self )
@@ -521,54 +513,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 				self.tag_remove( 'sel', '1.0', 'end' )
 				self.tag_add( 'sel', 'sel.first', 'sel.last' )
 			except:
-				pass
-	
-	def enable_highlight(self, mimetype=None, filename=None):
-		from pygments.lexers import guess_lexer,get_lexer_for_mimetype,get_lexer_for_filename,guess_lexer_for_filename
-		from pygments.styles import get_style_by_name
-		def create_fonts():
-			self.fonts[(False,False)] = tkFont.Font(font=self.cget('font'))
-			self.fonts[(True,False)] = self.fonts[(False,False)].copy()
-			self.fonts[(True,False)].configure(weight='bold')
-			self.fonts[(False,True)] = self.fonts[(False,False)].copy()
-			self.fonts[(False,True)].configure(slant='italic')
-			self.fonts[(True,True)] = self.fonts[(False,False)].copy()
-			self.fonts[(True,True)].configure(slant='italic',weight='bold')
-		def create_style_table():
-			self.style = get_style_by_name('default')
-		
-			for token,tStyle in self.style:
-				token = "DP::SH::%s"%str(token).replace('.','_')
-				if tStyle['color']:
-					self.tag_configure(token,foreground="#%s"%tStyle['color'])
-				if tStyle['bgcolor']:
-					self.tag_configure(token,background="#%s"%tStyle['bgcolor'])
-
-				self.tag_configure(token,underline=tStyle['underline'])
-				self.tag_configure(token, font=self.fonts[(tStyle['bold'],tStyle['italic'])])
-				#tStyle['border']
-
-		if mimetype:
-			try:
-				self.lexer = get_lexer_for_mimetype(mimetype)
-			except:
-				pass
-		if not self.lexer and filename:
-			try:
-				self.lexer = get_lexer_for_filename(filename)
-			except:
-				pass
-		if not self.lexer and filename:
-			try:
-				self.lexer = guess_lexer_for_filename(filename)
-			except:
-				pass
-		if not self.lexer:
-			self.lexer = guess_lexer(self.get("1.0", "end"))
-
-		if self.lexer:
-			create_fonts()
-			create_style_table() 
+				pass 
 		
 	def insert(self, index, *args, **kword):
 		index = self.index(index)
@@ -654,5 +599,7 @@ class SourceBuffer(CodeText):
 			self.mark_set("insert", match_start if backward else match_end)
 			return True
 		return False
+
+
 
 

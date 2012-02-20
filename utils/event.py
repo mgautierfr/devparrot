@@ -19,7 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 
-class Event:
+class Event(object):
 	def __init__(self):
 		self.listeners = set()
 		pass
@@ -39,7 +39,7 @@ class Event:
 	__isub__ = disconnect
 
 
-class EventSource:
+class EventSource(object):
 	def __init__(self):
 		self.events = dict()
 
@@ -48,4 +48,5 @@ class EventSource:
 
 	def event(self, eventName):
 		return self.events.get(eventName, Event())
+
 
