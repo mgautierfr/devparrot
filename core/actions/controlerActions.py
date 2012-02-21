@@ -86,7 +86,7 @@ class close(Action):
 		if document.check_for_save():
 			save.save_document(document)
 		if document.documentView.is_displayed():
-			document.documentView.get_parentContainer().undisplay(document.documentView)
+			document.documentView.get_parentContainer().detach_child(document.documentView)
 		return capi.del_file(document)
 
 class open(Action):
@@ -202,3 +202,4 @@ capi.bind[core.config.get('binding','new_command')] = "new"
 capi.bind[core.config.get('binding','open_command')] = "open"
 capi.bind[core.config.get('binding','forward_research')] = "search"
 capi.bind[core.config.get('binding','backward_research')] = "bsearch"
+
