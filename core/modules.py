@@ -25,7 +25,8 @@ def init(path):
 	moduleList = os.listdir(path)
 	for module in moduleList:
 		m = load_module(path, module)
-		m.activate()
+		if m:
+			m.activate()
 	pass
 
 def load_module(path, name):
@@ -34,6 +35,7 @@ def load_module(path, name):
 		return
 	if name.endswith('.py'):
 		name = name[:-3]
+
 	fp, pathname, description = imp.find_module(name, [path])
 
 	try:
@@ -42,6 +44,7 @@ def load_module(path, name):
 		# Since we may exit via an exception, close fp explicitly.
 		if fp:
 			fp.close()
+
 
 
 

@@ -62,3 +62,4 @@ class Session(object):
 		
 	def get_history(self):
 		return self.history
+

@@ -18,13 +18,13 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-
 import mainWindow
+import utils.event
 
-class DocumentManager(object):
+class DocumentManager(utils.event.EventSource):
 	def __init__(self, session):
+		utils.event.EventSource.__init__(self)
 		self.session = session
-		self.view = mainWindow.documentListView
 		self.documents = {}
 		self.signalConnections = {}
 	
@@ -45,9 +45,8 @@ class DocumentManager(object):
 		return self.documents[path]
 
 	def del_file(self, document):
-		self.view.delete(document)
 		del self.documents[document.get_path()]
-		self._update_view()
+		self.event('documentDeleted')(document)
 		return True
 	
 	def switch_to_document(self, document):
@@ -59,15 +58,10 @@ class DocumentManager(object):
 
 	def add_file(self, document):
 		self.documents[document.get_path()] = document
-		self.view.insert(document, self.get_nbDocuments())
-		self._update_view()
-		self.view.sort()
-
-	def _update_view(self):
-		for (index, path) in enumerate(sorted(self.documents)):
-			self.view.item(path, text="%d"%index)
+		self.event('documentAdded')(document)
 	
 	def __str__(self):
 		return "Open Files\n[\n%(openfiles)s\n]"%{
 			'openfiles' : "\n".join([str(doc) for (doc) in self])
 		}
+

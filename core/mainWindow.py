@@ -45,9 +45,9 @@ class Helper:
 
 window = None
 entry = None
-documentListView = None
 workspaceContainer = None
-
+hpaned = None
+vpaned = None
 
 
 def quit(event):
@@ -55,11 +55,11 @@ def quit(event):
 	quit.run()
 
 def init():
-	from views.documentListView import DocumentListView
 	global window
 	global entry
-	global documentListView
 	global workspaceContainer
+	global hpaned
+	global vpaned
 	window = ttk.Tkinter.Tk()
 	geom = window.wm_geometry()
 	x = geom.split('+')[1]
@@ -74,17 +74,17 @@ def init():
 	vbox.pack(expand=True,fill=ttk.Tkinter.BOTH)
 	entry = ttk.Entry(vbox)
 	entry.pack(side=ttk.Tkinter.TOP,fill=ttk.Tkinter.X)
-	hpaned = ttk.Tkinter.PanedWindow(vbox,orient=ttk.Tkinter.HORIZONTAL)
+
+	hpaned = ttk.PanedWindow(vbox,orient=ttk.Tkinter.HORIZONTAL)
 	hpaned.pack(expand=True,fill=ttk.Tkinter.BOTH)
-	documentListView = DocumentListView(hpaned)
-	hpaned.add(documentListView)
-	#scrolledWin = gtk.ScrolledWindow()
-	#scrolledWin.set_policy(gtk.POLICY_NEVER,gtk.POLICY_AUTOMATIC)
-	#hpaned.add(scrolledWin)
-	#scrolledWin.add(documentListView)
-	workspaceContainer = ttk.Frame(hpaned, borderwidth=1, padding=0, relief="ridge")
-	hpaned.add(workspaceContainer)
-	#hpaned.props.position = 200
+
+	vpaned = ttk.PanedWindow(hpaned,orient=ttk.Tkinter.VERTICAL)
+	vpaned.pack(expand=True,fill=ttk.Tkinter.BOTH)
+
+	workspaceContainer = ttk.Frame(vpaned, borderwidth=1, padding=0, relief="ridge")
+	vpaned.add(workspaceContainer)
+
+	hpaned.add(vpaned)
 	
 	def focus_and_break(event):
 		entry.focus()
@@ -95,4 +95,16 @@ def init():
 	bindtags = " ".join(bindtags)
 	window.bindtags(bindtags)
 
- 
+def add_helper(widget, pos):
+	global hpaned
+	global vpaned
+	if pos == 'left':
+		hpaned.insert(0, widget)
+	if pos == 'right':
+		hpaned.insert('end', widget)
+	if pos == 'top':
+		vpaned.insert(0, widget)
+	if pos == 'bottom':
+		vpaned.insert('end', widget)
+
+

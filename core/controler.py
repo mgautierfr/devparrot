@@ -69,6 +69,7 @@ def init():
 def set_session(session):
 	global currentSession
 	currentSession = session
+	eventSystem.event('newSession')(session)
 
 def run_action(text, function,*args, **keywords):
 	ret = function(*args,**keywords)
@@ -133,5 +134,6 @@ def on_entry_event(event):
 		event.widget.insert("end", currentSession.get_history().get_next())
 		return True
 	return False
+
 
 
