@@ -27,15 +27,31 @@ class TextView():
 	def __init__(self, document):
 		self.uiContainer = ttk.Frame(core.mainWindow.workspaceContainer)
 		self.HScrollbar = ttk.Scrollbar(core.mainWindow.workspaceContainer,orient=ttk.Tkinter.HORIZONTAL)
-		self.VScrollbar = ttk.Scrollbar(core.mainWindow.workspaceContainer,orient=ttk.Tkinter.VERTICAL)
-		
 		self.HScrollbar.grid(column=0, row=1, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
-		self.VScrollbar.grid(column=1, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
-		self.uiContainer.columnconfigure(0, weight=1)
-		self.uiContainer.columnconfigure(1, weight=0)
+
+		self.VScrollbar = ttk.Scrollbar(core.mainWindow.workspaceContainer,orient=ttk.Tkinter.VERTICAL)	
+		self.VScrollbar.grid(column=10, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
+
+		self.lineNumbers = ttk.Tkinter.Text(core.mainWindow.workspaceContainer,
+		                             width = 4,
+		                             padx = 4,
+		                             highlightthickness = 0,
+		                             takefocus = 0,
+		                             bd = 0,
+		                             background = 'lightgrey',
+		                             foreground = 'magenta',
+		                             state='disable'
+		                            )
+		self.lineNumbers.grid(column=0, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
+
+		self.uiContainer.columnconfigure(0, weight=0)
+		self.uiContainer.columnconfigure(1, weight=1)
+		self.uiContainer.columnconfigure(10, weight=0)
 		self.uiContainer.rowconfigure(0, weight=1)
 		self.uiContainer.rowconfigure(1, weight=0)
 		
+		self.VScrollbar['command'] = self.proxy_yview
+
 		self.document = document
 
 	def clone(self):
@@ -49,15 +65,32 @@ class TextView():
 	def get_document(self):
 		return self.document
 
+	def proxy_yview(self, *args, **kwords):
+		if self.view:
+			self.set_lineNumbers()
+			self.view.yview(*args, **kwords)
+		self.lineNumbers.yview(*args, **kwords)
+
+	def set_lineNumbers(self):
+		end = self.view.index('end')
+#		print end
+#		print self.view.dump('1.0', 'end')
+		ln, cn = end.split('.')
+		self.lineNumbers.config(state='normal')
+		self.lineNumbers.delete('1.0', 'end')
+		self.lineNumbers.insert('end', "\n".join(["%d"%i for i in range(1, int(ln))]))
+		self.lineNumbers.config(state='disable')
+
 	def set_model(self, model):
 		self.view = model
 		self.view['yscrollcommand'] = self.VScrollbar.set
 		self.view['xscrollcommand'] = self.HScrollbar.set
-		self.VScrollbar['command'] = self.view.yview
 		self.HScrollbar['command'] = self.view.xview
-		self.view.grid(column=0, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
+		self.view.grid(column=1, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
 		self.view.lift(self.uiContainer)
 		self.view.bind('<FocusIn>', self.document.documentView.on_focus_child)
+
+	
 		#self.view.set_auto_indent(core.config.getboolean('textView','auto_indent'))
 		#self.view.set_tab_width(core.config.getint('textView','tab_width'))
 		#self.view.set_draw_spaces(core.config.getint('textView','draw_spaces'))
@@ -65,13 +98,13 @@ class TextView():
 		#self.view.set_highlight_current_line(core.config.getboolean('textView','highlight_current_line'))
 		#self.view.set_show_line_numbers(core.config.getboolean('textView','show_line_numbers'))
 		#self.view.set_smart_home_end(core.config.getboolean('textView','smart_home_end'))
-		#self.view.modify_font(pango.FontDescription(core.config.get('textView','font')))
 		#self.view.props.sensitive = True
 	
 	def lift(self, above):
 		self.uiContainer.lift(above)
 		self.VScrollbar.lift(self.uiContainer)
 		self.HScrollbar.lift(self.uiContainer)
+		self.lineNumbers.lift(self.uiContainer)
 		self.view.lift(self.uiContainer)
 	
 	def get_context(self):
@@ -87,4 +120,6 @@ class TextView():
 		had.set_value(ctx[0]*(had.upper-had.lower)+had.lower)
 		vad.set_value(ctx[1]*(vad.upper-vad.lower)+vad.lower)
 		return False
+
+
 

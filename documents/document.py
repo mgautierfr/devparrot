@@ -92,6 +92,7 @@ class Document(utils.event.EventSource):
 		
 	def load(self):
 		self.models['text'].set_text(self.documentSource.get_content())
+		self.currentView.set_lineNumbers()
 	
 	def write(self):
 		model = self.models['text']
@@ -130,4 +131,5 @@ class Document(utils.event.EventSource):
 	def goto_index(self, index):
 		self.currentView.view.mark_set("insert", index)
 		self.currentView.view.see(index)
+
 
