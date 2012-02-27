@@ -32,16 +32,14 @@ class TextView():
 		self.VScrollbar = ttk.Scrollbar(core.mainWindow.workspaceContainer,orient=ttk.Tkinter.VERTICAL)	
 		self.VScrollbar.grid(column=10, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
 
-		self.lineNumbers = ttk.Tkinter.Text(core.mainWindow.workspaceContainer,
-		                             width = 4,
-		                             padx = 4,
-		                             highlightthickness = 0,
-		                             takefocus = 0,
-		                             bd = 0,
-		                             background = 'lightgrey',
-		                             foreground = 'magenta',
-		                             state='disable'
-		                            )
+		self.lineNumbers = ttk.Tkinter.Canvas(core.mainWindow.workspaceContainer,
+		                                      width = 4,
+		                                      highlightthickness = 0,
+		                                      takefocus = 0,
+		                                      bd=0,
+		                                      background = 'lightgrey',
+		                                      state='disable',
+		                                     )
 		self.lineNumbers.grid(column=0, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
 
 		self.uiContainer.columnconfigure(0, weight=0)
@@ -53,6 +51,8 @@ class TextView():
 		self.VScrollbar['command'] = self.proxy_yview
 
 		self.document = document
+
+		self.lastLine = 0
 
 	def clone(self):
 		new = TextView(self.document)
@@ -67,23 +67,36 @@ class TextView():
 
 	def proxy_yview(self, *args, **kwords):
 		if self.view:
-			self.set_lineNumbers()
 			self.view.yview(*args, **kwords)
-		self.lineNumbers.yview(*args, **kwords)
+			self.set_lineNumbers()
+
+	def proxy_yscrollcommand(self, *args, **kwords):
+		self.VScrollbar.set(*args, **kwords)
+		self.set_lineNumbers()
 
 	def set_lineNumbers(self):
 		end = self.view.index('end')
-#		print end
-#		print self.view.dump('1.0', 'end')
 		ln, cn = end.split('.')
 		self.lineNumbers.config(state='normal')
-		self.lineNumbers.delete('1.0', 'end')
-		self.lineNumbers.insert('end', "\n".join(["%d"%i for i in range(1, int(ln))]))
+		for i in range(1, int(ln)):
+			if i >= self.lastLine:
+				self.lineNumbers.create_text("0","0", anchor="nw", text="%d"%i, tags=["%d"%i], state="hidden")
+				self.lastLine += 1
+			pos = self.view.bbox("%d.0"%i)
+			if pos:
+				self.lineNumbers.itemconfig("%d"%i, state="disable")
+				self.lineNumbers.coords("%d"%i, "0", "%d"%pos[1])
+			else:
+				self.lineNumbers.itemconfig("%d"%i, state="hidden")
+		for i in range(int(ln), self.lastLine):
+			self.lineNumbers.itemconfig("%d"%i, state="hidden")
+		
 		self.lineNumbers.config(state='disable')
+
 
 	def set_model(self, model):
 		self.view = model
-		self.view['yscrollcommand'] = self.VScrollbar.set
+		self.view['yscrollcommand'] = self.proxy_yscrollcommand
 		self.view['xscrollcommand'] = self.HScrollbar.set
 		self.HScrollbar['command'] = self.view.xview
 		self.view.grid(column=1, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
