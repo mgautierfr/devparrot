@@ -381,7 +381,7 @@ class MouseController(Controller):
 			widget.yview_scroll( 1, 'units' )
 
 		if not widget.sel_isAnchorSet( ):
-			widget.self_setAnchor( '@%d,%d' % (event.x+2, event.y) )
+			widget.sel_setAnchor( '@%d,%d' % (event.x+2, event.y) )
 
 		widget.mark_set( 'insert', '@%d,%d' % (event.x+2, event.y) )
    
@@ -602,6 +602,7 @@ class SourceBuffer(CodeText):
 			self.mark_set("insert", match_start if backward else match_end)
 			return True
 		return False
+
 
 
 
