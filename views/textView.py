@@ -27,20 +27,24 @@ class TextView():
 	def __init__(self, document):
 		self.uiContainer = ttk.Frame(core.mainWindow.workspaceContainer)
 		self.HScrollbar = ttk.Scrollbar(core.mainWindow.workspaceContainer,orient=ttk.Tkinter.HORIZONTAL)
-		self.HScrollbar.grid(column=0, row=1, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
+		self.HScrollbar.grid(column=0,
+		                     row=1,
+		                     columnspan=10,
+		                     in_=self.uiContainer,
+		                     sticky="nsew"
+		                    )
 
 		self.VScrollbar = ttk.Scrollbar(core.mainWindow.workspaceContainer,orient=ttk.Tkinter.VERTICAL)	
 		self.VScrollbar.grid(column=10, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
 
 		self.lineNumbers = ttk.Tkinter.Canvas(core.mainWindow.workspaceContainer,
-		                                      width = 4,
 		                                      highlightthickness = 0,
 		                                      takefocus = 0,
 		                                      bd=0,
 		                                      background = 'lightgrey',
 		                                      state='disable',
 		                                     )
-		self.lineNumbers.grid(column=0, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
+		self.lineNumbers.grid(column=0, row=0, in_=self.uiContainer, sticky="nsw")
 
 		self.uiContainer.columnconfigure(0, weight=0)
 		self.uiContainer.columnconfigure(1, weight=1)
@@ -53,6 +57,7 @@ class TextView():
 		self.document = document
 
 		self.lastLine = 0
+		self.actualLineNumberWidth = 0
 
 	def clone(self):
 		new = TextView(self.document)
@@ -90,7 +95,12 @@ class TextView():
 				self.lineNumbers.itemconfig("%d"%i, state="hidden")
 		for i in range(int(ln), self.lastLine):
 			self.lineNumbers.itemconfig("%d"%i, state="hidden")
-		
+
+		w = int(self.lineNumbers.bbox("all")[2])
+		if self.actualLineNumberWidth < w:
+			self.actualLineNumberWidth = w
+			self.lineNumbers.config(width=self.actualLineNumberWidth)
+
 		self.lineNumbers.config(state='disable')
 
 
@@ -133,6 +143,8 @@ class TextView():
 		had.set_value(ctx[0]*(had.upper-had.lower)+had.lower)
 		vad.set_value(ctx[1]*(vad.upper-vad.lower)+vad.lower)
 		return False
+
+
 
 
 
