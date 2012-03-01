@@ -55,8 +55,10 @@ class TextView():
 		self.VScrollbar['command'] = self.proxy_yview
 
 		self.document = document
-
-		self.lastLine = 0
+		
+		self.firstLine = 1
+		self.lastLine = 1
+		self.lastLineCreated = 0
 		self.actualLineNumberWidth = 0
 
 	def clone(self):
@@ -79,27 +81,41 @@ class TextView():
 		self.VScrollbar.set(*args, **kwords)
 		self.set_lineNumbers()
 
+	def _create_textLine(self, name):
+		self.lineNumbers.create_text("0","0", anchor="nw", text=name, tags=name, state="hidden")
+		
 	def set_lineNumbers(self):
-		end = self.view.index('end')
-		ln, cn = end.split('.')
 		self.lineNumbers.config(state='normal')
-		for i in range(1, int(ln)):
-			if i >= self.lastLine:
-				self.lineNumbers.create_text("0","0", anchor="nw", text="%d"%i, tags=["%d"%i], state="hidden")
-				self.lastLine += 1
+		
+		nbLine = int(self.view.index('end').split('.')[0])
+		if self.lastLineCreated < nbLine:
+			[self._create_textLine('%d'%(i+1)) for i in range(self.lastLineCreated, nbLine)]
+			self.lastLineCreated = nbLine
+		
+		firstLine = int(self.view.index('@0,0').split('.')[0])-1
+		lastLine = int(self.view.index('@0,%d'%self.view.winfo_height()).split('.')[0])+1
+		
+		firstLine = max(firstLine, 1)
+		lastLine = min(lastLine, nbLine)
+
+		for i in range( min(firstLine,self.firstLine) , max(lastLine, self.lastLine)+1 ):
+			name = "%d"%i
 			pos = self.view.bbox("%d.0"%i)
 			if pos:
-				self.lineNumbers.itemconfig("%d"%i, state="disable")
-				self.lineNumbers.coords("%d"%i, "0", "%d"%pos[1])
+				self.lineNumbers.coords(name, "0", "%d"%pos[1])
+				self.lineNumbers.itemconfig(name, state="disable")
 			else:
-				self.lineNumbers.itemconfig("%d"%i, state="hidden")
-		for i in range(int(ln), self.lastLine):
-			self.lineNumbers.itemconfig("%d"%i, state="hidden")
+				self.lineNumbers.itemconfig(name, state="hidden")
 
-		w = int(self.lineNumbers.bbox("all")[2])
-		if self.actualLineNumberWidth < w:
-			self.actualLineNumberWidth = w
-			self.lineNumbers.config(width=self.actualLineNumberWidth)
+		self.firstLine = firstLine
+		self.lastLine = lastLine
+
+		bbox = self.lineNumbers.bbox('all')
+		if bbox:
+			w = int(bbox[2])
+			if self.actualLineNumberWidth < w:
+				self.actualLineNumberWidth = w
+				self.lineNumbers.config(width=self.actualLineNumberWidth)
 
 		self.lineNumbers.config(state='disable')
 
@@ -143,6 +159,8 @@ class TextView():
 		had.set_value(ctx[0]*(had.upper-had.lower)+had.lower)
 		vad.set_value(ctx[1]*(vad.upper-vad.lower)+vad.lower)
 		return False
+
+
 
 
 
