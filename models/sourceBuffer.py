@@ -162,7 +162,15 @@ class BasicTextController(Controller):
 		try:
 			event.widget.sel_delete()
 		finally:
-			event.widget.insert( 'insert', '\n' )
+			event.widget.search
+			count = ttk.Tkinter.IntVar()
+			text = "\n"
+			l, c = event.widget.index('insert').split('.')
+			match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*" , '%s.0'%l, stopindex=event.widget.index('insert'), regexp=True, count=count)
+			if match_start:
+				match_end = "%s.%i"%(l,min(count.get(),int(c)))
+				text += event.widget.get(match_start, match_end)
+			event.widget.insert( 'insert', text )
 			event.widget.see('insert')
 
 	@bind('<Key-Tab>')
