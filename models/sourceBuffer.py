@@ -563,6 +563,7 @@ class SourceBuffer(CodeText):
 		self.tag_lower("search_tag", "sel")
 		self.tag_raise("highlight_tag", "currentLine_tag")
 		self.tag_raise("search_tag", "currentLine_tag")
+		self.hl_callId = None
 		
 	def get_document(self):
 		return self.document
@@ -582,10 +583,16 @@ class SourceBuffer(CodeText):
 		if select:
 			start_select , stop_select = select 
 			text = self.get(start_select , stop_select)
-			if len(text)>1 :
-				self.apply_tag_on_text("highlight_tag", text)
-			else:
-				self.apply_tag_on_text("highlight_tag", None)
+			if self.hl_callId:
+				self.after_cancel(self.hl_callId)
+			self.hl_callId = self.after(300, self.hl_apply_tag, text)
+	
+	def hl_apply_tag(self, text):
+		if len(text)>1 :
+			self.apply_tag_on_text("highlight_tag", text)
+		else:
+			self.apply_tag_on_text("highlight_tag", None)
+		self.hl_callId = None
 
 	def apply_tag_on_text(self, tag, text):
 		self.tag_remove(tag, "0.1","end")
@@ -621,6 +628,7 @@ class SourceBuffer(CodeText):
 			self.mark_set("insert", match_start if backward else match_end)
 			return True
 		return False
+
 
 
 
