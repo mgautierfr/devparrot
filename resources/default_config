@@ -28,4 +28,6 @@ okColor = #BBFFBB
 errorColor = #FF9999
 highlight_tag_color = #FFFFBB
 search_tag_color = #FFAAAA
+currentLine_tag_color = #EEEEEE
+
 

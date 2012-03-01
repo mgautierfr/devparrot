@@ -446,6 +446,8 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 		controller = MetaController()
 		controller.set_subControllers(CarretController(), AdvancedTextController(), BasicTextController(), MouseController() )
 		controller.install( self )
+		self.tag_configure('currentLine_tag', background=core.config.get('color','currentLine_tag_color'))
+		self.tag_raise("sel", "currentLine_tag")
 		
 	
 	# Selection Operations
@@ -497,11 +499,15 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 			pass
 		
 		self.sel_clear( )
+	
+	def set_currentLineTag(self):
+		self.tag_remove('currentLine_tag', '0.0', 'end')
+		self.tag_add( 'currentLine_tag', 'insert linestart', 'insert + 1l linestart')
 
 	# Overloads
 	def mark_set( self, name, index ):
 		Tkinter.Text.mark_set( self, name, index )
-      
+		self.set_currentLineTag()
 		if name == 'insert':
 			try:
 				if self.compare( 'sel.anchor', '<', 'insert' ):
@@ -521,6 +527,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 	def insert(self, index, *args, **kword):
 		index = self.index(index)
 		ttk.Tkinter.Text.insert(self, index, *args)
+		self.set_currentLineTag()
 		if kword.get('forceUpdate', False):
 			self.update()
 		self.event('insert')(self, index, args[0])
@@ -528,6 +535,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 	def delete(self, index1, index2):
 		index1 = self.index(index1)
 		ttk.Tkinter.Text.delete(self, index1, index2)
+		self.set_currentLineTag()
 		self.event('delete')(self, index1, index2)
 	
 	def calcule_distance(self, first, second):
@@ -544,6 +552,8 @@ class SourceBuffer(CodeText):
 		self.tag_configure("search_tag", background=core.config.get('color','search_tag_color'))
 		self.tag_lower("highlight_tag", "sel")
 		self.tag_lower("search_tag", "sel")
+		self.tag_raise("highlight_tag", "currentLine_tag")
+		self.tag_raise("search_tag", "currentLine_tag")
 		
 	def get_document(self):
 		return self.document
