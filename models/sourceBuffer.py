@@ -442,7 +442,8 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 	def __init__(self):
 		ttk.Tkinter.Text.__init__(self, core.mainWindow.workspaceContainer,
 		                          undo=True,
-		                          wrap="none",
+		                          autoseparators=True,
+#		                          wrap="none",
 		                          font=core.config.get('textView','font'))
 		utils.event.EventSource.__init__(self)
 		self.bind("<<Selection>>", self.on_selection_changed)
@@ -620,6 +621,9 @@ class SourceBuffer(CodeText):
 			self.mark_set("insert", match_start if backward else match_end)
 			return True
 		return False
+
+
+
 
 
 
