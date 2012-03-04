@@ -516,8 +516,8 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 	# Overloads
 	def mark_set( self, name, index ):
 		Tkinter.Text.mark_set( self, name, index )
-		self.set_currentLineTag()
 		if name == 'insert':
+			self.set_currentLineTag()
 			try:
 				if self.compare( 'sel.anchor', '<', 'insert' ):
 					self.mark_set( 'sel.first', 'sel.anchor' )
@@ -628,6 +628,7 @@ class SourceBuffer(CodeText):
 			self.mark_set("insert", match_start if backward else match_end)
 			return True
 		return False
+
 
 
 
