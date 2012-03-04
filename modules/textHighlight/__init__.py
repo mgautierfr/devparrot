@@ -49,7 +49,7 @@ def create_fonts():
 	_fonts[(True,True)].configure(slant='italic',weight='bold')
 
 def create_styles():
-	from pygments.styles import get_style_by_name
+	from styles import get_style_by_name
 	global _fonts
 	global _styles
 	
@@ -88,7 +88,7 @@ def on_new_document(document):
 
 def on_text_set(document):
 	def find_lexer(filename):
-		from pygments.lexers import guess_lexer,get_lexer_for_filename,guess_lexer_for_filename
+		from lexers import guess_lexer,get_lexer_for_filename,guess_lexer_for_filename
 
 		try:
 			return get_lexer_for_filename(filename)
@@ -108,7 +108,8 @@ def on_text_set(document):
 
 def on_insert(model, insertMark, text):
 	if model._highlight.lexer :
-		update_highlight(model, insertMark)
+		import cProfile
+		cProfile.runctx('update_highlight(model, insertMark)',  globals(), locals(), 'prof')
 
 def on_delete(model, fromMark, toMark):
 	if model._highlight.lexer :
@@ -121,7 +122,8 @@ def update_highlight(textWidget, insertPoint):
 	tokens = textWidget._highlight.lexer.get_tokens_unprocessed(content)
 	tokens = stop_at_syncPoint(textWidget, tokens, start, insertPoint)
 	textWidget._highlight.colorizeContext = [tokens, start, start]
-	textWidget.after_idle(lambda tw=textWidget: _update_a_token(tw))
+#	textWidget.after_idle(lambda tw=textWidget: _update_a_token(tw))
+	_update_a_token(textWidget, True)
 
 def find_next(textWidget, index):
 	next = textWidget.mark_next(index)
@@ -142,7 +144,7 @@ def find_startPoint(textWidget, index):
 	return "1.0"
 
 def stop_at_syncPoint(textWidget, tokens, startPoint, insertPoint):
-	from pygments.token import _ContextToken
+	from token import _ContextToken
 	syncPoint = textWidget.index(find_next(textWidget, insertPoint))
 	distance = textWidget.calcule_distance(startPoint, syncPoint)
 	for i,t,v in tokens:
@@ -225,9 +227,6 @@ def _update_a_token(textWidget,realTime=False):
 		#	tags[token_name][0] ==  token:
 		#		del tags[token_name]
 		#else:
-	
-		def filter_(name, tl):
-			return name == token_name and len(tl)==1 and tl[0]==token
 
 		for name in tags:
 			if name == token_name:
@@ -255,6 +254,8 @@ def _update_a_token(textWidget,realTime=False):
 		except StopIteration:
 			textWidget._highlight.last_stopToken = "1.0"
 			pass
+
+
 
 
 
