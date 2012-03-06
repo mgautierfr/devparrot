@@ -143,7 +143,7 @@ class TextView():
 		self.uiContainer.lift(above)
 		self.VScrollbar.lift(self.uiContainer)
 		self.HScrollbar.lift(self.uiContainer)
-		self.lineNumbers.lift(self.uiContainer)
+		ttk.Tkinter.Misc.lift(self.lineNumbers, aboveThis=self.uiContainer)
 		self.view.lift(self.uiContainer)
 	
 	def get_context(self):
