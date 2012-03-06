@@ -24,14 +24,15 @@ class _TokenType(tuple):
     
     def __eq__(self, other):
         o = other
-        if type(other) is _ContextToken:
-            o = other[1]
         return tuple.__eq__(self,o)
 
     def __init__(self, *args):
         # no need to call super.__init__
         self.subtypes = set()
-        self.contextFree = False
+        self.set_name()
+    
+    def set_name(self):
+        self.name = 'Token' + (self and '_' or '') + '_'.join(self)
 
     def __contains__(self, val):
         return self is val or (
@@ -49,21 +50,10 @@ class _TokenType(tuple):
         return new
 
     def __repr__(self):
-        return 'Token' + (self and '.' or '') + '.'.join(self)
-
-class _ContextToken(_TokenType):
-    def __eq__(self, other):
-        o = other
-        if type(other) is _ContextToken:
-            o = other[1]
-        return tuple.__eq__(self[0],o)
-    
-    def __repr__(self): 
-    	return repr(self[0])
-    
-#    def __call__(self, *arg, **kw):
-#    	return self[0](*arg,**kw)
-
+        return self.name
+        
+class SyncPoint(object):
+    pass
 
 Token       = _TokenType()
 
@@ -132,85 +122,87 @@ def string_to_tokentype(s):
 # Map standard token types to short names, used in CSS class naming.
 # If you add a new item, please be sure to run this file to perform
 # a consistency check for duplicate values.
-STANDARD_TYPES = {
-    Token:                         '',
+STANDARD_TYPES = [
+    Token,
 
-    Text:                          '',
-    Whitespace:                    'w',
-    Error:                         'err',
-    Other:                         'x',
+    Text,
+    Whitespace,
+    Error,
+    Other,
 
-    Keyword:                       'k',
-    Keyword.Constant:              'kc',
-    Keyword.Declaration:           'kd',
-    Keyword.Namespace:             'kn',
-    Keyword.Pseudo:                'kp',
-    Keyword.Reserved:              'kr',
-    Keyword.Type:                  'kt',
+    Keyword,
+    Keyword.Constant,
+    Keyword.Declaration,
+    Keyword.Namespace,
+    Keyword.Pseudo,
+    Keyword.Reserved,
+    Keyword.Type,
 
-    Name:                          'n',
-    Name.Attribute:                'na',
-    Name.Builtin:                  'nb',
-    Name.Builtin.Pseudo:           'bp',
-    Name.Class:                    'nc',
-    Name.Constant:                 'no',
-    Name.Decorator:                'nd',
-    Name.Entity:                   'ni',
-    Name.Exception:                'ne',
-    Name.Function:                 'nf',
-    Name.Property:                 'py',
-    Name.Label:                    'nl',
-    Name.Namespace:                'nn',
-    Name.Other:                    'nx',
-    Name.Tag:                      'nt',
-    Name.Variable:                 'nv',
-    Name.Variable.Class:           'vc',
-    Name.Variable.Global:          'vg',
-    Name.Variable.Instance:        'vi',
+    Name,
+    Name.Attribute,
+    Name.Builtin,
+    Name.Builtin.Pseudo,
+    Name.Class,
+    Name.Constant,
+    Name.Decorator,
+    Name.Entity,
+    Name.Exception,
+    Name.Function,
+    Name.Property,
+    Name.Label,
+    Name.Namespace,
+    Name.Other,
+    Name.Tag,
+    Name.Variable,
+    Name.Variable.Class,
+    Name.Variable.Global,
+    Name.Variable.Instance,
 
-    Literal:                       'l',
-    Literal.Date:                  'ld',
+    Literal,
+    Literal.Date,
 
-    String:                        's',
-    String.Backtick:               'sb',
-    String.Char:                   'sc',
-    String.Doc:                    'sd',
-    String.Double:                 's2',
-    String.Escape:                 'se',
-    String.Heredoc:                'sh',
-    String.Interpol:               'si',
-    String.Other:                  'sx',
-    String.Regex:                  'sr',
-    String.Single:                 's1',
-    String.Symbol:                 'ss',
+    String,
+    String.Backtick,
+    String.Char,
+    String.Doc,
+    String.Double,
+    String.Escape,
+    String.Heredoc,
+    String.Interpol,
+    String.Other,
+    String.Regex,
+    String.Single,
+    String.Symbol,
 
-    Number:                        'm',
-    Number.Float:                  'mf',
-    Number.Hex:                    'mh',
-    Number.Integer:                'mi',
-    Number.Integer.Long:           'il',
-    Number.Oct:                    'mo',
+    Number,
+    Number.Float,
+    Number.Hex,
+    Number.Integer,
+    Number.Integer.Long,
+    Number.Oct,
 
-    Operator:                      'o',
-    Operator.Word:                 'ow',
+    Operator,
+    Operator.Word,
 
-    Punctuation:                   'p',
+    Punctuation,
 
-    Comment:                       'c',
-    Comment.Multiline:             'cm',
-    Comment.Preproc:               'cp',
-    Comment.Single:                'c1',
-    Comment.Special:               'cs',
+    Comment,
+    Comment.Multiline,
+    Comment.Preproc,
+    Comment.Single,
+    Comment.Special,
 
-    Generic:                       'g',
-    Generic.Deleted:               'gd',
-    Generic.Emph:                  'ge',
-    Generic.Error:                 'gr',
-    Generic.Heading:               'gh',
-    Generic.Inserted:              'gi',
-    Generic.Output:                'go',
-    Generic.Prompt:                'gp',
-    Generic.Strong:                'gs',
-    Generic.Subheading:            'gu',
-    Generic.Traceback:             'gt',
-}
+    Generic,
+    Generic.Deleted,
+    Generic.Emph,
+    Generic.Error,
+    Generic.Heading,
+    Generic.Inserted,
+    Generic.Output,
+    Generic.Prompt,
+    Generic.Strong,
+    Generic.Subheading,
+    Generic.Traceback
+]
+
+

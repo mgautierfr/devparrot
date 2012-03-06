@@ -10,7 +10,7 @@
 """
 import re
 
-from token import Error, Text, Other, _TokenType, _ContextToken
+from token import Error, Text, Other, _TokenType, SyncPoint
 from util import get_bool_opt, get_int_opt, get_list_opt, make_analysator
 
 
@@ -476,13 +476,17 @@ class RegexLexer(Lexer):
             for rexmatch, action, new_state in statetokens:
                 m = rexmatch(text, pos)
                 if m:
-                    if isinstance(action, _TokenType):
-                        yield pos, _ContextToken((action,len(statestack)==1)), m.group()
+                    if type(action) is _TokenType:
+                        if statestack[-1]=='root':
+                            yield pos, SyncPoint, None
+                        yield pos, action, m.group()
                     else:
-                        ctxFree = len(statestack)==1
+                        ctxFree = statestack[-1]=='root'
                         for i,t,v in action(self, m):
-                            yield i,_ContextToken((t,ctxFree)), v
-                            ctxFree = False
+                            if ctxFree:
+                                yield i, SyncPoint, None
+                                ctxFree = False
+                            yield i, t, v
                     pos = m.end()
                     if new_state is not None:
                         # state transition
@@ -512,7 +516,7 @@ class RegexLexer(Lexer):
                         statetokens = tokendefs['root']
                         yield pos, Text, u'\n'
                         continue
-                    yield pos, _ContextToken((Error,False)), text[pos]
+                    yield pos, Error, text[pos]
                     pos += 1
                 except IndexError:
                     break
@@ -657,5 +661,7 @@ def do_insertions(insertions, tokens):
         except StopIteration:
             insleft = False
             break  # not strictly necessary
+
+
 
 

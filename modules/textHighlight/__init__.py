@@ -24,6 +24,12 @@ import os.path
 
 import core.config
 
+from utils.annotations import Index
+
+from .token import SyncPoint
+
+import Tkinter
+
 
 _fonts = {}
 _styles = {}
@@ -108,153 +114,191 @@ def on_text_set(document):
 
 def on_insert(model, insertMark, text):
 	if model._highlight.lexer :
-		import cProfile
-		cProfile.runctx('update_highlight(model, insertMark)',  globals(), locals(), 'prof')
+		start = Index(model, insertMark)
+		stop = start + '%d c'%len(text)
+		model._highlight.no_tagMarkZone = (start, stop)
+		update_highlight(model, start)
+#		import cProfile
+#		cProfile.runctx('update_highlight(model, start)',  globals(), locals(), 'prof')
 
 def on_delete(model, fromMark, toMark):
 	if model._highlight.lexer :
-		update_highlight(model, fromMark)
+		model._highlight.no_tagMarkZone = None
+		update_highlight(model, Index(model, fromMark))
 
 
 def update_highlight(textWidget, insertPoint):
-	start = textWidget.index(find_startPoint(textWidget,insertPoint))
+	start = find_startPoint(textWidget,insertPoint)
 	content = textWidget.get(start,"end")
+	textWidget._highlight.startPoint = start
 	tokens = textWidget._highlight.lexer.get_tokens_unprocessed(content)
-	tokens = stop_at_syncPoint(textWidget, tokens, start, insertPoint)
-	textWidget._highlight.colorizeContext = [tokens, start, start]
-#	textWidget.after_idle(lambda tw=textWidget: _update_a_token(tw))
-	_update_a_token(textWidget, True)
+	tokens = filter_token_stream(textWidget, tokens, start, insertPoint)
+	textWidget._highlight.tokensStream = tokens
+	_update_a_token(textWidget)
+#	_update_a_token(textWidget, True)
 
 def find_next(textWidget, index):
 	next = textWidget.mark_next(index)
-	while next and (not next.startswith("DP::SH::_synctx_") or not textWidget.compare(next, ">", index)):
+	while next:
+		nextI = Index(textWidget, next, True)
+		if next.startswith("DP::SH::_synctx_") and nextI > index:
+			break
 		next = textWidget.mark_next(next)
-	return next or "end"
+	if next:
+		return next, nextI
+	return None, Index(textWidget, "end", True)
 
 def find_previous(textWidget, index):
 	previous = textWidget.mark_previous(index)
-	while previous and (not previous.startswith("DP::SH::_synctx_") or not textWidget.compare(previous, "<", index)):
-		previous = textWidget.mark_previous(previous)
-	return previous
+	while previous:
+		previousI = Index(textWidget, previous, True) 
+		if previous.startswith("DP::SH::_synctx_"):
+			if previousI < index:
+				break
+			#remove all syncpoint at index pos
+			textWidget.mark_unset(previous)
+		previous = textWidget.mark_previous(previousI)
+	if previous:
+		return previousI
+	return None
 
 def find_startPoint(textWidget, index):
 	previous =  find_previous(textWidget, index)
 	if previous:
-		return find_previous(textWidget, previous) or "1.0"
-	return "1.0"
+		return find_previous(textWidget, previous) or Index(textWidget, "1.0")
+	return Index(textWidget, "1.0")
 
-def stop_at_syncPoint(textWidget, tokens, startPoint, insertPoint):
-	from token import _ContextToken
-	syncPoint = textWidget.index(find_next(textWidget, insertPoint))
-	distance = textWidget.calcule_distance(startPoint, syncPoint)
-	for i,t,v in tokens:
-		if not v:
-			continue
-		currentPos = "%s + %d c"%(startPoint, i)
-		if isinstance(t,_ContextToken) and t[1]:
-			while i > distance:
-				next = find_next(textWidget, syncPoint)
-				distance += textWidget.calcule_distance(syncPoint, next)
-				syncPoint = textWidget.index(next)
-			if i == distance and textWidget.compare(textWidget._highlight.last_stopToken, "<=", currentPos) :
+def filter_token_stream(textWidget, tokens, startPoint, insertPoint):
+	oldI = 0
+	oldPos = startPoint
+	
+	syncPointName, syncPoint = find_next(textWidget, insertPoint)
+
+	for i, t, v in tokens:
+		if t == SyncPoint:
+			if i != oldI:
+				oldPos = startPoint + "%dc"%i
+				oldI = i
+			
+			#understand:
+			# pos == oldPos
+			
+			# the syncPoint already is before the new one.
+			# we have to remove all syncPoint < pos and find the next already set
+			while syncPoint < oldPos:
+				try:
+					textWidget.mark_unset(syncPointName)
+				except:
+					pass
+				syncPointName, syncPoint = find_next(textWidget, syncPoint)
+
+			if oldPos != syncPoint:
+				Tkinter.Text.mark_set(textWidget, "DP::SH::_synctx_%d"%textWidget._highlight.markNb, oldPos)
+				textWidget._highlight.markNb += 1
+			
+				# we have finish to handle syncPoint => go to next stream element
+				continue
+			
+			# do not stop to soon
+			if textWidget._highlight.last_stopToken <= oldPos :
 				raise StopIteration
-			yield i,t,v,True
+
 		else:
-			yield i,t,v,False
+			l = len(v)
+			if not l:
+				continue
+
+			if i == oldI:
+				start = oldPos
+			else:
+				start = startPoint + "%dc"%i
+			
+			oldPos = start + "%dc"%l
+			oldI += l
+			yield start, oldPos, t
+
+
+def is_in_safeZone(textWidget, start, stop):
+	try:
+		nstart, nstop = textWidget._highlight.no_tagMarkZone
+		if( start >= nstart and stop <= nstop):
+			return True
+	except TypeError:
+		pass
+	return False
+
+
+def process_token(tw, elem):
+	tagdel = tw.tag_remove
+	tagadd = tw.tag_add
+
+	startP,endP,t = elem
+	token_name = "DP::SH::%s"%t.name
+	
+	tags = set([token_name]) if token_name != "DP::SH::Token_Text" else set()
+
+	context = {
+		"tags" : tags,
+		"openedPos" : None
+	}
+
+	if not is_in_safeZone(tw, startP, endP):
+	
+		for n in tw.tag_names(startP):
+			if n != token_name:
+				context['tags'].add(n)
+			else:
+				context['openedPos'] = startP
+	
+		def process_dump(ctx, key, name, pos):
+			if not name.startswith("DP::SH::"):
+				return
+			
+			pos = Index(tw, pos)
+
+			if key == 'tagon':
+				if name != token_name:
+					tags.add(name)
+				else:
+					ctx['openedPos'] = pos
+			if key == 'tagoff' and pos != startP:
+				if name != token_name:
+					tags.add(name)
+				elif (ctx['openedPos'], pos) == (startP, endP):
+					tags.remove(token_name)
+					ctx['openedPos'] = None
+
+		tw.dump(startP, endP, command=lambda k,n,p : process_dump(context, k,n,p) , tag=True)
+
+	for name in tags:
+		if name == token_name:
+			tagadd(token_name, startP, endP)
+		else:
+			tagdel(name, startP, endP)
+
+	if tw._highlight.last_stopToken < endP:
+		tw._highlight.last_stopToken = endP
+
 
 
 def _update_a_token(textWidget,realTime=False):
-	prefix = "DP::SH::"
-	markoff = textWidget.mark_unset
-	tagdel = textWidget.tag_remove
-	tagadd = textWidget.tag_add
-	
-	def markon(pos):
-		textWidget.mark_set("DP::SH::_synctx_%d"%textWidget._highlight.markNb, pos)
-		textWidget._highlight.markNb += 1
-	
-	def process_itvs(elem):
-		i,t,v,s = elem
-		token_name = "DP::SH::%s"%str(t).replace('.','_')
-		token = (textWidget._highlight.colorizeContext[2],
-			 textWidget.index("%s+%dc"%(textWidget._highlight.colorizeContext[2],len(v)))
-			)
-
-		textWidget._highlight.colorizeContext[2] = token[1]
-		context = {
-			"tags" : set([token_name]) if token_name != "DP::SH::Token_Text" else set(),
-			"mark" : None,
-			"openedPos" : None
-		}
-		
-		def process_dump(ctx, key, name, pos):
-			if name[:8] == prefix:
-				def first_mark():
-					if pos==token[0]:
-						ctx['mark'] = {'name':name, 'pos':pos}
-					else:
-						markoff(name)	
-					markf = other_mark
-				def other_mark():
-					markoff(name)
-				markf = first_mark if s else other_mark
-							
-				if key == 'mark':
-					markf()
-				if key == 'tagon':
-					if name != token_name:
-						ctx['tags'].add(name)
-					else:
-						ctx['openedPos'] = pos
-				if key == 'tagoff' and pos != token[0]:
-					if name != token_name:
-						ctx['tags'].add(name)
-					elif (ctx['openedPos'],pos) == token:
-						ctx['tags'].remove(token_name)
-						ctx['openedPos'] = None
-
-		[process_dump(context,"tagon",n,token[0]) for n in textWidget.tag_names(token[0])]
-		map(lambda item : process_dump(context, *item), textWidget.dump(*token, mark=True, tag=True))
-		
-		tags = context["tags"]
-		mark = context["mark"]
-		openedPos = context["openedPos"]
-
-		if s and not mark:
-			textWidget.mark_set("DP::SH::_synctx_%d"%textWidget._highlight.markNb, token[0])
-			textWidget._highlight.markNb += 1			
-			#if token_name in tags and len(tags[token_name]) == 1 and \
-		#	tags[token_name][0] ==  token:
-		#		del tags[token_name]
-		#else:
-
-		for name in tags:
-			if name == token_name:
-				tagadd(token_name, *token)
-			else:
-				tagdel(name, *token)
-
-		if textWidget._highlight.last_stopToken < token[1]:
-			textWidget._highlight.last_stopToken = token[1]
-	
-	if textWidget._highlight.colorizeContext:
-		tokens = textWidget._highlight.colorizeContext[0]
-		startPoint = textWidget._highlight.colorizeContext[1]
-	else:
-		return
+	tokens = textWidget._highlight.tokensStream
+	startPoint = textWidget._highlight.startPoint
 
 	if realTime:
-		map(process_itvs, tokens)
-		textWidget._highlight.last_stopToken = "1.0"
+		map(lambda t, tw=textWidget : process_token(tw,t) , tokens)
+		textWidget._highlight.last_stopToken = Index(textWidget, "1.0")
 	else:
-		try :
-			process_itvs(tokens.next())
-			textWidget.after_idle(lambda tw=textWidget: _update_a_token(tw))
+		def do_next():
+			try:
+				process_token(textWidget, tokens.next())
+				textWidget.after_idle(do_next)
+			except StopIteration:
+				textWidget._highlight.last_stopToken = Index(textWidget,"1.0")
 
-		except StopIteration:
-			textWidget._highlight.last_stopToken = "1.0"
-			pass
+		textWidget.after_idle(do_next)
 
+		
 
 
 
