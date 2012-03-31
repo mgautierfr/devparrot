@@ -423,7 +423,3 @@ class DragHandler(ttk.Tkinter.Toplevel):
 			splitted.after_idle(splitted.set_panedPos,0.5)
 	
 			newNotebook.set_as_current()
-
-
-
-

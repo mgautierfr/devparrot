@@ -628,13 +628,3 @@ class SourceBuffer(CodeText):
 			self.mark_set("insert", match_start if backward else match_end)
 			return True
 		return False
-
-
-
-
-
-
-
-
-
-
