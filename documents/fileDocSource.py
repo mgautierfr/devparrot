@@ -50,7 +50,7 @@ class FileDocSource(object):
 		text = ""
 		try:
 			fileIn = open(self.path, 'r')
-			text = fileIn.read()
+			text = fileIn.read()[:-1]
 			fileIn.close()
 			self.init_timestamp()
 		except:
@@ -76,4 +76,5 @@ class FileDocSource(object):
 		if not self.timestamp: return False
 		modif = os.stat(self.path).st_mtime
 		return  modif > self.timestamp
+
 
