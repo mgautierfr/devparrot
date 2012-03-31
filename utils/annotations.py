@@ -2,26 +2,26 @@
 import re
 
 class Index:
-	def __init__(self, textWidget, indice, indexCallNeeded = False):
+	def __init__(self, textWidget, index, indexCallNeeded = False):
 		self.textWidget = textWidget
 		if not indexCallNeeded:
 			try:
-				split = indice.split('.')
+				split = index.split('.')
 				self._split = (int(split[0]), int(split[1]))
-				self._indice = indice
+				self._index = index
 			except ValueError:
 				indexCallNeeded = True
 
 		if indexCallNeeded:
-			self._indice = textWidget.index(indice)
-			split = self._indice.split('.')
+			self._index = textWidget.index(index)
+			split = self._index.split('.')
 			self._split = (int(split[0]), int(split[1]))
 	
 	def __str__(self):
-		return self._indice
+		return self._index
 	
 	def __repr__(self):
-		return "<Index instance pos "+self._indice+">"
+		return "<Index instance pos "+self._index+">"
 	
 	def __lt__(self, other):
 		if other is None : return False
@@ -72,10 +72,10 @@ class Index:
 			return self._split >= _other._split
 	
 	def __add__(self, other):
-		return Index(self.textWidget, "%s + %s"%(self._indice, other), True)
+		return Index(self.textWidget, "%s + %s"%(self._index, other), True)
 		
 	def __sub__(self, other):
-		return Index(self.textWidget, "%s - %s"%(self._indice, other), True)
+		return Index(self.textWidget, "%s - %s"%(self._index, other), True)
 	
 		
 class Mark:
