@@ -24,6 +24,7 @@ class Index:
 		return "<Index instance pos "+self._indice+">"
 	
 	def __lt__(self, other):
+		if other is None : return False
 		try:
 			return self._split < other._split
 		except AttributeError:
@@ -31,6 +32,7 @@ class Index:
 			return self._split < _other._split
 
 	def __le__(self, other):
+		if other is None : return False
 		try:
 			return self._split <= other._split
 		except AttributeError:
@@ -38,15 +40,15 @@ class Index:
 			return self._split <= _other._split
 
 	def __eq__(self, other):
+		if other is None : return False
 		try:
 			return self._split == other._split
 		except AttributeError:
-			print self._split
-			print other
 			_other = Index(self.textWidget, other)
 			return self._split == _other._split
 
 	def __ne__(self, other):
+		if other is None : return False
 		try:
 			return self._split != other._split
 		except AttributeError:
@@ -54,6 +56,7 @@ class Index:
 			return self._split != _other._split
 
 	def __gt__(self, other):
+		if other is None : return False
 		try:
 			return self._split > other._split
 		except AttributeError:
@@ -61,6 +64,7 @@ class Index:
 			return self._split > _other._split
 			
 	def __ge__(self, other):
+		if other is None : return False
 		try:
 			return self._split >= other._split
 		except AttributeError:
