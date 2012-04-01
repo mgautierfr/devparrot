@@ -71,17 +71,21 @@ class DocumentListView(ttk.Treeview):
 		self.heading('name', text="document")
 		self['selectmode'] =(Tkinter.BROWSE)
 		self.bind('<Double-Button-1>', self.on_double_click)
-		#self.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, [('documentView',gtk.TARGET_SAME_APP,5)], gtk.gdk.ACTION_COPY)
-		#self.connect('drag-begin',self.on_drag_begin)
-		#self.connect('drag-data-get',self.on_drag_data_get)
-		#self.connect('drag-end',self.on_drag_end)
 
 	def on_documentAdded(self, document):
 		ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=(document.title))
+		document.connect('pathChanged', self.on_path_changed)
 		self.sort()
 
 	def on_documentDeleted(self,document):
 		self.delete(document.get_path())
+		document.event('pathChanged').disconnect(self.on_path_changed)
+		self.sort()
+	
+	def on_path_changed(self, document, oldPath):
+		if oldPath:
+			self.delete(oldPath)
+		ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=(document.title))
 		self.sort()
 
 	def on_double_click(self, event):
@@ -89,29 +93,6 @@ class DocumentListView(ttk.Treeview):
 		if selection:
 			document = core.controler.currentSession.get_documentManager().get_file(selection[0])
 			core.controler.currentSession.get_documentManager().switch_to_document(document)
-	
-	def on_drag_begin(self, widget, drag_context, data=None):
-		import core.controler
-		selection = widget.get_selection()
-		select = selection.get_selected()
-		if select:
-			(model, iter) = select
-			document = model.get_value(iter, 0)
-			core.controler.currentSession.get_workspace().prepare_to_dnd(True,document.documentView)
-
-	def on_drag_data_get(self, widget, drag_context, selection_data, info, time, data=None):
-		selection = widget.get_selection()
-		select = selection.get_selected()
-		if select:
-			(model, iter) = select
-			document = model.get_value(iter, 0)
-			selection_data.set('documentView', info, document.longTitle)
-		else:
-			return False
-	
-	def on_drag_end(self, widget, drag_context, data=None):
-		import core.controler
-		core.controler.currentSession.get_workspace().prepare_to_dnd(False)
 
 	def sort(self):
 		DocumentListView.PseudoList(self).sort()

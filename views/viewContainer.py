@@ -208,6 +208,10 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
 		child.set_parentContainer(self)
 		self._children.append(child)
 		self.add(child, text=child.document.title)
+		child.document.title.register(lambda value, child=child : self.change_title(child, value))
+	
+	def change_title(self, child, value):
+		self.tab(child, text=child.document.title)
 	
 	def detach_child(self, child):
 		child.set_parentContainer(None)

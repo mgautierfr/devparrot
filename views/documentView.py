@@ -34,9 +34,10 @@ class DocumentView(ContainerChild, ttk.Frame):
 		self.label = ttk.Label(self)
 		self.label.font = tkFont.Font(font="TkDefaultFont")
 		self.label.documentView = self
-		self.label['textvariable'] = document.titleVar
+		self.label['text'] = document.title
 		self.label['font'] = self.label.font
 		self.label.pack()
+		document.title.register(self.on_title_changed)
 
 		self.bind('<FocusIn>', self.on_focus)
 		
@@ -53,6 +54,9 @@ class DocumentView(ContainerChild, ttk.Frame):
 		var = ttk.Tkinter.BooleanVar(name=varname)
 		self.set_bold(var.get())		
 		return False
+	
+	def on_title_changed(self, newtitle):
+		self.label['text'] = newtitle
 
 	def set_bold(self, bold):
 		self.label.font['weight'] = "bold" if bold else "normal"

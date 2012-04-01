@@ -26,6 +26,7 @@ import ttk
 import core.mainWindow
 import core.controler
 import utils.event
+import utils.variable
 from models.sourceBuffer import SourceBuffer
 
 
@@ -33,22 +34,17 @@ class Document(utils.event.EventSource):
 	def __init__(self, documentSource):
 		utils.event.EventSource.__init__(self)
 		self.models = {}
-		self.titleVar = ttk.Tkinter.StringVar()
-		self.titleVar.set(documentSource.longTitle)
-		self.modifiedVar = ttk.Tkinter.StringVar(value="normal")
+		self.title = utils.variable.ProxyVar(self.get_title)
+		self.longTitle = utils.variable.ProxyVar(self.get_longTitle)
+		self.set_path(documentSource)
+		self.modifiedVar = utils.variable.Variable("normal")
 		self.documentView = DocumentView(self)
 		self.models['text'] = SourceBuffer(self)
 		self.models['text'].bind("<<Modified>>", self.on_modified_changed)
 		self.views = []
 		self.currentView = None	
-		self.set_path(documentSource)
 		self.add_view('text', TextView(self))
 		core.controler.eventSystem.event("newDocument")(self)
-	
-	def __getattr__(self, name):
-		if name in ["title", "longTitle"]:
-			return self.documentSource.__getattr__(name)
-		raise AttributeError
 	
 	def __eq__(self, other):
 		if other == None : return False
@@ -77,6 +73,12 @@ class Document(utils.event.EventSource):
 	def get_modified(self):
 		return self.models['text'].get_modified()
 	
+	def get_title(self):
+		return self.documentSource.title
+	
+	def get_longTitle(self):
+		return self.documentSource.longTitle
+	
 	def has_a_path(self):
 		return self.documentSource.has_path()
 	
@@ -86,9 +88,15 @@ class Document(utils.event.EventSource):
 	def set_path(self, documentSource):
 		if (not "documentSource" in self.__dict__ or
 		    self.documentSource != documentSource):
+			try:
+				oldPath = self.documentSource.get_path()
+			except AttributeError:
+				oldPath = None
 			self.documentSource = documentSource
-			self.titleVar.set(self.documentSource.longTitle)
+			self.title.notify()
+			self.longTitle.notify()
 			self.event('textSet')(self)
+			self.event('pathChanged')(self, oldPath)
 		
 	def load(self):
 		self.models['text'].set_text(self.documentSource.get_content())
