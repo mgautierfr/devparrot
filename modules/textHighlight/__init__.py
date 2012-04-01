@@ -259,32 +259,34 @@ def process_token(tw, elem):
 	startP,endP,t = elem
 	token_name = "DP::SH::%s"%t.name.replace('.', '_')
 	
-	tags = set()
+	if tw.tag_nextrange(token_name, startP, endP) != (startP._index, endP._index):
+	
+		tags = set()
 
-	if not is_in_safeZone(tw, startP, endP):
+		if not is_in_safeZone(tw, startP, endP):
+		
+			for n in tw.tag_names(startP):
+				if n != token_name:
+					tags.add(n)
 	
-		for n in tw.tag_names(startP):
-			if n != token_name:
-				tags.add(n)
-	
-		def process_dump(key, name, pos):
-			if not name.startswith("DP::SH::"):
-				return
+			def process_dump(key, name, pos):
+				if not name.startswith("DP::SH::"):
+					return
 				
-			if name == token_name:
-				return
+				if name == token_name:
+					return
 			
-			pos = Index(tw, pos)
+				pos = Index(tw, pos)
 
-			if key == 'tagon' and pos != endP:
-				tags.add(name)
-			if key == 'tagoff' and pos != startP:
-				tags.add(name)
+				if key == 'tagon' and pos != endP:
+					tags.add(name)
+				if key == 'tagoff' and pos != startP:
+					tags.add(name)
 
-		tw.dump(startP, endP, command=process_dump, tag=True)
+			tw.dump(startP, endP, command=process_dump, tag=True)
 
-	map(lambda n: tagdel(n, startP, endP), tags)
-	tw.tag_add(token_name, startP, endP)
+		map(lambda n: tagdel(n, startP, endP), tags)
+		tw.tag_add(token_name, startP, endP)
 
 	if tw._highlight.last_stopToken < endP:
 		tw._highlight.last_stopToken = endP
