@@ -456,6 +456,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 		controller.set_subControllers(CarretController(), AdvancedTextController(), BasicTextController(), MouseController() )
 		controller.install( self )
 		self.tag_configure('currentLine_tag', background=core.config.get('color','currentLine_tag_color'))
+		self.tag_raise("currentLine_tag")
 		self.tag_raise("sel", "currentLine_tag")
 		
 	
@@ -559,11 +560,11 @@ class SourceBuffer(CodeText):
 		self.highlight_tag_protected = False
 		self.tag_configure("highlight_tag", background=core.config.get('color','highlight_tag_color'))
 		self.tag_configure("search_tag", background=core.config.get('color','search_tag_color'))
+		self.hl_callId = None
 		self.tag_lower("highlight_tag", "sel")
 		self.tag_lower("search_tag", "sel")
 		self.tag_raise("highlight_tag", "currentLine_tag")
 		self.tag_raise("search_tag", "currentLine_tag")
-		self.hl_callId = None
 		
 	def get_document(self):
 		return self.document
@@ -628,3 +629,4 @@ class SourceBuffer(CodeText):
 			self.mark_set("insert", match_start if backward else match_end)
 			return True
 		return False
+

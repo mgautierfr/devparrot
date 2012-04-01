@@ -307,6 +307,7 @@ def _update_a_token(textWidget,realTime=False):
 				textWidget.after_idle(do_next)
 			except StopIteration:
 				textWidget._highlight.last_stopToken = Index(textWidget,"1.0")
+				textWidget.set_currentLineTag()
 
 		textWidget.after_idle(do_next)
 
