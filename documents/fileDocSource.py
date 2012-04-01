@@ -64,7 +64,7 @@ class FileDocSource(object):
 	def set_content(self, content):
 		try :
 			fileOut = open(self.path, 'w')
-			fileOut.write(content)
+			fileOut.write(content.encode('utf8'))
 			fileOut.close()
 			self.init_timestamp()
 			return True
