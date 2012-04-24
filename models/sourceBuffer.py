@@ -511,7 +511,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 		self.sel_clear( )
 	
 	def set_currentLineTag(self):
-		self.tag_remove('currentLine_tag', '0.0', 'end')
+		self.tag_remove('currentLine_tag', '1.0', 'end')
 		self.tag_add( 'currentLine_tag', 'insert linestart', 'insert + 1l linestart')
 
 	# Overloads

@@ -159,10 +159,3 @@ class TextView():
 		had.set_value(ctx[0]*(had.upper-had.lower)+had.lower)
 		vad.set_value(ctx[1]*(vad.upper-vad.lower)+vad.lower)
 		return False
-
-
-
-
-
-
-
