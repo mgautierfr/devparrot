@@ -257,7 +257,7 @@ def process_token(tw, elem):
 	tagdel = tw.tag_remove
 
 	startP,endP,t = elem
-	token_name = "DP::SH::%s"%t.name.replace('.', '_')
+	token_name = "DP::SH::%s"%str(t).replace('.', '_')
 	
 	if tw.tag_nextrange(token_name, startP, endP) != (startP._index, endP._index):
 	
