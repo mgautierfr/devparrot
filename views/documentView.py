@@ -34,10 +34,10 @@ class DocumentView(ContainerChild, ttk.Frame):
 		self.label = ttk.Label(self)
 		self.label.font = tkFont.Font(font="TkDefaultFont")
 		self.label.documentView = self
-		self.label['text'] = document.title
+		self.label['text'] = document.longTitle
 		self.label['font'] = self.label.font
 		self.label.pack()
-		document.title.register(self.on_title_changed)
+		document.longTitle.register(self.on_title_changed)
 
 		self.bind('<FocusIn>', self.on_focus)
 		
