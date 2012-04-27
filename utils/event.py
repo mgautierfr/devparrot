@@ -35,7 +35,7 @@ class Event(object):
 
 	
 	def disconnect(self, listener):
-		self.listeners -= listener
+		self.listeners.discard(listener)
 	__isub__ = disconnect
 
 
