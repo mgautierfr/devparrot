@@ -398,6 +398,11 @@ class MouseController(Controller):
 			event.widget.sel_clear( )
 			event.widget.sel_setAnchor( 'current' )
 
+	@bind( '<ButtonPress-2>' )
+	def middle_click( self, event, modifiers):
+		event.widget.insert( 'current', event.widget.selection_get() )
+		event.widget.edit_separator()
+
 	@bind( '<B1-Motion>', '<Shift-Button1-Motion>' )
 	def dragSelection( self, event, modifiers):
 		widget = event.widget
