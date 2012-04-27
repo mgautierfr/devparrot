@@ -50,7 +50,9 @@ class FileDocSource(object):
 		text = ""
 		try:
 			fileIn = open(self.path, 'r')
-			text = fileIn.read()[:-1]
+			text = fileIn.read()
+			if text[-1] == '\n':
+				text = text[:-1]
 			fileIn.close()
 			self.init_timestamp()
 		except:
