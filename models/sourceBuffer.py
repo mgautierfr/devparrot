@@ -306,6 +306,25 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 
+	@mbind("<Button-4>")
+	def scroll_up(self, event, modifiers):
+		event.widget.yview_scroll( -3, 'units' )
+		if modifiers.ctrl : return
+		self._handle_shift(modifiers.shift, event)
+		event.widget.mark_set('insert', 'insert -3 lines')
+		event.widget.see( 'insert' )
+		event.widget.update_idletasks()
+
+	@mbind("<Button-5>")
+	def scroll_down(self, event, modifiers):
+		event.widget.yview_scroll( 3, 'units' )
+		if modifiers.ctrl : return
+		self._handle_shift(modifiers.shift, event)
+		event.widget.mark_set('insert', 'insert +3 lines')
+		event.widget.see( 'insert' )
+		event.widget.update_idletasks()
+
+
 class AdvancedTextController(Controller):
 	def __init__( self ):
 		Controller.__init__( self )
