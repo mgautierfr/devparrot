@@ -51,12 +51,12 @@ class FileDocSource(object):
 		try:
 			fileIn = open(self.path, 'r')
 			text = fileIn.read()
-			if text[-1] == '\n':
+			if text and text[-1] == '\n':
 				text = text[:-1]
 			fileIn.close()
 			self.init_timestamp()
 		except:
-			sys.stderr.write("Error while loading file %s\n"%self.filename)
+			sys.stderr.write("Error while loading file %s\n"%self.path)
 		return text
 	
 
