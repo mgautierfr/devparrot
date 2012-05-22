@@ -171,6 +171,15 @@ def on_drag_begin_notebook(event):
 		documentView = notebook._children[documentViewIndex]
 		Tkdnd.dnd_start(documentView, event)		
 
+def on_button_pressed(event):
+	return "break"
+
+def on_button_released(event):
+	try:
+		event.widget.select("@%d,%d"%(event.x,event.y))
+	except Tkinter.TclError:
+		pass
+
 class NotebookContainer(ContainerChild, ttk.Notebook):
 	notebookList = set()
 	current = None
@@ -183,6 +192,8 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
 		self.drag_handler = None
 		if not NotebookContainer.initialized:
 			self.bind_class("Drag", "<Button-1><Button1-Motion>", on_drag_begin_notebook)
+			self.bind_class("Drag", "<Button-1>", on_button_pressed)
+			self.bind_class("Drag", "<ButtonRelease-1>", on_button_released)
 			NotebookContainer.initialized=True
 		self.bindtags(" ".join(["Drag"]+[t for t in self.bindtags()]))
 	
