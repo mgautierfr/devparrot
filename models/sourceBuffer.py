@@ -142,12 +142,14 @@ class BasicTextController(Controller):
 	def __init__(self):
 		Controller.__init__(self)
 	
-	@bind('<KeyPress>')
+	@mbind('<KeyPress>')
 	def on_key_pressed(self, event, modifiers):
 		if event.keysym in ( 'Return','Enter','KP_Enter','Tab','BackSpace','Delete','Insert' ):
 			event.widget.sel_clear()
 			return "break"
 		if len(event.char) > 0:
+			if modifiers.ctrl:
+				return
 			try:
 				event.widget.sel_delete( )
 			except:
