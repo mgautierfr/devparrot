@@ -188,6 +188,8 @@ class BasicTextController(Controller):
 	
 	@bind('<Delete>', '<KP_Delete>')
 	def on_delete(self, event, modifiers):
+		if event.keysym=="KP_Delete" and len(event.char) > 0 :
+			return self.on_key_pressed(event, modifiers)
 		try:
 			event.widget.delete( 'sel.first', 'sel.last' )
 			event.widget.sel_clear()
@@ -210,6 +212,7 @@ class CarretController( Controller ):
 	
 	@mbind( "<Home>", "<KP_Home>")
 	def home(self, event, modifiers):
+		if len(event.char) > 0 : return
 		self._handle_shift(modifiers.shift,event)
 		if modifiers.ctrl:
 			event.widget.mark_set( 'insert', '1.0' )
@@ -220,6 +223,7 @@ class CarretController( Controller ):
 	
 	@mbind("<End>", "<KP_End>",)
 	def end(self, event, modifiers):
+		if len(event.char) > 0 : return
 		self._handle_shift(modifiers.shift, event)
 		if modifiers.ctrl:
 			event.widget.mark_set( 'insert', 'end' )
@@ -228,8 +232,9 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@mbind("<Right>")
+	@mbind("<Right>", "<KP_Right>")
 	def right(self, event, modifiers):
+		if len(event.char) > 0 : return
 		self._handle_shift(modifiers.shift, event)
 		if modifiers.ctrl:
 			currentPos = event.widget.index( 'insert' )
@@ -247,8 +252,9 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@mbind("<Left>")
+	@mbind("<Left>", "<KP_Left>")
 	def left(self, event, modifiers):
+		if len(event.char) > 0 : return
 		self._handle_shift(modifiers.shift, event)
 		if modifiers.ctrl:
 			currentPos = event.widget.index( 'insert' )
@@ -267,17 +273,19 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@mbind("<Down>")
+	@mbind("<Down>", "<KP_Down>")
 	def down(self, event, modifiers):
 		if modifiers.ctrl: return
+		if len(event.char) > 0 : return
 		self._handle_shift(modifiers.shift, event)
 		event.widget.mark_set( 'insert', 'insert +1 lines' )
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@mbind("<Up>")
+	@mbind("<Up>", "<KP_Up>")
 	def up(self, event, modifiers):
 		if modifiers.ctrl: return
+		if len(event.char) > 0 : return
 		self._handle_shift(modifiers.shift, event)
 		event.widget.mark_set( 'insert', 'insert -1 lines' )
 		event.widget.see( 'insert' )
@@ -288,8 +296,9 @@ class CarretController( Controller ):
 		nbLine = widget.tk.call(widget._w, "count", "-displaylines", "@0,0", "@%d,%d"%(widget.winfo_width(),widget.winfo_height()))
 		return nbLine
 
-	@mbind("<Prior>")
+	@mbind("<Prior>", "<KP_Prior>")
 	def prior(self, event, modifiers):
+		if len(event.char) > 0 : return
 		event.widget.yview_scroll( -1, 'pages' )
 		if modifiers.ctrl : return
 		self._handle_shift(modifiers.shift, event)
@@ -297,8 +306,9 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@mbind("<Next>")
+	@mbind("<Next>", "<KP_Next>")
 	def next(self, event, modifiers):
+		if len(event.char) > 0 : return
 		event.widget.yview_scroll( 1, 'pages' )
 		if modifiers.ctrl : return
 		self._handle_shift(modifiers.shift, event)
