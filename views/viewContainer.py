@@ -204,7 +204,7 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
 		NotebookContainer.notebookList.remove(self)
 	
 	def dnd_accept(self, source, event):
-		if source == self.select() and len(self._children)==1:
+		if str(source) == str(self.select()) and len(self._children)==1:
 			return None
 		if not self.drag_handler:
 			self.drag_handler = DragHandler(self)
