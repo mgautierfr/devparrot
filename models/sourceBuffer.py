@@ -164,7 +164,6 @@ class BasicTextController(Controller):
 		try:
 			event.widget.sel_delete()
 		finally:
-			event.widget.search
 			count = ttk.Tkinter.IntVar()
 			text = "\n"
 			l, c = event.widget.index('insert').split('.')
@@ -219,7 +218,15 @@ class CarretController( Controller ):
 		if modifiers.ctrl:
 			event.widget.mark_set( 'insert', '1.0' )
 		else:
-			event.widget.mark_set( 'insert', 'insert linestart' )
+			l, c = event.widget.index('insert').split('.')
+			match_start = ttk.Tkinter.Text.search(event.widget, "[^ \t]" , 'insert linestart', stopindex='insert lineend', regexp=True)
+			if match_start:
+				if event.widget.compare(match_start, '==', 'insert'):
+					event.widget.mark_set( 'insert', 'insert linestart' )
+				else:
+					event.widget.mark_set( 'insert', match_start)
+			else:
+				event.widget.mark_set( 'insert', 'insert linestart' )
 		event.widget.see('insert')
 		event.widget.update_idletasks()
 	
