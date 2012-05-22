@@ -476,7 +476,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 	def __init__(self):
 		ttk.Tkinter.Text.__init__(self, core.mainWindow.workspaceContainer,
 		                          undo=True,
-		                          autoseparators=True,
+		                          autoseparators=False,
 #		                          wrap="none",
 		                          font=core.config.get('textView','font'))
 		utils.event.EventSource.__init__(self)
@@ -571,14 +571,17 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 	def insert(self, index, *args, **kword):
 		index = self.index(index)
 		ttk.Tkinter.Text.insert(self, index, *args)
+		self.edit_separator()
 		self.set_currentLineTag()
 		if kword.get('forceUpdate', False):
 			self.update()
 		self.event('insert')(self, index, args[0])
+		
 	
 	def delete(self, index1, index2):
 		index1 = self.index(index1)
 		ttk.Tkinter.Text.delete(self, index1, index2)
+		self.edit_separator()
 		self.set_currentLineTag()
 		self.event('delete')(self, index1, index2)
 	
