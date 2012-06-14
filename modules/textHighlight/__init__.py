@@ -81,7 +81,7 @@ class HighlightContext(object):
 		self.lexer = None
 		self.markNb=0
 		self.colorizeContext = None
-		self.last_stopToken = "1.0"
+		self.idle_id = None
 
 def on_new_document(document):
 	create_style_table(document.models['text'])
@@ -90,6 +90,7 @@ def on_new_document(document):
 	on_text_set(document)
 	document.models['text'].connect('insert', on_insert)
 	document.models['text'].connect('delete', on_delete)
+	Tkinter.Text.mark_set(document.models['text'], "DP::SH::LASTSTOP", "1.0")
 	pass
 
 def on_text_set(document):
@@ -226,7 +227,7 @@ def filter_token_stream(textWidget, tokens, startPoint, insertPoint):
 				continue
 			
 			# do not stop to soon
-			if textWidget._highlight.last_stopToken <= currentPos[1] and validSyncPoint[1] <= currentPos[1]:
+			if Index(textWidget, "DP::SH::LASTSTOP") <= currentPos[1] and validSyncPoint[1] <= currentPos[1]:
 				raise StopIteration
 
 		else:
@@ -288,26 +289,33 @@ def process_token(tw, elem):
 		map(lambda n: tagdel(n, startP, endP), tags)
 		tw.tag_add(token_name, startP, endP)
 
-	if tw._highlight.last_stopToken < endP:
-		tw._highlight.last_stopToken = endP
+	if Index(tw, "DP::SH::LASTSTOP") < endP:
+		Tkinter.Text.mark_set(tw, "DP::SH::LASTSTOP", endP)
 
 
 
 def _update_a_token(textWidget,realTime=False):
 	tokens = textWidget._highlight.tokensStream
 	startPoint = textWidget._highlight.startPoint
+	
+	if Index(textWidget, "DP::SH::LASTSTOP") < startPoint:
+		Tkinter.Text.mark_set(textWidget, "DP::SH::LASTSTOP", startPoint)
 
 	if realTime:
 		map(lambda t, tw=textWidget : process_token(tw,t) , tokens)
-		textWidget._highlight.last_stopToken = Index(textWidget, "1.0")
+		Tkinter.Text.mark_set(textWidget, "DP::SH::LASTSTOP", "1.0")
 	else:
+		if textWidget._highlight.idle_id is not None:
+			textWidget.after_cancel(textWidget._highlight.idle_id)
+
 		def do_next():
 			try:
 				process_token(textWidget, tokens.next())
-				textWidget.after_idle(do_next)
+				textWidget._highlight.idle_id = textWidget.after_idle(do_next)
 			except StopIteration:
-				textWidget._highlight.last_stopToken = Index(textWidget,"1.0")
+				Tkinter.Text.mark_set(textWidget, "DP::SH::LASTSTOP", "1.0")
+				textWidget._highlight.idle_id = None
 				textWidget.set_currentLineTag()
 
-		textWidget.after_idle(do_next)
+		textWidget._highlight.idle_id = textWidget.after_idle(do_next)
 
