@@ -9,6 +9,9 @@ commandLine = <Control-Return>
 save_command = <Control-s>
 new_command = <Control-n>
 open_command = <Control-o>
+cut_command = <Control-x>
+copy_command = <Control-c>
+paste_command = <Control-v>
 forward_research = <F3>
 backward_research = <Alt-F3>
 

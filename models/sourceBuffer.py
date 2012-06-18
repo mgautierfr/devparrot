@@ -346,43 +346,10 @@ class AdvancedTextController(Controller):
 		event.widget.mark_set( 'insert', 'end' )
 		return "break"
 	
-	@bind('<Control-c>')
-	def on_ctrl_c(self, event, modifiers):
-		try:
-			event.widget.clipboard_clear()
-			event.widget.clipboard_append( event.widget.get( 'sel.first', 'sel.last' ) )
-		except:
-			pass
-		return "break"
-	
 	@bind('<Control-r>')
 	def on_ctrl_r(self, event, modifiers):
 		try:
 			event.widget.edit_redo( )
-		except:
-			pass
-		event.widget.sel_clear( )
-		return "break"
-	
-	@bind('<Control-v>')
-	def on_ctrl_v(self, event, modifiers):
-		try:
-			event.widget.mark_set( 'insert', 'sel.first' )
-			event.widget.delete( 'sel.first', 'sel.last' )
-		except:
-			pass
-    
-		event.widget.insert( 'insert', event.widget.clipboard_get( ) )
-		event.widget.sel_clear( )
-		return "break"
-	
-	@bind('<Control-x>')
-	def on_ctrl_x(self, event, modifiers):
-		try:
-			event.widget.clipboard_clear()
-			event.widget.clipboard_append( event.widget.get( 'sel.first', 'sel.last' ) )
-			event.widget.delete( 'sel.first', 'sel.last' )
-			event.widget.ins_updateTags( )
 		except:
 			pass
 		event.widget.sel_clear( )

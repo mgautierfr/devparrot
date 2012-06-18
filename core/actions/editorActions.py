@@ -19,17 +19,21 @@
 #    Copyright 2011 Matthieu Gautier
 
 from actionDef import Action
-#import gtk
+import core.capi as capi
+import core.config
 
 class cut(Action):
 	def run(cls, args=[]):
-		capi.currentDocument.cut_clipboard(gtk.clipboard_get(), True);
+		return capi.currentDocument.get_currentView().cut_clipboard()
 
 class copy(Action):
 	def run(cls, args=[]):
-		capi.currentDocument.copy_clipboard(gtk.clipboard_get());
+		return capi.currentDocument.get_currentView().copy_clipboard()
 
 class paste(Action):
 	def run(cls, args=[]):
-		capi.currentDocument.paste_clipboard(gtk.clipboard_get(), None, True);
+		return capi.currentDocument.get_currentView().paste_clipboard()
 
+capi.bind[core.config.get('binding','cut_command')] = "cut"
+capi.bind[core.config.get('binding','copy_command')] = "copy"
+capi.bind[core.config.get('binding','paste_command')] = "paste"
