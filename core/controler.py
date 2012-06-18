@@ -25,7 +25,6 @@ import config
 import utils.event
 
 currentSession = None
-baseColor = None
 alias = {}
 lineExpenders = []
 eventSystem = utils.event.EventSource()
@@ -53,34 +52,17 @@ def add_expender(expender):
 	lineExpenders.append(expender)
 
 def init():
-	global baseColor,notFoundColor, okColor, errorColor
 	import core.actions
 	mainWindow.entry.bind('<Return>',on_entry_activate)
 	mainWindow.entry.bind('<FocusIn>', on_get_focus)
 	mainWindow.entry.bind('<KeyRelease-Up>', on_entry_event)
 	mainWindow.entry.bind('<KeyRelease-Down>', on_entry_event)
-#	map = mainWindow.entry.get_colormap()
-#	baseColor = mainWindow.entry.get_style().base[gtk.STATE_NORMAL]
-#	notFoundColor = map.alloc_color(config.get('color','notFoundColor')) # red
-#	okColor = map.alloc_color(config.get('color','okColor')) # light green
-#	errorColor = map.alloc_color(config.get('color','errorColor')) # light red
 	pass
 
 def set_session(session):
 	global currentSession
 	currentSession = session
 	eventSystem.event('newSession')(session)
-
-def run_action(text, function,*args, **keywords):
-	ret = function(*args,**keywords)
-#	if ret == None:
-#		mainWindow.entry.modify_base(gtk.STATE_NORMAL,baseColor)
-#	elif ret:
-#		mainWindow.entry.modify_base(gtk.STATE_NORMAL,okColor)
-#	else:
-#		mainWindow.entry.modify_base(gtk.STATE_NORMAL,errorColor)
-	mainWindow.entry.delete(0,'end')
-	mainWindow.entry.insert('end',text)
 	
 def run_command(text):
 	def find_tokens():
@@ -103,24 +85,33 @@ def run_command(text):
 		return token
 	def launch_command(command, cmdText, args):
 		eventSystem.event("%s-"%command.__name__)(cmdText, args)
-		command.run(cmdText, *args)
+		ret = command.run(cmdText, *args)
 		eventSystem.event("%s+"%command.__name__)(cmdText, args)
+		return ret
 	
 	tokens = find_tokens()
 	command = get_command(tokens[0])
+	ret = None
 	if command:
-		launch_command(command, tokens[0], [expand_token(t) for t in tokens[1:]])
+		ret = launch_command(command, tokens[0], [expand_token(t) for t in tokens[1:]])
 	currentSession.get_history().push(text)
+	return ret
 	
 def on_get_focus(event):
 	global baseColor
-	#event.widget.modify_base(gtk.STATE_NORMAL,baseColor)
+	event.widget['style'] = ""
 	event.widget.delete(0,'end')
 
 def on_entry_activate(event):
 	global currentSession
 	text = event.widget.get()
-	run_command(text)	
+	ret = run_command(text)
+	if ret is None:
+		event.widget['style'] = "notFoundStyle.TEntry"
+	elif ret:
+		event.widget['style'] = "okStyle.TEntry"
+	else:
+		event.widget['style'] = "errorStyle.TEntry"
 	if currentSession.get_workspace().get_currentDocument():
 		currentSession.get_workspace().get_currentDocument().get_currentView().focus()
 

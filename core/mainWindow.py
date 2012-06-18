@@ -61,6 +61,10 @@ def init():
 	global hpaned
 	global vpaned
 	window = ttk.Tkinter.Tk()
+	style = ttk.Style()
+	style.configure("notFoundStyle.TEntry", fieldbackground=core.config.get('color','notFoundColor'))
+	style.configure("okStyle.TEntry", fieldbackground=core.config.get('color','okColor'))
+	style.configure("errorStyle.TEntry", fieldbackground=core.config.get('color','errorColor'))
 	geom = window.wm_geometry()
 	x = geom.split('+')[1]
 	y = geom.split('+')[2]
