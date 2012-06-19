@@ -18,23 +18,64 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import ConfigParser
+from collections import MutableMapping
+
 import os, pwd
+import sys
 
-config = None
+import controler
+import actions.actionDef
 
+
+class ModuleWrapper(object):
+	def __init__(self, config):
+		object.__setattr__(self, 'config', config)
+
+	def __getattr__(self, name):
+		return getattr(self.config, name)
+
+	def __setattr__(self, name, value):
+		return self.config.__setattr__(name, value)
+
+class Config(object):
+	def __init__(self, *args, **kwords):
+		pass
+
+	def __getitem__(self, name):
+		try:
+			return object.__getattribute__(self, name)
+		except AttributeError:
+			raise KeyError
+
+	def __setitem__(self, name, value):
+		object.__setattr__(self, name, value)
+
+	def __delitem__(self, name):
+		self.values.__delattr__(name)
+
+	def __iter__(self, *args, **kwords):
+		return self.__dict__.__iter__(*args, **kwords)
+
+	def __len__(self):
+		return self.__dict__.__len__()
+
+class Section(object):
+	def __init__(self):
+		pass
+
+	def __setattr__(self, name, value):
+		object.__setattr__(self, name, value)
 
 _homedir = pwd.getpwuid(os.getuid())[5]
 _user_config_path = os.path.join(_homedir,'.devparrot')
 _default_config_path = os.path.dirname(os.path.realpath(__file__))
 _default_config_path = os.path.join(_default_config_path,"../resources/default_config")
 
-_config = ConfigParser.SafeConfigParser()
-_config.read([_default_config_path, _user_config_path])
+_config = Config()
+_global = {'Section':Section, 'binds':controler.binder, 'Action':actions.actionDef.Action}
 
+execfile(_default_config_path, _global, _config)
+execfile(_user_config_path, _global, _config)
 
-def get(section, option): return _config.get(section, option)
+sys.modules[__name__] = ModuleWrapper(_config)
 
-def getint(section, option): return _config.getint(section, option)
-
-def getboolean(section, option) : return _config.getboolean(section, option)

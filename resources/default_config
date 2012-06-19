@@ -1,36 +1,32 @@
 
+window = Section()
+window.height = 600
+window.width = 800
 
-[window]
-height = 600
-width = 800
+binds["<Control-s>"] = "save"
+binds["<Control-n>"] = "new"
+binds["<Control-o>"] = "open"
+binds["<F3>"] = "search"
+binds["<Alt-F3>"] = "bsearch"
+binds["<Control-x>"] = "cut"
+binds["<Control-c>"] = "copy"
+binds["<Control-v>"] = "paste"
 
-[binding]
-commandLine = <Control-Return>
-save_command = <Control-s>
-new_command = <Control-n>
-open_command = <Control-o>
-cut_command = <Control-x>
-copy_command = <Control-c>
-paste_command = <Control-v>
-forward_research = <F3>
-backward_research = <Alt-F3>
+textView = Section()
+textView.auto_indent = True
+textView.tab_width = 4
+textView.draw_spaces = 0
+textView.space_indent = False
+textView.highlight_current_line = True
+textView.show_line_numbers = True
+textView.smart_home_end = True
+textView.font = "monospace"
 
-[textView]
-auto_indent = true
-tab_width = 4
-draw_spaces = 0
-space_indent = false
-highlight_current_line = true
-show_line_numbers = true
-smart_home_end = true
-font = monospace
-
-[color]
-notFoundColor =  red
-okColor = #BBFFBB
-errorColor = #FF9999
-highlight_tag_color = #FFFFBB
-search_tag_color = #FFAAAA
-currentLine_tag_color = #EEEEEE
-
+color = Section()
+color.notFoundColor =  "red"
+color.okColor = "#BBFFBB"
+color.errorColor = "#FF9999"
+color.highlight_tag_color = "#FFFFBB"
+color.search_tag_color = "#FFAAAA"
+color.currentLine_tag_color = "#EEEEEE"
 

@@ -62,13 +62,13 @@ def init():
 	global vpaned
 	window = ttk.Tkinter.Tk()
 	style = ttk.Style()
-	style.configure("notFoundStyle.TEntry", fieldbackground=core.config.get('color','notFoundColor'))
-	style.configure("okStyle.TEntry", fieldbackground=core.config.get('color','okColor'))
-	style.configure("errorStyle.TEntry", fieldbackground=core.config.get('color','errorColor'))
+	style.configure("notFoundStyle.TEntry", fieldbackground=core.config.color.notFoundColor)
+	style.configure("okStyle.TEntry", fieldbackground=core.config.color.okColor)
+	style.configure("errorStyle.TEntry", fieldbackground=core.config.color.errorColor)
 	geom = window.wm_geometry()
 	x = geom.split('+')[1]
 	y = geom.split('+')[2]
-	window.wm_geometry("%dx%d+%s+%s"%(core.config.getint('window','width'),core.config.getint('window','height'),x,y))
+	window.wm_geometry("%dx%d+%s+%s"%(core.config.window.width,core.config.window.height,x,y))
 	icon_path = os.path.dirname(os.path.realpath(__file__))
 	icon_path = os.path.join(icon_path,"../resources/icon.png")
 #	window.wm_iconwindow(icon_path)
@@ -98,6 +98,9 @@ def init():
 	bindtags.insert(1,"Action")
 	bindtags = " ".join(bindtags)
 	window.bindtags(bindtags)
+
+	import controler
+	controler.binder.bind()
 
 def add_helper(widget, pos):
 	global hpaned

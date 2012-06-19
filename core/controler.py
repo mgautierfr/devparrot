@@ -29,15 +29,33 @@ alias = {}
 lineExpenders = []
 eventSystem = utils.event.EventSource()
 
+class BindLauncher(object):
+	def __init__(self, command):
+		self.command = command
+
+	def __call__(self, event):
+		run_command(self.command)
+		return "break"
+
 class Binder(object):
 	def __init__(self):
-		pass
+		self.binds = {}
 
 	def __setitem__(self, accel, command):
-		def run_and_break(event):
-			run_command(command)
-			return "break"
-		mainWindow.window.bind_class("Action", accel, run_and_break)
+		self.binds[accel] = BindLauncher(command)
+		if mainWindow.window:
+			mainWindow.window.bind_class("Action", accel, self.binds[accel])
+
+	def bind(self):
+		if mainWindow.window:
+			for accel, func in self.binds.items():
+				mainWindow.window.bind_class("Action", accel, func)
+
+	def __delitem__(self, accel):
+		if mainWindow.window:
+			mainWindow.window.unbind_class("Action", accel)
+		del self.binds[accel]
+
 
 binder = Binder()
 

@@ -196,10 +196,4 @@ class goto(Action):
 	def run(cls, cmdText, *indexes):
 		index = " ".join(indexes)
 		capi.currentDocument.goto_index(index)
-			
-capi.bind[core.config.get('binding','save_command')] = "save"
-capi.bind[core.config.get('binding','new_command')] = "new"
-capi.bind[core.config.get('binding','open_command')] = "open"
-capi.bind[core.config.get('binding','forward_research')] = "search"
-capi.bind[core.config.get('binding','backward_research')] = "bsearch"
 

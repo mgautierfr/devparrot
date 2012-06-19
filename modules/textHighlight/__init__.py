@@ -46,7 +46,7 @@ def deactivate():
 
 def create_fonts():
 	global _fonts
-	_fonts[(False,False)] = tkFont.Font(font=core.config.get('textView','font'))
+	_fonts[(False,False)] = tkFont.Font(font=core.config.textView.font)
 	_fonts[(True,False)] = _fonts[(False,False)].copy()
 	_fonts[(True,False)].configure(weight='bold')
 	_fonts[(False,True)] = _fonts[(False,False)].copy()

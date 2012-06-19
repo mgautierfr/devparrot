@@ -34,6 +34,4 @@ class paste(Action):
 	def run(cls, args=[]):
 		return capi.currentDocument.get_currentView().paste_clipboard()
 
-capi.bind[core.config.get('binding','cut_command')] = "cut"
-capi.bind[core.config.get('binding','copy_command')] = "copy"
-capi.bind[core.config.get('binding','paste_command')] = "paste"
+

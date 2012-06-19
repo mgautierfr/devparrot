@@ -443,8 +443,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 		ttk.Tkinter.Text.__init__(self, core.mainWindow.workspaceContainer,
 		                          undo=True,
 		                          autoseparators=False,
-#		                          wrap="none",
-		                          font=core.config.get('textView','font'))
+		                          font=core.config.textView.font)
 		utils.event.EventSource.__init__(self)
 		self.bind("<<Selection>>", self.on_selection_changed)
 		self.bind_class("Text","<Key>",insert_char)
@@ -455,7 +454,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 		controller = MetaController()
 		controller.set_subControllers(CarretController(), AdvancedTextController(), BasicTextController(), MouseController() )
 		controller.install( self )
-		self.tag_configure('currentLine_tag', background=core.config.get('color','currentLine_tag_color'))
+		self.tag_configure('currentLine_tag', background=core.config.color.currentLine_tag_color)
 		self.tag_raise("currentLine_tag")
 		self.tag_raise("sel", "currentLine_tag")
 		
@@ -561,8 +560,8 @@ class SourceBuffer(CodeText):
 		CodeText.__init__(self)
 		self.document = document
 		self.highlight_tag_protected = False
-		self.tag_configure("highlight_tag", background=core.config.get('color','highlight_tag_color'))
-		self.tag_configure("search_tag", background=core.config.get('color','search_tag_color'))
+		self.tag_configure("highlight_tag", background=core.config.color.highlight_tag_color)
+		self.tag_configure("search_tag", background=core.config.color.search_tag_color)
 		self.hl_callId = None
 		self.tag_lower("highlight_tag", "sel")
 		self.tag_lower("search_tag", "sel")
