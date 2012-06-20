@@ -23,13 +23,14 @@ import os,sys
 import mainWindow
 import config
 import utils.event
+import re
 
 currentSession = None
 alias = {}
 lineExpenders = []
 eventSystem = utils.event.EventSource()
 
-class BindLauncher(object):
+class TkBindLauncher(object):
 	def __init__(self, command):
 		self.command = command
 
@@ -37,24 +38,44 @@ class BindLauncher(object):
 		run_command(self.command)
 		return "break"
 
+class EventBindLauncher(object):
+	def __init__(self, command):
+		self.command = command
+	
+	def __call__(self, cmdTxt, arg):
+		run_command(self.command, cmdTxt=cmdTxt)
+		return "break"
+
+
+TkEventMatcher = re.compile(r"<.*>")
+
 class Binder(object):
 	def __init__(self):
-		self.binds = {}
+		self.tkBinds = {}
 
 	def __setitem__(self, accel, command):
-		self.binds[accel] = BindLauncher(command)
-		if mainWindow.window:
-			mainWindow.window.bind_class("Action", accel, self.binds[accel])
+		if TkEventMatcher.match(accel):
+			bindLauncher = TkBindLauncher(command)
+			if mainWindow.window:
+				mainWindow.window.bind_class("Action", accel, bindLauncher)
+		else:
+			bindLauncher = EventBindLauncher(command)
+			eventSystem.connect(accel, bindLauncher)
+		self.tkBinds[accel] = bindLauncher
 
 	def bind(self):
 		if mainWindow.window:
-			for accel, func in self.binds.items():
-				mainWindow.window.bind_class("Action", accel, func)
+			for accel, func in self.tkBinds.items():
+				if TkEventMatcher.match(accel):
+					mainWindow.window.bind_class("Action", accel, func)
 
 	def __delitem__(self, accel):
-		if mainWindow.window:
-			mainWindow.window.unbind_class("Action", accel)
-		del self.binds[accel]
+		if TkEventMatcher.match(accel):
+			if mainWindow.window:
+				mainWindow.window.unbind_class("Action", accel)
+		else:
+			eventSystem.event(accel).disconnect(self.binds[accel])
+		del self.tkBinds[accel]
 
 
 binder = Binder()
@@ -82,7 +103,7 @@ def set_session(session):
 	currentSession = session
 	eventSystem.event('newSession')(session)
 	
-def run_command(text):
+def run_command(text, cmdTxt=None):
 	def find_tokens():
 		for expender in lineExpenders:
 			tokens = expender(text)
@@ -101,6 +122,7 @@ def run_command(text):
 		return None
 	def expand_token(token):
 		return token
+	
 	def launch_command(command, cmdText, args):
 		eventSystem.event("%s-"%command.__name__)(cmdText, args)
 		ret = command.run(cmdText, *args)
@@ -111,7 +133,9 @@ def run_command(text):
 	command = get_command(tokens[0])
 	ret = None
 	if command:
-		ret = launch_command(command, tokens[0], [expand_token(t) for t in tokens[1:]])
+		if cmdTxt is None:
+			cmdTxt = tokens[0]
+		ret = launch_command(command, cmdTxt, [expand_token(t) for t in tokens[1:]])
 	currentSession.get_history().push(text)
 	return ret
 	
