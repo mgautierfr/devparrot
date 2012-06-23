@@ -86,7 +86,10 @@ class close(Action):
 		if document.check_for_save():
 			save.save_document(document)
 		if document.documentView.is_displayed():
-			document.documentView.get_parentContainer().detach_child(document.documentView)
+			parentContainer = document.documentView.get_parentContainer()
+			parentContainer.detach_child(document.documentView)
+			if parentContainer.get_nbChildren() == 0:
+				capi.unsplit(parentContainer)
 		return capi.del_file(document)
 
 class open(Action):

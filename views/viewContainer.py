@@ -239,6 +239,9 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
 		if selected :
 			return self.nametowidget(selected)
 		return None
+
+	def get_nbChildren(self):
+		return len(self._children)
 	
 	def destroy_tree(self):
 		for win in self._children:
@@ -281,7 +284,14 @@ def split(documentView, direction, first=True):
 	newNotebook.set_as_current()
 	
 def unsplit(documentView):
-	notebook = documentView.get_parentContainer()
+	if isinstance(documentView, NotebookContainer):
+		unsplit_notebook(documentView)
+	else:
+		otherNotebook = unsplit_notebook(documentView.get_parentContainer())
+		if otherNotebook:
+			otherNotebook.select(documentView)
+
+def unsplit_notebook(notebook):
 	parent = notebook.get_parentContainer()
 	if not isinstance(parent, SplittedContainer):
 		return
@@ -305,13 +315,11 @@ def unsplit(documentView):
 	parent.destroy_tree()
 	parent.destroy()
 	
-	
-	
 	grandParent.attach_child(goodChild)
 	
 	goodChild.lift()
 	leftnotebook.set_as_current()
-	leftnotebook.select(documentView)
+	return leftnotebook
 
 class DragHandler(ttk.Tkinter.Toplevel):
 	def __init__(self, container):

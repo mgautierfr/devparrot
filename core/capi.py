@@ -99,8 +99,10 @@ def quit():
 def split(vertical, first=True):
 	return viewContainer.split(__getattr__('currentContainer').currentChild, vertical, first)
 
-def unsplit():
-	return viewContainer.unsplit(__getattr__('currentContainer').currentChild)
+def unsplit(container=None):
+	if not container:
+		container = __getattr__('currentContainer').currentChild
+	return viewContainer.unsplit(container)
 
 sys.modules[__name__] = ModuleWrapper(sys.modules[__name__])
 documents = DocumentWrapper()
