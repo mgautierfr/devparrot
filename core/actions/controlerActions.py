@@ -153,8 +153,6 @@ class split(Action):
 			return capi.split(vertical)
 		if cmdText == "unsplit":
 			return capi.unsplit()
-			if capi.currentContainer.get_parentContainer():
-				return capi.currentContainer.get_parentContainer().unsplit(toKeep=capi.currentContainer)
 		return False
 
 class search(Action):
