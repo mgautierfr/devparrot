@@ -23,6 +23,7 @@ import os
 import ttk
 
 import core.config
+import popupMenu as popupMenuModule
 
 class Helper:
 	def __init__(self):
@@ -48,7 +49,7 @@ entry = None
 workspaceContainer = None
 hpaned = None
 vpaned = None
-
+popupMenu = None
 
 def quit(event):
 	from actions.controlerActions import quit
@@ -60,6 +61,7 @@ def init():
 	global workspaceContainer
 	global hpaned
 	global vpaned
+	global popupMenu
 	window = ttk.Tkinter.Tk()
 	style = ttk.Style()
 	style.configure("notFoundStyle.TEntry", fieldbackground=core.config.color.notFoundColor)
@@ -73,7 +75,7 @@ def init():
 	icon_path = os.path.join(icon_path,"../resources/icon.png")
 #	window.wm_iconwindow(icon_path)
 	window.wm_title("DevParrot")
-	
+
 	vbox = ttk.Tkinter.Frame(window)
 	vbox.pack(expand=True,fill=ttk.Tkinter.BOTH)
 	entry = ttk.Entry(vbox)
@@ -89,11 +91,17 @@ def init():
 	vpaned.add(workspaceContainer)
 
 	hpaned.add(vpaned)
-	
+
+
+	popupMenu = popupMenuModule.Menu()
+
 	def focus_and_break(event):
 		entry.focus()
 		return "break"
+
 	window.bind_class("Action", "<Control-Return>", focus_and_break)
+	window.bind('<ButtonRelease>', lambda e: popupMenu.unpost() )
+	window.bind('<Configure>', lambda e: popupMenu.unpost() )
 	bindtags = list(window.bindtags())
 	bindtags.insert(1,"Action")
 	bindtags = " ".join(bindtags)

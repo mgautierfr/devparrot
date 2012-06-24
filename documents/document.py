@@ -69,9 +69,9 @@ class Document(utils.event.EventSource):
 		
 	def get_currentView(self):
 		return self.currentView
-		
-	def get_modified(self):
-		return self.models['text'].get_modified()
+
+	def get_model(self):
+		return self.models['text']
 	
 	def get_title(self):
 		return self.documentSource.title

@@ -34,4 +34,11 @@ class paste(Action):
 	def run(cls, args=[]):
 		return capi.currentDocument.get_currentView().paste_clipboard()
 
+class undo(Action):
+	def run(cls, args=[]):
+		return capi.currentDocument.get_model().undo()
+
+class redo(Action):
+	def run(cls, args=[]):
+		return capi.currentDocument.get_model().redo()
 

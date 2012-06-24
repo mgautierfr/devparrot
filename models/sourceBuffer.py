@@ -348,20 +348,12 @@ class AdvancedTextController(Controller):
 	
 	@bind('<Control-r>')
 	def on_ctrl_r(self, event, modifiers):
-		try:
-			event.widget.edit_redo( )
-		except:
-			pass
-		event.widget.sel_clear( )
+		event.widget.redo()
 		return "break"
 	
 	@bind('<Control-z>')
 	def on_ctrl_z(self, event, modifiers):
-		try:
-			event.widget.edit_undo( )
-		except:
-			pass
-		event.widget.sel_clear( )
+		event.widget.undo()
 		return "break"
 
 class MouseController(Controller):
@@ -380,6 +372,11 @@ class MouseController(Controller):
 	def middle_click( self, event, modifiers):
 		event.widget.insert( 'current', event.widget.selection_get() )
 		event.widget.edit_separator()
+
+	@bind( '<ButtonRelease-3>' )
+	def right_click( self, event, modifiers):
+		core.mainWindow.popupMenu.post(event.x_root, event.y_root)
+		return "break"
 
 	@bind( '<B1-Motion>', '<Shift-Button1-Motion>' )
 	def dragSelection( self, event, modifiers):
@@ -552,6 +549,20 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 	
 	def calcule_distance(self, first, second):
 		return self.tk.call(self._w, "count", "-chars", first, second)
+
+	def undo(self):
+		try:
+			self.edit_undo()
+		except:
+			pass
+		self.sel_clear()
+
+	def redo(self):
+		try:
+			self.edit_redo()
+		except:
+			pass
+		self.sel_clear()
 
 
 
