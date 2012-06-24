@@ -8,9 +8,9 @@ binds["<Control-n>"] = "new"
 binds["<Control-o>"] = "open"
 binds["<F3>"] = "search"
 binds["<Alt-F3>"] = "bsearch"
-binds["<Control-x>"] = "cut"
-binds["<Control-c>"] = "copy"
-binds["<Control-v>"] = "paste"
+binds["<<Cut>>"] = "cut"
+binds["<<Copy>>"] = "copy"
+binds["<<Paste>>"] = "paste"
 
 textView = Section()
 textView.auto_indent = True
