@@ -61,6 +61,7 @@ def __setattr__(name, value):
 		if value == None:
 			__getattr__('currentContainer').set_documentView(None)
 		elif value.documentView.is_displayed():
+			value.documentView.parentContainer.select(value.documentView)
 			value.documentView.focus()
 		else:
 			__getattr__('currentContainer').set_documentView(value.documentView)

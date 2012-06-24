@@ -111,8 +111,8 @@ class open(Action):
 			from documents.fileDocSource import FileDocSource
 			doc = Document(FileDocSource(fileToOpen))
 			capi.add_file(doc)
+			doc.load()
 		capi.currentDocument = doc
-		doc.load()
 		if lineToGo:
 			doc.goto_line(lineToGo-1)
 		return True
