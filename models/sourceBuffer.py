@@ -370,8 +370,11 @@ class MouseController(Controller):
 
 	@bind( '<ButtonPress-2>' )
 	def middle_click( self, event, modifiers):
-		event.widget.insert( 'current', event.widget.selection_get() )
-		event.widget.edit_separator()
+		try:
+			event.widget.insert( 'current', event.widget.selection_get() )
+			event.widget.edit_separator()
+		except Tkinter.TclError:
+			pass
 
 	@bind( '<ButtonRelease-3>' )
 	def right_click( self, event, modifiers):
