@@ -19,6 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 from actionDef import Action
+import contraints
 
 import os
 import core.capi as capi
@@ -26,36 +27,36 @@ import core.capi as capi
 import core.config
 
 class save(Action):
-	def run(cls, cmdText, *args):
-		if len(args)>=1:
-			return save.save_document(capi.currentDocument,os.path.abspath(args[0]))
-		else:
-			return save.save_document(capi.currentDocument, None)
+	@staticmethod
+	def get_default():
+		if capi.currentDocument.has_a_path():
+			return capi.currentDocument.get_path()
+		raise contraints.noDefault()
 
-	@staticmethod			
-	def save_document(document, fileToSave=None):
-		if not document: return False
-		if document.has_a_path() and not fileToSave:
-			return document.write()
+	fileName = contraints.File(mode='save', default=lambda:save.get_default())
 
-		if not document.has_a_path() and not fileToSave:
-			fileToSave = capi.ask_for_filename_to_save(title="Save")
+	def pre_check(cls, cmdText):
+		return capi.currentDocument is not None
 
-		if not fileToSave:
-			return False
+	def run(cls, cmdText, fileName, *args):
+		return save.save_document(capi.currentDocument,fileName)
+
+	@staticmethod
+	def save_document(document, fileToSave):
+		if document.has_a_path() and document.get_path() == fileToSave:
+				return document.write()
 
 		if capi.file_is_opened(fileToSave):
 			#The document is already opened.
 			#do nothing (should warn)
 			return False
-		
+
 		from documents.fileDocSource import FileDocSource
 		document.set_path(FileDocSource(fileToSave))
 		return document.write()
 
 
 class new(Action):
-
 	def run(cls, cmdText, *args):
 		from documents.document import Document
 		from documents.newDocSource import NewDocSource
@@ -65,21 +66,21 @@ class new(Action):
 		return True
 
 class switch(Action):
-	def run(cls, cmdText, *args):
-		if len(args)==0:
-			return False
-		capi.currentDocument = capi.get_nth_file(int(args[0]))
+	document = contraints.OpenDocument()
+	def run(cls, cmdText, document, *args):
+		capi.currentDocument = document
 		return True
 		
 		
 class close(Action):
-	def run(cls, cmdText, *args):
-		if len(args)==0 or not args[0]:
-			document = capi.currentDocument
-		else:
-			index = args[0]
-			document = capi.documents[index]
-		return close.close_document(document)
+	documents = contraints.OpenDocument(multiple=True, default=lambda:capi.currentDocument)
+	def pre_check(cls, cmdText):
+		return capi.currentDocument is not None
+
+	def run(cls, cmdText, documents, *args):
+		for document in documents:
+			close.close_document(document)
+		return True
 
 	@staticmethod
 	def close_document(document):
@@ -90,9 +91,10 @@ class close(Action):
 			parentContainer.detach_child(document.documentView)
 			if parentContainer.get_nbChildren() == 0:
 				capi.unsplit(parentContainer)
-		return capi.del_file(document)
+		capi.del_file(document)
 
 class open(Action):
+	files = contraints.File(mode='open', multiple=True)
 	def open_a_file(cls, fileToOpen):
 		if not fileToOpen: return False
 		lineToGo = None
@@ -117,20 +119,11 @@ class open(Action):
 			doc.goto_line(lineToGo-1)
 		return True
 
-	def run(cls, cmdText, *args):
-		if len(args)>=1:
-			ret = True
-			for fileToOpen in args:
-				ret = ret and cls.open_a_file(fileToOpen)
-			return ret
-		else:
-			path = None
-			currentDoc = capi.currentDocument
-			if currentDoc:
-				path = currentDoc.get_path()
-				if path: path = os.path.dirname(path)
-			fileToOpen = capi.ask_for_filename_to_open(title="Open a file", defaultDir=path)
-			return cls.open_a_file(fileToOpen)
+	def run(cls, cmdText, files, *args):
+		ret = True
+		for fileToOpen in files:
+			ret = ret and cls.open_a_file(fileToOpen)
+		return ret
 
 class quit(Action):
 	def run(cls, cmdText, *args):

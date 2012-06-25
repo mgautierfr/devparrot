@@ -34,14 +34,14 @@ class Helper:
 		import tkMessageBox
 		return tkMessageBox.askyesno(title, message)
 
-	def ask_filenameSave(self, title):
+	def ask_filenameSave(self, *args, **kwords):
 		import tkFileDialog
-		response = tkFileDialog.asksaveasfilename(title=title)	
+		response = tkFileDialog.asksaveasfilename(title="Save a file", *args, **kwords)
 		return response
 
-	def ask_filenameOpen(self, title, currentFolder):
+	def ask_filenameOpen(self, *args, **kwords):
 		import tkFileDialog
-		response = tkFileDialog.askopenfilename(title=title, initialdir=currentFolder)
+		response = tkFileDialog.askopenfilename(title="Open a file", *args, **kwords)
 		return response
 
 window = None

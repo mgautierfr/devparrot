@@ -34,10 +34,11 @@ class MetaAction(type):
 		if name != "Action":
 			import core.controler
 			core.controler.add_alias(name, cls, 0)
+			cls.contraints = []
 
 class Action:
 	__metaclass__ = MetaAction
-		
-	def run(cls, cmdText, *args):
-		if args[0] in self.__dict__:
-			self.__dict__[args[0]](*args[1:])
+
+	def pre_check(cls, cmdText):
+		return True
+

@@ -104,12 +104,19 @@ def set_session(session):
 	eventSystem.event('newSession')(session)
 	
 def run_command(text, cmdTxt=None):
-	def find_tokens():
+	def tokenize(text):
+		commandName = None
 		for expender in lineExpenders:
 			tokens = expender(text)
 			if tokens:
 				return tokens
-		return text.split()
+		rawTokens = text.split()
+		commandName = rawTokens[0]
+		rawTokens = rawTokens[1:]
+
+		return (commandName, rawTokens)
+
+
 	def get_command(token):
 		for prio in sorted(alias, reverse=True):
 			for reg,command in alias[prio]:
@@ -120,8 +127,48 @@ def run_command(text, cmdTxt=None):
 					else:
 						return command
 		return None
-	def expand_token(token):
-		return token
+
+	def expand_tokens(command, rawTokens):
+		argsNeeded = list(command.run.func_code.co_varnames)[2:command.run.func_code.co_argcount]
+		tokens = []
+		tokenIndex = 0
+		for argName in argsNeeded:
+			if argName not in command.__dict__:
+				if tokenIndex >= len(rawTokens):
+					return False
+				tokens.append(rawTokens[tokenIndex])
+				tokenIndex += 1
+				break
+
+			contraint = command.__dict__[argName]
+			contraint.init()
+
+			rawToken = None
+			if tokenIndex < len(rawTokens):
+				rawToken = rawTokens[tokenIndex]
+				tokenIndex += 1
+			ok = contraint.check_rawToken(rawToken)
+			while ok == 'again':
+				if tokenIndex < len(rawTokens):
+					rawToken = rawTokens[tokenIndex]
+					tokenIndex += 1
+				else:
+					break
+				ok = contraint.check_rawToken(rawToken)
+				if ok in ('refused', 'optional'):
+					ok = 'ok'
+					tokenIndex -= 1
+
+			if ok == 'refused':
+				return False
+
+			if ok == 'optional':
+				tokenIndex -= 1
+
+			tokens.append(contraint.get_token())
+
+		tokens.extend(rawTokens[tokenIndex:])
+		return tokens
 	
 	def launch_command(command, cmdText, args):
 		eventSystem.event("%s-"%command.__name__)(cmdText, args)
@@ -129,13 +176,20 @@ def run_command(text, cmdTxt=None):
 		eventSystem.event("%s+"%command.__name__)(cmdText, args)
 		return ret
 	
-	tokens = find_tokens()
-	command = get_command(tokens[0])
+	commandName, rawTokens = tokenize(text)
+	command  = get_command(commandName)
+	if command is None:
+		return None
+	if cmdTxt is not None:
+		commandName = cmdTxt
+	if not command.pre_check(commandName):
+		return False
+	tokens = expand_tokens(command, rawTokens)
+	if tokens == False:
+		return False
 	ret = None
-	if command:
-		if cmdTxt is None:
-			cmdTxt = tokens[0]
-		ret = launch_command(command, cmdTxt, [expand_token(t) for t in tokens[1:]])
+
+	ret = launch_command(command, commandName, tokens)
 	currentSession.get_history().push(text)
 	return ret
 	
