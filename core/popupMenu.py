@@ -55,9 +55,10 @@ class EditSection:
 		self.menu.add_command(label='Paste', command=lambda:controler.run_command('paste'))
 	
 	def postCommand(self):
-		if self.menu.clipboard_get():
+		try:
+			self.menu.clipboard_get()
 			self.menu.entryconfigure('Paste', state="normal")
-		else:
+		except:
 			self.menu.entryconfigure('Paste', state="disable")
 	
 		try:
