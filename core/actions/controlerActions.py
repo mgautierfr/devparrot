@@ -19,7 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 from actionDef import Action
-import contraints
+import constraints
 
 import os
 import core.capi as capi
@@ -31,9 +31,9 @@ class save(Action):
 	def get_default():
 		if capi.currentDocument.has_a_path():
 			return capi.currentDocument.get_path()
-		raise contraints.noDefault()
+		raise constraints.noDefault()
 
-	fileName = contraints.File(mode='save', default=lambda:save.get_default())
+	fileName = constraints.File(mode='save', default=lambda:save.get_default())
 
 	def pre_check(cls, cmdText):
 		return capi.currentDocument is not None
@@ -66,14 +66,14 @@ class new(Action):
 		return True
 
 class switch(Action):
-	document = contraints.OpenDocument()
+	document = constraints.OpenDocument()
 	def run(cls, cmdText, document, *args):
 		capi.currentDocument = document
 		return True
 		
 		
 class close(Action):
-	documents = contraints.OpenDocument(multiple=True, default=lambda:capi.currentDocument)
+	documents = constraints.OpenDocument(multiple=True, default=lambda:capi.currentDocument)
 	def pre_check(cls, cmdText):
 		return capi.currentDocument is not None
 
@@ -94,7 +94,7 @@ class close(Action):
 		capi.del_file(document)
 
 class open(Action):
-	files = contraints.File(mode='open', multiple=True)
+	files = constraints.File(mode='open', multiple=True)
 	def open_a_file(cls, fileToOpen):
 		if not fileToOpen: return False
 		lineToGo = None

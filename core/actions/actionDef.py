@@ -34,7 +34,6 @@ class MetaAction(type):
 		if name != "Action":
 			import core.controler
 			core.controler.add_alias(name, cls, 0)
-			cls.contraints = []
 
 class Action:
 	__metaclass__ = MetaAction
