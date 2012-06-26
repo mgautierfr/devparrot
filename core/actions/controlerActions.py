@@ -156,14 +156,10 @@ class search(Action):
 		import re
 		match = re.match(r"^/(.*)$", line)
 		if match:
-			ret = ["search"]
-			ret.extend(match.groups())
-			return ret
+			return ("search", match.groups())
 		match = re.match(r"^\?(.*)$", line)
 		if match:
-			ret = ["bsearch"]
-			ret.extend(match.groups())
-			return  ret
+			return ("bsearch", match.groups())
 		return None
 
 	core.controler.add_expender(lambda line : search.regChecker(line))
@@ -184,7 +180,7 @@ class goto(Action):
 		import re
 		match = re.match(r"^g(?P<line>[0-9]+)(?P<dot>\.)?(?(dot)(?P<char>[0-9]+))$", line)
 		if match:
-			return ["goto","%s.%s"%(match.group('line'),match.group('char') or '0')]
+			return ("goto",["%s.%s"%(match.group('line'),match.group('char') or '0')])
 		return None
 	core.controler.add_expender(lambda line : goto.regChecker(line))
 	def run(cls, cmdText, *indexes):
