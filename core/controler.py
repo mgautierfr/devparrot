@@ -24,11 +24,13 @@ import mainWindow
 import config
 import utils.event
 import re
+import shlex
 
 currentSession = None
 alias = {}
 lineExpenders = []
 eventSystem = utils.event.EventSource()
+
 
 class TkBindLauncher(object):
 	def __init__(self, command):
@@ -45,7 +47,6 @@ class EventBindLauncher(object):
 	def __call__(self, cmdTxt, arg):
 		run_command(self.command, cmdTxt=cmdTxt)
 		return "break"
-
 
 TkEventMatcher = re.compile(r"<.*>")
 
@@ -110,9 +111,16 @@ def run_command(text, cmdTxt=None):
 			tokens = expender(text)
 			if tokens:
 				return tokens
-		rawTokens = text.split()
-		commandName = rawTokens[0]
-		rawTokens = rawTokens[1:]
+
+		tokenLexer = shlex.shlex(text, posix=True)
+		tokenLexer.whitespace_split = True
+		commandName = tokenLexer.get_token()
+		rawTokens = []
+		while True:
+			token = tokenLexer.get_token()
+			if token is None:
+				break
+			rawTokens.append(token)
 
 		return (commandName, rawTokens)
 
