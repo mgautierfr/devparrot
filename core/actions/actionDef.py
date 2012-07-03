@@ -19,6 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 import types
+import constraints
 
 class MetaAction(type):
 	def __new__(cls, name, bases, dct):
@@ -40,4 +41,22 @@ class Action:
 
 	def pre_check(cls, cmdText):
 		return True
+	
+	def get_argNumber(cls):
+		return cls.run.func_code.co_argcount-2
+		
+	def get_argName(cls, index):
+		return cls.run.func_code.co_varnames[index+2]
 
+	def get_constraint(cls, name):
+		constraint = cls.__dict__.get(name, constraints.Default()) 
+		constraint.init()
+		return constraint
+		
+	def get_allConstraints(cls):
+		for name in cls.run.func_code.co_varnames[2:cls.run.func_code.co_argcount]:
+			yield cls.get_constraint(name)
+		
+		
+		
+		

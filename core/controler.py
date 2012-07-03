@@ -37,7 +37,7 @@ class TkBindLauncher(object):
 		self.command = command
 
 	def __call__(self, event):
-		run_command(self.command)
+		controler.run_command(self.command)
 		return "break"
 
 class EventBindLauncher(object):
@@ -45,7 +45,7 @@ class EventBindLauncher(object):
 		self.command = command
 	
 	def __call__(self, cmdTxt, arg):
-		run_command(self.command, cmdTxt=cmdTxt)
+		controler.run_command(self.command, cmdTxt=cmdTxt)
 		return "break"
 
 TkEventMatcher = re.compile(r"<.*>")
@@ -81,31 +81,40 @@ class Binder(object):
 
 binder = Binder()
 
-def add_alias(regex, command, prio=2):
-	import re
-	cregex = re.compile(r"%s"%regex)
+def add_alias(aliasName, command, prio=2):
 	if prio not in alias:
 		alias[prio] = []
-	alias[prio].append((cregex, command)) 
+	alias[prio].append((aliasName, command)) 
 
 def add_expender(expender):
 	lineExpenders.append(expender)
 
-def init():
-	import core.actions
-	mainWindow.entry.bind('<Return>',on_entry_activate)
-	mainWindow.entry.bind('<FocusIn>', on_get_focus)
-	mainWindow.entry.bind('<KeyRelease-Up>', on_entry_event)
-	mainWindow.entry.bind('<KeyRelease-Down>', on_entry_event)
-	pass
 
-def set_session(session):
-	global currentSession
-	currentSession = session
-	eventSystem.event('newSession')(session)
+class ListGenerator:
+	def __init__(self, l):
+		self.l = l
+		self.index = 0
+		self.bend = (len(l) == 0)
 	
-def run_command(text, cmdTxt=None):
-	def tokenize(text):
+	def next(self):
+		if self.index >= len(self.l):
+			self.bend = True
+			return None
+		self.index += 1
+		return self.l[self.index-1]
+	
+	def back(self):
+		self.index = max(0, self.index-1)
+	
+	def end(self):
+		return self.index >= len(self.l)
+		return self.bend
+
+class Controler:
+	def __init__(self):
+		pass
+		
+	def tokenize(self, text):
 		commandName = None
 		for expender in lineExpenders:
 			tokens = expender(text)
@@ -123,112 +132,159 @@ def run_command(text, cmdTxt=None):
 			rawTokens.append(token)
 
 		return (commandName, rawTokens)
-
-
-	def get_command(token):
+		
+	def get_command(self, commandName):
+		if not commandName:
+			return None
 		for prio in sorted(alias, reverse=True):
-			for reg,command in alias[prio]:
-				if reg.match(token):
+			for aliasName,command in alias[prio]:
+				if aliasName == commandName:
 					if isinstance(command, basestring):
 						token = command
 						break
 					else:
 						return command
 		return None
-
-	def expand_tokens(command, rawTokens):
-		argsNeeded = list(command.run.func_code.co_varnames)[2:command.run.func_code.co_argcount]
+	
+	def expand_tokens(self, command, rawTokens):
+		print rawTokens
+		constraints = command.get_allConstraints()
+		rawTokenIter = ListGenerator(rawTokens)
 		tokens = []
-		tokenIndex = 0
-		for argName in argsNeeded:
-			if argName not in command.__dict__:
-				if tokenIndex >= len(rawTokens):
-					return False
-				tokens.append(rawTokens[tokenIndex])
-				tokenIndex += 1
-				break
-
-			contraint = command.__dict__[argName]
-			contraint.init()
-
-			rawToken = None
-			if tokenIndex < len(rawTokens):
-				rawToken = rawTokens[tokenIndex]
-				tokenIndex += 1
-			ok = contraint.check_rawToken(rawToken)
-			while ok == 'again':
-				if tokenIndex < len(rawTokens):
-					rawToken = rawTokens[tokenIndex]
-					tokenIndex += 1
-				else:
+		ret = 'ok'
+		for constraint in constraints:
+			print "constraint",constraint
+			while True:
+				rawToken = rawTokenIter.next()
+				print "rawToken",rawToken
+				ret = constraint.check_rawToken(rawToken, True)
+				print "ret", ret
+				if ret != 'again':
 					break
-				ok = contraint.check_rawToken(rawToken)
-				if ok in ('refused', 'optional'):
-					ok = 'ok'
-					tokenIndex -= 1
+				if rawTokenIter.end():
+					print "no token break"
+					break
+			
+			if ret in ('end', 'optional'):
+				rawTokenIter.back()
 
-			if ok == 'refused':
+			if ret == 'refused':
+				print "token refused"
 				return False
 
-			if ok == 'optional':
-				tokenIndex -= 1
+			tokens.append(constraint.get_token())
 
-			tokens.append(contraint.get_token())
-
-		tokens.extend(rawTokens[tokenIndex:])
+		if not rawTokenIter.end():
+			print "token left"
+			return False
+		
 		return tokens
 	
-	def launch_command(command, cmdText, args):
+	def expand_and_complete(self, command, rawTokens):
+		constraints = command.get_allConstraints()
+		rawTokenIter = ListGenerator(rawTokens)
+		completions = []
+		for constraint in constraints:
+			print "constraint",constraint
+			while True:
+				rawToken = rawTokenIter.next()
+				print "rawToken",rawToken
+				ret = constraint.check_rawToken(rawToken, False)
+				print "ret", ret
+				if ret != 'again':
+					break
+				if rawTokenIter.end():
+					break
+			
+			if ret in ('ok', 'changed'):
+				print "1"
+				#good token to good constraint => change constraint
+				return [" "]
+				continue
+			
+			if ret == 'refused':
+				print "5"
+				#bad constraint and madatory => complete and exit
+				completions.extend(constraint.complete(rawToken))
+				break
+
+			if rawTokenIter.end():
+				print "2", ret
+				#no more token => complete and change constraint
+				completions.extend(constraint.complete(None))
+				continue
+
+			if ret == 'optional':
+				print "3"
+				#bad constraint but optional => complete and change constraint
+				completions.extend(constraint.complete(rawToken))
+				rawTokenIter.back()
+				continue
+
+			if ret == 'end':
+				print "4"
+				#bad constraint but array => complete and change constraint
+				completions.extend(constraint.complete(rawToken))
+				rawTokenIter.back()
+				continue
+			
+			
+		return completions
+			
+	
+	def launch_command(self, command, cmdText, args):
 		eventSystem.event("%s-"%command.__name__)(cmdText, args)
 		ret = command.run(cmdText, *args)
 		eventSystem.event("%s+"%command.__name__)(cmdText, args)
 		return ret
 	
-	commandName, rawTokens = tokenize(text)
-	command  = get_command(commandName)
-	if command is None:
-		return None
-	if cmdTxt is not None:
-		commandName = cmdTxt
-	if not command.pre_check(commandName):
-		return False
-	tokens = expand_tokens(command, rawTokens)
-	if tokens == False:
-		return False
-	ret = None
-
-	ret = launch_command(command, commandName, tokens)
-	currentSession.get_history().push(text)
-	return ret
+	def get_commandCompletions(self, commandName):
+		ret = []
+		for prio in sorted(alias, reverse=True):
+			for aliasName,command in alias[prio]:
+				if aliasName.startswith(commandName):
+					ret.append(aliasName)
+		return ret
 	
-def on_get_focus(event):
-	global baseColor
-	event.widget['style'] = ""
-	event.widget.delete(0,'end')
+	def run_command(self, text, cmdText=None):
+		commandName, rawTokens = self.tokenize(text)
+		command  = self.get_command(commandName)
+		if command is None:
+			return None
+		if cmdText is not None:
+			commandName = cmdText
+		if not command.pre_check(commandName):
+			return False
+		tokens = self.expand_tokens(command, rawTokens)
+		if tokens == False:
+			print "refused"
+			return False
+		ret = None
 
-def on_entry_activate(event):
+		ret = self.launch_command(command, commandName, tokens)
+		currentSession.get_history().push(text)
+		return ret
+		
+	def get_completions(self, text):
+		commandName, rawTokens = self.tokenize(text)
+		command = self.get_command(commandName)
+		if command is None:
+			return self.get_commandCompletions(commandName if commandName else "")
+		return self.expand_and_complete(command, rawTokens)
+		
+		
+controler = Controler()
+
+def init():
+	pass
+
+def set_session(session):
 	global currentSession
-	text = event.widget.get()
-	ret = run_command(text)
-	if ret is None:
-		event.widget['style'] = "notFoundStyle.TEntry"
-	elif ret:
-		event.widget['style'] = "okStyle.TEntry"
-	else:
-		event.widget['style'] = "errorStyle.TEntry"
-	if currentSession.get_workspace().get_currentDocument():
-		currentSession.get_workspace().get_currentDocument().get_currentView().focus()
+	currentSession = session
+	eventSystem.event('newSession')(session)
+	
+def run_command(text):
+	return controler.run_command(text)
 
-def on_entry_event(event):
-	global currentSession
-	event.widget.delete("0", "end")
-	if event.keysym == "Up":
-		event.widget.insert("end", currentSession.get_history().get_previous())
-		return True
-	if event.keysym == "Down":
-		event.widget.insert("end", currentSession.get_history().get_next())
-		return True
-	return False
-
-
-
+def get_completions(text):
+	return controler.get_completions(text)

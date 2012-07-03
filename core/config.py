@@ -25,6 +25,8 @@ import sys
 
 import controler
 import actions.actionDef
+import actions.constraints
+import capi
 
 
 class ModuleWrapper(object):
@@ -72,7 +74,12 @@ _default_config_path = os.path.dirname(os.path.realpath(__file__))
 _default_config_path = os.path.join(_default_config_path,"../resources/default_config")
 
 _config = Config()
-_global = {'Section':Section, 'binds':controler.binder, 'Action':actions.actionDef.Action}
+_global = {'Section':Section,
+           'binds':controler.binder,
+           'Action':actions.actionDef.Action,
+           'constraints':actions.constraints,
+           'capi':capi
+          }
 
 execfile(_default_config_path, _global, _config)
 execfile(_user_config_path, _global, _config)

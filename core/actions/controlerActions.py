@@ -29,6 +29,8 @@ import core.config
 class save(Action):
 	@staticmethod
 	def get_default():
+		if capi.currentDocument is None:
+			raise constraints.noDefault()
 		if capi.currentDocument.has_a_path():
 			return capi.currentDocument.get_path()
 		raise constraints.noDefault()
@@ -116,7 +118,7 @@ class open(Action):
 			doc.load()
 		capi.currentDocument = doc
 		if lineToGo:
-			doc.goto_line(lineToGo-1)
+			doc.goto_index("%s.0"%lineToGo-1)
 		return True
 
 	def run(cls, cmdText, files, *args):
@@ -164,15 +166,16 @@ class search(Action):
 
 	core.controler.add_expender(lambda line : search.regChecker(line))
 	core.controler.add_alias("bsearch", "search", 1)
-	def run(cls, cmdText, *args):
+	searchText = constraints.Default(optional=True)
+	def run(cls, cmdText, searchText):
+		print searchText
 		backward = (cmdText == "bsearch")
-		search = cls.lastSearch
-		try:
-			search = args[0]
-			cls.lastSearch = search
-		except : pass
-		if search != None:
-			return capi.currentDocument.search(backward, search)
+		if searchText is None:
+			searchText = cls.lastSearch
+		else:
+			cls.lastSearch = searchText
+		if searchText:
+			return capi.currentDocument.search(backward, searchText)
 
 class goto(Action):
 	@staticmethod

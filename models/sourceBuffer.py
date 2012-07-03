@@ -172,7 +172,6 @@ class BasicTextController(Controller):
 				match_end = "%s.%i"%(l,min(count.get(),int(c)))
 				text += event.widget.get(match_start, match_end)
 			event.widget.insert( 'insert', text )
-			event.widget.see('insert')
 
 	@bind('<Key-Tab>')
 	def on_tab(self, event, modifier):
@@ -404,13 +403,13 @@ class MouseController(Controller):
    
 	@bind( '<Double-ButtonPress-1>' )
 	def selectWord( self, event, modifiers):
-		event.widget.sel_setAnchor( 'insert wordstart' )
-		event.widget.mark_set( 'insert', 'insert wordend' )
+		event.widget.sel_setAnchor( 'current wordstart' )
+		event.widget.mark_set( 'insert', 'current wordend' )
    
 	@bind( '<Triple-ButtonPress-1>' )
 	def selectLine( self, event, modifiers):
-		event.widget.sel_setAnchor( 'insert linestart' )
-		event.widget.mark_set( 'insert', 'insert lineend' )
+		event.widget.sel_setAnchor( 'current linestart' )
+		event.widget.mark_set( 'insert', 'current lineend' )
 
 	@bind( '<Double-ButtonRelease-1>', '<Triple-ButtonRelease-1>' )
 	def bypass_deselect(self, event, modifiers): return "break"
@@ -534,13 +533,14 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 				pass 
 		
 	def insert(self, index, *args, **kword):
-		index = self.index(index)
 		ttk.Tkinter.Text.insert(self, index, *args)
 		self.edit_separator()
 		self.set_currentLineTag()
 		if kword.get('forceUpdate', False):
 			self.update()
-		self.event('insert')(self, index, args[0])
+		self.event('insert')(self, self.index(index), args[0])
+		if index=='insert':
+			self.see('insert')
 		
 	
 	def delete(self, index1, index2):

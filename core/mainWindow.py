@@ -24,6 +24,7 @@ import ttk
 
 import core.config
 import popupMenu as popupMenuModule
+import controlerEntry
 
 class Helper:
 	def __init__(self):
@@ -78,8 +79,7 @@ def init():
 
 	vbox = ttk.Tkinter.Frame(window)
 	vbox.pack(expand=True,fill=ttk.Tkinter.BOTH)
-	entry = ttk.Entry(vbox)
-	entry.pack(side=ttk.Tkinter.TOP,fill=ttk.Tkinter.X)
+	entry = controlerEntry.ControlerEntry(vbox)
 
 	hpaned = ttk.PanedWindow(vbox,orient=ttk.Tkinter.HORIZONTAL)
 	hpaned.pack(expand=True,fill=ttk.Tkinter.BOTH)

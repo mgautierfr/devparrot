@@ -125,6 +125,7 @@ if __name__ == "__main__":
 	print "Looking for element", sys.argv[1]
 	ctagf = Ctags_file("tags")
 	tag = ctagf.get_tag(sys.argv[1])
+	print tag
 	if tag:
 		tag.pprint()
 	else:

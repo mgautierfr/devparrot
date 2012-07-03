@@ -85,11 +85,14 @@ def get_nth_file(index):
 def del_file(document):
 	return controler.currentSession.get_documentManager().del_file(document)
 
-def ask_for_filename_to_save(title):
-	return mainWindow.Helper().ask_filenameSave(title=title)
-	
-def ask_for_filename_to_open(title, defaultDir):
-	return mainWindow.Helper().ask_filenameOpen(title=title, currentFolder=defaultDir)
+def open_file(filePath):
+	if file_is_opened(filePath):
+		return get_file(filePath)
+	import documents
+	doc = documents.document.Document(documents.fileDocSource.FileDocSource(filePath))
+	add_file(doc)
+	doc.load()
+	return doc
 
 def quit():
 	import core.mainWindow

@@ -118,6 +118,9 @@ class TextView():
 				self.lineNumbers.config(width=self.actualLineNumberWidth)
 
 		self.lineNumbers.config(state='disable')
+	
+	def on_event_lineChanged(self, *args):
+		self.set_lineNumbers()
 
 
 	def set_model(self, model):
@@ -128,6 +131,8 @@ class TextView():
 		self.view.grid(column=1, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
 		self.view.lift(self.uiContainer)
 		self.view.bind('<FocusIn>', self.document.documentView.on_focus_child)
+		self.view.connect('insert', self.on_event_lineChanged)
+		self.view.connect('delete', self.on_event_lineChanged)
 
 	
 		#self.view.set_auto_indent(core.config.getboolean('textView','auto_indent'))
