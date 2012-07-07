@@ -29,7 +29,7 @@ class Ctags_file:
 		if line_elem[0] < tag:
 			return self.look_for_tag(tag, current, high)
 		else:
-			return self.look_for_tag(tag, low, current)
+			return self.look_for_tag(tag, low, new_current)
 		pass
 	
 	def get_tag_list(self, tag, current):
