@@ -20,6 +20,7 @@
 
 import types
 import constraints
+import pyparsing
 
 class MetaAction(type):
 	def __new__(cls, name, bases, dct):
@@ -35,6 +36,7 @@ class MetaAction(type):
 		if name != "Action":
 			import core.controler
 			core.controler.add_alias(name, cls, 0)
+		
 
 class Action:
 	__metaclass__ = MetaAction
@@ -42,21 +44,32 @@ class Action:
 	def pre_check(cls, cmdText):
 		return True
 	
+	def get_grammar(cls):
+		grammar = None
+		for arg in cls.get_argNames():
+			constraint = cls.get_constraint(arg)
+			arg_grammar =  constraint.get_grammar()
+			arg_grammar = arg_grammar.setResultsName(arg)
+			if grammar is None:
+				grammar = arg_grammar
+			else:
+				grammar = grammar + arg_grammar
+		if grammar:
+			return grammar + pyparsing.StringEnd()
+		return pyparsing.Empty()
+	
 	def get_argNumber(cls):
 		return cls.run.func_code.co_argcount-2
 		
 	def get_argName(cls, index):
 		return cls.run.func_code.co_varnames[index+2]
+	
+	def get_argNames(cls):
+		return cls.run.func_code.co_varnames[2:cls.run.func_code.co_argcount]
 
 	def get_constraint(cls, name):
-		constraint = cls.__dict__.get(name, constraints.Default()) 
-		constraint.init()
-		return constraint
+		return cls.__dict__.get(name, constraints.Default())
 		
 	def get_allConstraints(cls):
 		for name in cls.run.func_code.co_varnames[2:cls.run.func_code.co_argcount]:
 			yield cls.get_constraint(name)
-		
-		
-		
-		

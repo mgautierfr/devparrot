@@ -26,6 +26,7 @@ import utils.event
 import re
 import shlex
 
+
 currentSession = None
 alias = {}
 lineExpenders = []
@@ -45,7 +46,7 @@ class EventBindLauncher(object):
 		self.command = command
 	
 	def __call__(self, cmdTxt, arg):
-		controler.run_command(self.command, cmdTxt=cmdTxt)
+		controler.run_command(self.command, cmdText=cmdTxt)
 		return "break"
 
 TkEventMatcher = re.compile(r"<.*>")
@@ -116,22 +117,17 @@ class Controler:
 		
 	def tokenize(self, text):
 		commandName = None
-		for expender in lineExpenders:
-			tokens = expender(text)
-			if tokens:
-				return tokens
+#		for expender in lineExpenders:
+#			tokens = expender(text)
+#			if tokens:
+#				return tokens
 
-		tokenLexer = shlex.shlex(text, posix=True)
-		tokenLexer.whitespace_split = True
-		commandName = tokenLexer.get_token()
-		rawTokens = []
-		while True:
-			token = tokenLexer.get_token()
-			if token is None:
-				break
-			rawTokens.append(token)
+		splitted = text.split(' ')
+		if splitted:
+			commandName = splitted[0]
+		args = ' '.join(splitted[1:])
 
-		return (commandName, rawTokens)
+		return (commandName, args)
 		
 	def get_command(self, commandName):
 		if not commandName:
@@ -146,38 +142,21 @@ class Controler:
 						return command
 		return None
 	
-	def expand_tokens(self, command, rawTokens):
-		print rawTokens
-		constraints = command.get_allConstraints()
-		rawTokenIter = ListGenerator(rawTokens)
+	def expand_tokens(self, command, args):
+		import actions.grammar
+		rangeExpander = actions.grammar.rangeExpander
+		args = rangeExpander.transformString(args)
+		grammar = command.get_grammar()
+		print grammar, args
+		rawTokens = grammar.parseString(args)
 		tokens = []
-		ret = 'ok'
-		for constraint in constraints:
-			print "constraint",constraint
-			while True:
-				rawToken = rawTokenIter.next()
-				print "rawToken",rawToken
-				ret = constraint.check_rawToken(rawToken, True)
-				print "ret", ret
-				if ret != 'again':
-					break
-				if rawTokenIter.end():
-					print "no token break"
-					break
-			
-			if ret in ('end', 'optional'):
-				rawTokenIter.back()
-
-			if ret == 'refused':
-				print "token refused"
+		for argName in command.get_argNames():
+			constraint = command.get_constraint(argName)
+			token = rawTokens.get(argName)
+			ret, token = constraint.check_rawToken(token, True)
+			if not ret:
 				return False
-
-			tokens.append(constraint.get_token())
-
-		if not rawTokenIter.end():
-			print "token left"
-			return False
-		
+			tokens.append(token)
 		return tokens
 	
 	def expand_and_complete(self, command, rawTokens):
@@ -185,7 +164,6 @@ class Controler:
 		rawTokenIter = ListGenerator(rawTokens)
 		completions = []
 		for constraint in constraints:
-			print "constraint",constraint
 			while True:
 				rawToken = rawTokenIter.next()
 				print "rawToken",rawToken
@@ -270,6 +248,7 @@ class Controler:
 		command = self.get_command(commandName)
 		if command is None:
 			return self.get_commandCompletions(commandName if commandName else "")
+		return []
 		return self.expand_and_complete(command, rawTokens)
 		
 		

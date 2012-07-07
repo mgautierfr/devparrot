@@ -22,6 +22,8 @@
 import os
 import core.controler
 import core.mainWindow
+import pyparsing
+import grammar
 
 import Tkinter
 
@@ -29,95 +31,111 @@ class noDefault(Exception):
     pass
 
 class _Constraint:
-	def __init__(self, optional=False, multiple=False, default=None, *args, **kwords):
+	def __init__(self, optional=False, multiple=False, default=None, askUser=False):
 		self.optional = optional
+		self.askUser = askUser
 		if default is None:
+			self.has_default= False
 			self.default = self._no_default
 		else:
+			self.has_default = True
 			self.default = default
 		self.multiple = multiple
-		self.init()
 	
-	def init(self):
-		if self.multiple:
-			self.token = []
+	def set_grammar(self, grammar):
+		if self.optional or self.askUser or self.has_default:
+			if self.multiple:
+				self.grammar = pyparsing.Group(pyparsing.ZeroOrMore(grammar))
+			else:
+				self.grammar = pyparsing.Optional(grammar)
 		else:
-			self.token = None
-	
-	def get_token(self):
-		return self.token
-	
-	def set_token(self, value):
-		if self.multiple:
-			self.token.append(value)
-			return 'again'
-		self.token = value
-		return 'ok'
+			if self.multiple:
+				self.grammar = pyparsing.Group(pyparsing.OneOrMore(grammar))
+			else:
+				self.grammar = grammar
+
+	def get_grammar(self):
+		return self.grammar
 
 	def _no_default(self):
 		raise noDefault()
 	
-	def check_rawToken(self, rawToken, askUser):
-		if rawToken is None:
-			self.status = 'refused'
-			if self.multiple and len(self.token):
-				self.status = 'end'
-			else:
-				try:
-					self.set_token(self.default())
-					self.status = 'changed'
-				except noDefault:
-					if askUser:
-						self.status = self.ask_user()
-				if self.status == 'refused' and self.optional:
-					self.status = 'optional'
-			return self.status
-
-		self.status = self.check(rawToken)
-
-		if self.status == 'refused':
-			print self.multiple, self.token
-			if self.multiple and len(self.token):
-				self.status = 'end'
-			elif self.optional:
-				self.status = 'optional'
-				try:
-					self.set_token(self.default())
-					self.status = 'changed'
-				except noDefault:
-					pass
-		return self.status
+	def _expand_multiple(self, token):
+		if self.multiple:
+			return [token]
+		return token
+	
+	def check_rawToken(self, token, askUser=False):
+		if not token:
+			try:
+				token = self._expand_multiple(self.default())
+				return (True, token)
+			except noDefault:
+				if askUser:
+					token = self.ask_user()
+					if token is None:
+						print "canceled"
+						return (False, token)
+					else:
+						return (True, token)
+			return (self.optional, token)
+		if self.multiple:
+			ret = True
+			tokens = []
+			for t in token:
+				ret = ret and self.check(t)
+				tokens.append(t)
+			return (ret, tokens)
+		else:
+			return (self.check(token), token)
 
 class Default(_Constraint):
 	def __init__(self, optional=False):
 		_Constraint.__init__(self, optional, False, None)
-	
+		self.set_grammar(pyparsing.Word(pyparsing.printables))
+
 	def check(self, rawToken):
-		if rawToken is None:
-			return 'refused'
-		return self.set_token(rawToken)
+		return True
 	
 	def ask_user(self):
-		return 'refused'
+		return None
 	
 	def complete(self, value):
 		if value is None:
 			return []
 		return [value]
-			
-	
 
-class File(_Constraint):
-	def __init__(self, mode='open', *args, **kwords):
+class Keyword(_Constraint):
+	def __init__(self, keywords, *args, **kwords):
 		_Constraint.__init__(self, *args, **kwords)
-		self.mode = mode
+		self.set_grammar(pyparsing.oneOf(" ".join(keywords)))
 	
-	def check(self, rawToken):
-		if os.path.exists(rawToken):
-			return self.set_token(os.path.abspath(rawToken))
-		else:
-			return 'refused'
+	def check(self, token):
+		return True
 	
+	def ask_user(self):
+		return None
+			
+class File(_Constraint):
+	def __init__(self, mode='open', optional=False, multiple=False, default=None):
+		def check(s, l, t):
+			t = os.path.abspath(t[0])
+			if os.path.exists(t):
+				return [t]
+			d = os.path.dirname(t)
+			if mode=='save' and os.path.exists(d):
+				return [t]
+			raise pyparsing.ParseException(s, l, "wrong file")
+
+		_Constraint.__init__(self, optional, multiple, default, askUser=True)
+		self.mode = mode		
+		gram = grammar.path.copy()
+		gram.setParseAction( check )
+		self.set_grammar(gram)
+	
+	def check(self, token):
+		return True
+
 	def ask_user(self):
 		path = None
 		currentDoc = core.controler.currentSession.get_currentDocument()
@@ -126,35 +144,30 @@ class File(_Constraint):
 			if path: path = os.path.dirname(path)
 			
 		if self.mode=='open':
-			self.token = core.mainWindow.Helper().ask_filenameOpen(initialdir=path, multiple=self.multiple)
+			token = core.mainWindow.Helper().ask_filenameOpen(initialdir=path, multiple=self.multiple)
 		else:
-			self.token = core.mainWindow.Helper().ask_filenameSave(initialdir=path)
-		if not self.token:
-			return 'refused'
-		return 'ok'
-	
-	def complete(self, value):
-		if value is None:
-			value = ""
-		return [f for f in os.listdir(os.getcwd()) if f.startswith(value)]
+			token = core.mainWindow.Helper().ask_filenameSave(initialdir=path)
+		return token if token else None
+#	
+#	def complete(self, value):
+#		if value is None:
+#			value = ""
+#		return [f for f in os.listdir(os.getcwd()) if f.startswith(value)]
+
+
+
 
 class Index(_Constraint):
 	def __init__(self, *args, **kwords):
-		_Constraint.__init__(self, *args, **kwords)
+		_Constraint.__init__(self, *args, **kwords)		
+		self.set_grammar(grammar.fullindex)
+		
 	
-	def check(self, rawToken):
-		import utils.annotations
-		currentDoc = core.controler.currentSession.get_currentDocument()
-		if not currentDoc:
-			return 'refused'
-		try:
-			index = utils.annotations.Index(currentDoc.get_model(), rawToken)
-		except utils.annotations.BadArgument:
-			return 'refused'
-		return self.set_token(index)
+	def check(self, token):
+		return True
 	
 	def ask_user(self):
-		return 'refused'
+		return None
 	
 	def complete(self, value):
 		return [value]
@@ -162,10 +175,10 @@ class Index(_Constraint):
 class Range(_Constraint):
 	def __init__(self, *args, **kwords):
 		_Constraint.__init__(self, *args, **kwords)
-		import re
-		self.regexp = re.compile(r"(.*):(.*)")
+		self.set_grammar(grammar.indexRange)
 	
 	def check(self, rawToken):
+		return True
 		import utils.annotations
 		currentDoc = core.controler.currentSession.get_currentDocument()
 		if not currentDoc:
@@ -184,7 +197,7 @@ class Range(_Constraint):
 		return self.set_token(_range)
 	
 	def ask_user(self):
-		return 'refused'
+		return None
 	
 	def complete(self, value):
 		return [value]
@@ -223,14 +236,14 @@ class RangeText(_Constraint):
 class Integer(_Constraint):
 	def __init__(self, *args, **kwords):
 		_Constraint.__init__(self, *args, **kwords)
+		self.set_grammar(grammar.integer)
+		
 	
 	def check(self, rawToken):
-		if rawToken is None:
-			return 'refused'
-		return self.set_token(int(rawToken))
+		return True
 	
 	def ask_user(self):
-		return 'refused'
+		return None
 	
 	def complete(self, value):
 		return [value]
@@ -238,25 +251,13 @@ class Integer(_Constraint):
 class OpenDocument(_Constraint):
 	def __init__(self, *args, **kwords):
 		_Constraint.__init__(self, *args, **kwords)
+		self.set_grammar(grammar.doc)
 	
 	def check(self, rawToken):
-		try:
-			index =  int(rawToken)
-			document = core.controler.currentSession.get_documentManager().get_nthFile(index)
-			if document is None:
-				return 'refused'
-		except ValueError:
-			if not os.path.exists(rawToken):
-				return 'refused'
-			path = os.path.abspath(rawToken)
-			if not core.controler.currentSession.get_documentManager().has_file(path):
-				return 'refused'
-			document = core.controler.currentSession.get_documentManager().get_file(path)
-
-		return self.set_token(document)
+		return True
 	
 	def ask_user(self):
-		return 'refused'
+		return None
 	
 	def complete(self, value):
 		if value is None:
