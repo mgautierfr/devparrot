@@ -43,12 +43,6 @@ class ControlerEntry(ttk.Entry):
 		self.textVariable.trace('w', self.on_textChanged)
 		self.on_textChanged()
 		
-		print self.bindtags()
-		print self.bind_class('TEntry')
-		
-		print self.listbox.bindtags()
-		print self.listbox.bind_class('Listbox')
-		
 	def set_position(self):
 		xroot = self.winfo_rootx()
 		yroot = self.winfo_rooty()+self.winfo_height()
@@ -57,14 +51,13 @@ class ControlerEntry(ttk.Entry):
 		
 	
 	def on_entry_event(self, event):
-		print event.keysym, event.char
 		if event.keysym in ('Up', 'Down'):
 			self.delete("0", "end")
 			if event.keysym == 'Up':
 				self.insert("end", controler.currentSession.get_history().get_previous())
 			else:
 				self.insert("end", controler.currentSession.get_history().get_next())
-			return True
+			return
 		if event.keysym == 'Tab':
 			self.set_position()
 			self.toplevel.deiconify()
@@ -83,10 +76,12 @@ class ControlerEntry(ttk.Entry):
 				self['style'] = "errorStyle.TEntry"
 			if controler.currentSession.get_workspace().get_currentDocument():
 				controler.currentSession.get_workspace().get_currentDocument().get_currentView().focus()
+		if event.keysym == 'Escape':
+			if controler.currentSession.get_workspace().get_currentDocument():
+				controler.currentSession.get_workspace().get_currentDocument().get_currentView().focus()
+			return
 	
 	def on_listbox_event(self, event):
-		print dir(event)
-		print event.keysym, "|", event.keysym_num, "|", event.keycode, "|", event.char, "|"
 		if event.keysym == 'Escape':
 			self.toplevel.withdraw()
 			self.focus()
