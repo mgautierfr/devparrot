@@ -88,15 +88,22 @@ class Index:
 
 class Range:
 	def __init__(self, textWidget, startIndex, endIndex):
+		if textWidget != startIndex.textWidget or textWidget != endIndex.textWidget:
+			raise BadArgument()
+		if startIndex >= endIndex:
+			raise BadArgument()
 		self.textWidget = textWidget
 		self.startIndex = startIndex
 		self.endIndex = endIndex
-	
+
 	def __str__(self):
 		return "%s:%s"%(self.startIndex, self.endIndex)
 	
 	def __repr__(self):
-		return "<Range instance pos "+self._index+">"
+		return "<Range instance pos %s [%s:%s]>"%(self.textWidget, self.startIndex._index, self.endIndex._index)
+
+	def get_content(self):
+		return self.textWidget.get(self.startIndex, self.endIndex)
 	
 		
 class Mark:
