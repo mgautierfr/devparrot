@@ -115,13 +115,20 @@ class Keyword(_Constraint):
 		return None
 			
 class File(_Constraint):
-	def __init__(self, mode='open', optional=False, multiple=False, default=None):
+	OPEN, SAVE, NEW = xrange(3)
+	def __init__(self, mode=OPEN, optional=False, multiple=False, default=None):
+		try:
+			(x for x in mode)
+		except TypeError:
+			mode = (mode,)
 		def check(s, l, t):
 			t = os.path.abspath(t[0])
 			if os.path.exists(t):
 				return [t]
 			d = os.path.dirname(t)
-			if mode=='save' and os.path.exists(d):
+			if File.SAVE in mode and os.path.exists(d):
+				return [t]
+			if File.NEW in mode:
 				return [t]
 			raise pyparsing.ParseException(s, l, "wrong file")
 
@@ -142,10 +149,10 @@ class File(_Constraint):
 			path = currentDoc.get_path()
 			if path: path = os.path.dirname(path)
 			
-		if self.mode=='open':
-			token = ui.mainWindow.Helper().ask_filenameOpen(initialdir=path, multiple=self.multiple)
-		else:
+		if File.SAVE in self.mode:
 			token = ui.mainWindow.Helper().ask_filenameSave(initialdir=path)
+		else:
+			token = ui.mainWindow.Helper().ask_filenameOpen(initialdir=path, multiple=self.multiple)
 		return token if token else None
 #	
 #	def complete(self, value):

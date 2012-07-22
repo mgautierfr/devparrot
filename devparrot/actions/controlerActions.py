@@ -32,7 +32,7 @@ class save(Action):
 			return capi.currentDocument.get_path()
 		raise constraints.noDefault()
 
-	fileName = constraints.File(mode='save', default=lambda:save.get_default())
+	fileName = constraints.File(mode=constraints.File.SAVE, default=lambda:save.get_default())
 
 	def pre_check(cls, cmdText):
 		return capi.currentDocument is not None
@@ -93,7 +93,7 @@ class close(Action):
 		capi.del_file(document)
 
 class open(Action):
-	files = constraints.File(mode='open', multiple=True)
+	files = constraints.File(mode=(constraints.File.OPEN, constraints.File.NEW), multiple=True)
 	def open_a_file(cls, fileToOpen):
 		if not fileToOpen: return False
 		lineToGo = None
