@@ -177,13 +177,25 @@ class search(Action):
 class goto(Action):
 	@staticmethod
 	def regChecker(line):
-		import re
-		match = re.match(r"^g(?P<line>[0-9]+)(?P<dot>\.)?(?(dot)(?P<char>[0-9]+))$", line)
-		if match:
-			return ("goto","%s.%s"%(match.group('line'),match.group('char') or '0'))
-		return None
+		import pyparsing
+		if line[0] != "g":
+			return None
+		
+		line = line[1:]
+		
+		try:
+			goto.index.grammar.parseString(line)
+		except pyparsing.ParseException:
+			return None
+		
+		return ("goto", line)
+
 	Action.add_expender(lambda line : goto.regChecker(line))
-	def run(cls, cmdText, *indexes):
-		index = " ".join(indexes)
-		capi.currentDocument.goto_index(index)
+	index = constraints.Index()
+	def run(cls, cmdText, index):
+		try:
+			capi.currentDocument.goto_index(index)
+		except Exception:
+			return False
+		return True
 
