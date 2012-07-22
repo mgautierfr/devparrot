@@ -56,19 +56,8 @@ class Action:
 	def pre_check(cls, cmdText):
 		return True
 	
-	def get_grammar(cls):
-		grammar = None
-		for arg in cls.get_argNames():
-			constraint = cls.get_constraint(arg)
-			arg_grammar =  constraint.get_grammar()
-			arg_grammar = arg_grammar.setResultsName(arg)
-			if grammar is None:
-				grammar = arg_grammar
-			else:
-				grammar = grammar + arg_grammar
-		if grammar:
-			return grammar + pyparsing.StringEnd()
-		return pyparsing.Empty()
+	def get_tokenParser(cls):
+		return constraints.TokenParser(cls.get_allConstraints(),askUser=True)
 	
 	def get_argNumber(cls):
 		return cls.run.func_code.co_argcount-2

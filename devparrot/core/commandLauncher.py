@@ -80,8 +80,6 @@ class Controler:
 	def get_command(self, commandName):
 		if not commandName:
 			return None
-		from pprint import pprint
-		pprint(alias)
 		for prio in sorted(alias, reverse=True):
 			for aliasName,command in alias[prio]:
 				if aliasName == commandName:
@@ -93,20 +91,16 @@ class Controler:
 		return None
 	
 	def expand_tokens(self, command, args):
+		import shlex
 		import command.grammar as grammarModule
+		print "expanding", args
 		rangeExpander = grammarModule.rangeExpander
 		args = rangeExpander.transformString(args)
-		grammar = command.get_grammar()
-		print grammar, args
-		rawTokens = grammar.parseString(args)
-		tokens = []
-		for argName in command.get_argNames():
-			constraint = command.get_constraint(argName)
-			token = rawTokens.get(argName)
-			ret, token = constraint.check_rawToken(token, True)
-			if not ret:
-				return False
-			tokens.append(token)
+		print args
+		tokenParser = command.get_tokenParser()
+		rawTokens = shlex.split(args)
+		tokens = tokenParser.parse(rawTokens)
+		print tokens
 		return tokens
 	
 	def expand_and_complete(self, command, rawTokens):

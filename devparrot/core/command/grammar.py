@@ -21,17 +21,23 @@
 import pyparsing
 import os.path
 
-OptionalQuotedString = lambda g:(pyparsing.Suppress('"')+g+pyparsing.Suppress('"'))^g
+#pyparsing.ParserElement.setDefaultWhitespaceChars('')
+allalphanums = pyparsing.alphanums + pyparsing.alphas8bit
+word = pyparsing.Word(allalphanums)
 
-uinteger = pyparsing.Word(pyparsing.nums).setParseAction(lambda t:[int(t[0])])
+def toInt(s, l, t):
+	try:
+		return [int(t[0])]
+	except ValueError:
+		raise pyparsing.ParseException(s,l,"not an int")
+
+uinteger = pyparsing.Word(pyparsing.nums).setParseAction(toInt)
 integer = pyparsing.Word(pyparsing.nums+"-+", pyparsing.nums)
-integer.setParseAction(lambda t:[int(t[0])])
+integer.setParseAction(toInt)
 
-path_elem = pyparsing.Word(pyparsing.srange("[a-zA-Z0-9_.]"))|"."|".."
-path = pyparsing.Forward()
-path << path_elem + pyparsing.Optional("/" + path)
+path_elem = pyparsing.Word(pyparsing.srange("[a-zA-Z0-9_.]"))|"."|".."|"/"
+path = pyparsing.OneOrMore(path_elem)
 path = pyparsing.Combine(path)
-
 
 def int2Doc(s, l, t):
 	""" transform a integer to a doc"""
@@ -64,6 +70,7 @@ def checkIndex(s, l, t):
 
 def checkRange(s, l, t):
 	from devparrot.core import commandLauncher, utils
+	print "checkRange"
 	doc, start, end = t
 	if doc is None:
 		doc = commandLauncher.currentSession.get_currentDocument()
@@ -78,8 +85,10 @@ def checkRange(s, l, t):
 	return [range_]
 
 def resolveRange(s, l, t):
+	print "resolveRange"
 	range_ = t[0]
 	content = range_.get_content()
+	print content
 	return [content]
 
 docindex = uinteger.copy()
@@ -88,8 +97,6 @@ docindex.addParseAction(int2Doc)
 docpath = path.copy()
 docpath.setParseAction(path2Doc)
 doc = docindex | docpath
-
-
 
 
 positional = pyparsing.Combine(uinteger + pyparsing.Optional("." + uinteger, default=".0"))
@@ -113,7 +120,8 @@ countedmodifierkw = ( pyparsing.Literal("chars")
                     | pyparsing.Literal("i").setParseAction( pyparsing.replaceWith("indices") )
                     | pyparsing.Literal("l").setParseAction( pyparsing.replaceWith("lines") )
                     )
-countedmodifier = pyparsing.Combine( integer + countedmodifierkw , adjacent=False, joinString=" ")
+countedmodifier = pyparsing.Group( integer + countedmodifierkw )
+countedmodifier.setParseAction(lambda t:["%+d %s"%tuple(t[0])])
 directmodifier =  ( pyparsing.Literal("linestart")
                   | pyparsing.Literal("lineend")
                   | pyparsing.Literal("wordstart")
@@ -132,14 +140,10 @@ mark_modifier = pyparsing.Combine(mark + modifier, adjacent=False, joinString=" 
 tag_modifier = pyparsing.Combine(tagPositional + modifier, adjacent=False, joinString=" ")
 
 index = pyparsing.Combine(mark_modifier ^ positional_modifier ^ tag_modifier, adjacent=False, joinString=" ")
-index = OptionalQuotedString(index)
-fullindex = pyparsing.Optional( doc + pyparsing.Suppress("@"), default=None ) + index
-fullindex = OptionalQuotedString(fullindex)
+fullindex = pyparsing.And([pyparsing.Optional( doc + pyparsing.Suppress("@"), default=None ), index], savelist=False)
 fullindex.setParseAction(checkIndex)
 
-
 indexRange = pyparsing.Optional( doc + pyparsing.Suppress("@"), default=None ) + index + pyparsing.Suppress(":") + index
-indexRange = OptionalQuotedString(indexRange)
 indexRange.setParseAction(checkRange)
 
 
