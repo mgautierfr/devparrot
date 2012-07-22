@@ -83,7 +83,8 @@ class SplittedContainer(ContainerChild,Tkinter.PanedWindow):
 		                             orient=Tkinter.VERTICAL if isVertical else Tkinter.HORIZONTAL,
 		                             sashrelief="raised",
 		                             borderwidth=0,
-		                             sashwidth=3)
+		                             sashwidth=3,
+		                             opaqueresize=False)
 		self.uiSubContainer1 = ttk.Frame(self, borderwidth=0, padding=0)
 		self.add(self.uiSubContainer1)
 		self.uiSubContainer2 = ttk.Frame(self, borderwidth=0, padding=0)
@@ -196,6 +197,7 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
 			self.bind_class("Drag", "<ButtonRelease-1>", on_button_released)
 			NotebookContainer.initialized=True
 		self.bindtags(" ".join(["Drag"]+[t for t in self.bindtags()]))
+
 	
 	def register(self):
 		NotebookContainer.notebookList.add(self)
