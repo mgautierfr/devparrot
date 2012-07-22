@@ -22,28 +22,19 @@
 
 
 import sys
+import os.path
 
 try:
 	import _preambule
 except ImportError:
 	sys.exc_clear()
 
-from devparrot.core import config, ui, session, commandLauncher, command, modules
-import os.path
-
-class DevParrot(object):
-	def __init__(self):
-		ui.mainWindow.init()
-		commandLauncher.init()
-		currentPath = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
-		devparrotPath = os.path.join(os.path.dirname(currentPath), "devparrot")
-		command.init(devparrotPath)
-		modules.init(devparrotPath)
-		self.session = session.Session()
-		if len(sys.argv) > 1:
-			commandLauncher.run_command("open %s"%" ".join(sys.argv[1:]))
-
 if __name__ == "__main__":
-	app = DevParrot()
-	ui.mainWindow.window.mainloop()
+	import devparrot
+	app = devparrot.DevParrot()
+	if len(sys.argv) > 1:
+		pathes = sys.argv[1:]
+#		devparrot.core.commandLauncher.run_command("open %s"%" ".join([p for p in pathes if os.path.exists(p)]))
+		devparrot.core.commandLauncher.run_command("open %s"%" ".join(['"%s"'%p for p in pathes]))
+	devparrot.core.ui.mainWindow.window.mainloop()
 
