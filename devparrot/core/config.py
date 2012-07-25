@@ -73,7 +73,7 @@ _default_config_path = os.path.join(_default_config_path,"../../resources/defaul
 _config = Config()
 _global = {'Section':Section,
            'binds':command.binder,
-           'Action':command.actionDef.Action,
+           'Command':command.baseCommand.Command,
            'constraints':command.constraints,
            'capi':command.capi
           }

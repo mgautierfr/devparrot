@@ -18,26 +18,26 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from devparrot.core.command.actionDef import Action
+from devparrot.core.command.baseCommand import Command
 from devparrot.core.command import capi
 
-class cut(Action):
-	def run(cls, args=[]):
+class cut(Command):
+	def run(cls):
 		return capi.currentDocument.get_currentView().cut_clipboard()
 
-class copy(Action):
-	def run(cls, args=[]):
+class copy(Command):
+	def run(cls):
 		return capi.currentDocument.get_currentView().copy_clipboard()
 
-class paste(Action):
-	def run(cls, args=[]):
+class paste(Command):
+	def run(cls):
 		return capi.currentDocument.get_currentView().paste_clipboard()
 
-class undo(Action):
-	def run(cls, args=[]):
+class undo(Command):
+	def run(cls):
 		return capi.currentDocument.get_model().undo()
 
-class redo(Action):
-	def run(cls, args=[]):
+class redo(Command):
+	def run(cls):
 		return capi.currentDocument.get_model().redo()
 

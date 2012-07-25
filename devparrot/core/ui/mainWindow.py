@@ -99,11 +99,11 @@ def init():
 		entry.focus()
 		return "break"
 
-	window.bind_class("Action", "<Control-Return>", focus_and_break)
+	window.bind_class("Command", "<Control-Return>", focus_and_break)
 	window.bind('<ButtonRelease>', lambda e: popupMenu.unpost() )
 	window.bind('<Configure>', lambda e: popupMenu.unpost() )
 	bindtags = list(window.bindtags())
-	bindtags.insert(1,"Action")
+	bindtags.insert(1,"Command")
 	bindtags = " ".join(bindtags)
 	window.bindtags(bindtags)
 

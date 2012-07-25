@@ -261,7 +261,7 @@ def split(documentView, direction, first=True):
 	notebook = documentView.get_parentContainer()
 	if len(notebook._children) == 1:
 		# can't split if only one child
-		return
+		return False
 
 	notebook.detach_child(documentView)
 	parent = notebook.get_parentContainer()
@@ -284,6 +284,7 @@ def split(documentView, direction, first=True):
 	splitted.after_idle(splitted.set_panedPos,0.5)
 	
 	newNotebook.set_as_current()
+	return True
 	
 def unsplit(documentView):
 	if isinstance(documentView, NotebookContainer):
@@ -292,6 +293,7 @@ def unsplit(documentView):
 		otherNotebook = unsplit_notebook(documentView.get_parentContainer())
 		if otherNotebook:
 			otherNotebook.select(documentView)
+	return True
 
 def unsplit_notebook(notebook):
 	parent = notebook.get_parentContainer()

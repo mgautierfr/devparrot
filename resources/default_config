@@ -3,14 +3,14 @@ window = Section()
 window.height = 600
 window.width = 800
 
-binds["<Control-s>"] = "save"
-binds["<Control-n>"] = "new"
-binds["<Control-o>"] = "open"
-binds["<F3>"] = "search"
-binds["<Alt-F3>"] = "bsearch"
-binds["<<Cut>>"] = "cut"
-binds["<<Copy>>"] = "copy"
-binds["<<Paste>>"] = "paste"
+binds["<Control-s>"] = "save\n"
+binds["<Control-n>"] = "new\n"
+binds["<Control-o>"] = "open\n"
+binds["<F3>"] = "search\n"
+binds["<Alt-F3>"] = "bsearch\n"
+binds["<<Cut>>"] = "cut\n"
+binds["<<Copy>>"] = "copy\n"
+binds["<<Paste>>"] = "paste\n"
 
 textView = Section()
 textView.auto_indent = True

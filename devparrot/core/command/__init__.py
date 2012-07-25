@@ -1,6 +1,8 @@
 import bind
 import os
 
+import baseCommand
+
 
 binder = bind.Binder()
 

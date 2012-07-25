@@ -66,7 +66,7 @@ class ControlerEntry(ttk.Entry):
 			return
 		if event.keysym == 'Return':
 			text = self.textVariable.get()
-			ret = commandLauncher.run_command(text)
+			ret = commandLauncher.run_command(text+"\n")
 			if ret is None:
 				self['style'] = "notFoundStyle.TEntry"
 			elif ret:

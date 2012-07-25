@@ -55,7 +55,7 @@ def __getattr__(name):
 	if name == 'currentContainer':
 		return commandLauncher.currentSession.get_workspace().get_currentContainer()
 	if name == 'bind':
-		from devparrot.core.action import binder
+		from devparrot.core.command import binder
 		return binder
 	raise AttributeError
 
@@ -109,11 +109,11 @@ def quit():
 	ui.mainWindow.window.after_idle(destroy)
 	
 def split(vertical, first=True):
-	return viewContainer.split(__getattr__('currentContainer').currentChild, vertical, first)
+	return viewContainer.split(__getattr__('currentContainer').get_documentView(), vertical, first)
 
 def unsplit(container=None):
 	if not container:
-		container = __getattr__('currentContainer').currentChild
+		container = __getattr__('currentContainer')
 	return viewContainer.unsplit(container)
 
 sys.modules[__name__] = ModuleWrapper(sys.modules[__name__])

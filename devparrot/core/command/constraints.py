@@ -198,8 +198,8 @@ class _Constraint:
 		return None
 
 class Default(_Constraint):
-	def __init__(self, optional=False, multiple=False):
-		_Constraint.__init__(self, optional, multiple, None)
+	def __init__(self, optional=False, multiple=False, default=None):
+		_Constraint.__init__(self, optional, multiple, default)
 		self.set_grammar(pyparsing.Word(pyparsing.printables))
 
 
@@ -214,6 +214,23 @@ class Keyword(_Constraint):
 	
 	def __repr__(self):
 		return "<Constraint.Keyword %s>"%self.keywords
+
+class Boolean(_Constraint):
+	def __init__(self, true=["True", "true", "1"], false=["False", "false", "0"], *args, **kwords):
+		_Constraint.__init__(self, *args, **kwords)
+		self.true = true
+		self.false = false
+		
+		def check(s, l, t):
+			if t[0] in self.true:
+				return [True]
+			if t[0] in self.false:
+				return [False]
+			raise  pyparsing.ParseException(s, l, "invalid value")
+		
+		gram = pyparsing.oneOf(" ".join(self.true+self.false))
+		gram.setParseAction(check)
+		self.set_grammar(gram)
 			
 class File(_Constraint):
 	OPEN, SAVE, NEW = xrange(3)

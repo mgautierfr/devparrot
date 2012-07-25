@@ -78,29 +78,29 @@ class Controler:
 		return (commandName, args)
 		
 	def get_command(self, commandName):
+		extraArgs = []
 		if not commandName:
 			return None
 		for prio in sorted(alias, reverse=True):
 			for aliasName,command in alias[prio]:
 				if aliasName == commandName:
 					if isinstance(command, basestring):
-						commandName = command
+						args = command.split(' ')
+						commandName = args[0]
+						extraArgs.extend(args[1:])
 						break
 					else:
-						return command
+						return (command, extraArgs)
 		return None
 	
 	def expand_tokens(self, command, args):
 		import shlex
 		import command.grammar as grammarModule
-		print "expanding", args
 		rangeExpander = grammarModule.rangeExpander
 		args = rangeExpander.transformString(args)
-		print args
 		tokenParser = command.get_tokenParser()
 		rawTokens = shlex.split(args)
 		tokens = tokenParser.parse(rawTokens)
-		print tokens
 		return tokens
 	
 	def expand_and_complete(self, command, rawTokens):
@@ -154,10 +154,10 @@ class Controler:
 		return completions
 			
 	
-	def launch_command(self, command, cmdText, args):
-		eventSystem.event("%s-"%command.__name__)(cmdText, args)
-		ret = command.run(cmdText, *args)
-		eventSystem.event("%s+"%command.__name__)(cmdText, args)
+	def launch_command(self, command, args):
+		eventSystem.event("%s-"%command.__name__)(args)
+		ret = command.run(*args)
+		eventSystem.event("%s+"%command.__name__)(args)
 		return ret
 	
 	def get_commandCompletions(self, commandName):
@@ -168,14 +168,14 @@ class Controler:
 					ret.append(aliasName)
 		return ret
 	
-	def run_command(self, text, cmdText=None):
+	def run_command(self, text):
 		commandName, rawTokens = self.tokenize(text)
 		command  = self.get_command(commandName)
 		if command is None:
 			return None
-		if cmdText is not None:
-			commandName = cmdText
-		if not command.pre_check(commandName):
+		(command, extraArgs) = command
+		rawTokens = " ".join(extraArgs) + rawTokens		
+		if not command.pre_check():
 			return False
 		tokens = self.expand_tokens(command, rawTokens)
 		if tokens == False:
@@ -183,7 +183,7 @@ class Controler:
 			return False
 		ret = None
 
-		ret = self.launch_command(command, commandName, tokens)
+		ret = self.launch_command(command, tokens)
 		currentSession.get_history().push(text)
 		return ret
 		
@@ -206,8 +206,20 @@ def set_session(session):
 	currentSession = session
 	eventSystem.event('newSession')(session)
 	
-def run_command(text, cmdText=None):
-	return controler.run_command(text, cmdText)
+def run_command(text):
+	if isinstance(text, basestring):
+		commands = text.split('\n')
+	else:
+		commands = []
+		map(commands.extend, [s.split('\n') for s in text])
+	ret = None
+	for cmd in commands[:-1]:
+		ret = controler.run_command(cmd)
+		if not ret:
+			return ret
+	import ui.mainWindow
+	ui.mainWindow.entry.textVariable.set(commands[-1])
+	return ret
 
 def get_completions(text):
 	return controler.get_completions(text)

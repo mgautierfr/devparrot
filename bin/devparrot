@@ -35,6 +35,6 @@ if __name__ == "__main__":
 	if len(sys.argv) > 1:
 		pathes = sys.argv[1:]
 #		devparrot.core.commandLauncher.run_command("open %s"%" ".join([p for p in pathes if os.path.exists(p)]))
-		devparrot.core.commandLauncher.run_command("open %s"%" ".join(['"%s"'%p for p in pathes]))
+		devparrot.core.commandLauncher.run_command("open %s\n"%" ".join(['"%s"'%p for p in pathes]))
 	devparrot.core.ui.mainWindow.window.mainloop()
 

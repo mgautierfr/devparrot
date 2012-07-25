@@ -444,7 +444,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 		self.bind("<<Selection>>", self.on_selection_changed)
 		self.bind_class("Text","<Key>",insert_char)
 		bindtags = list(self.bindtags())
-		bindtags.insert(1,"Action")
+		bindtags.insert(1,"Command")
 		bindtags = " ".join(bindtags)
 		self.bindtags(bindtags)
 		controller = MetaController()

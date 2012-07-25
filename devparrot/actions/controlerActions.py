@@ -20,10 +20,10 @@
 
 import os
 
-from devparrot.core.command.actionDef import Action
+from devparrot.core.command.baseCommand import Command
 from devparrot.core.command import constraints, capi
 
-class save(Action):
+class save(Command):
 	@staticmethod
 	def get_default():
 		if capi.currentDocument is None:
@@ -34,10 +34,10 @@ class save(Action):
 
 	fileName = constraints.File(mode=constraints.File.SAVE, default=lambda:save.get_default())
 
-	def pre_check(cls, cmdText):
+	def pre_check(cls):
 		return capi.currentDocument is not None
 
-	def run(cls, cmdText, fileName, *args):
+	def run(cls, fileName, *args):
 		return save.save_document(capi.currentDocument,fileName)
 
 	@staticmethod
@@ -55,8 +55,8 @@ class save(Action):
 		return document.write()
 
 
-class new(Action):
-	def run(cls, cmdText, *args):
+class new(Command):
+	def run(cls, *args):
 		from devparrot.core.document import Document
 		from devparrot.documents.newDocSource import NewDocSource
 		document = Document(NewDocSource())
@@ -64,19 +64,19 @@ class new(Action):
 		capi.currentDocument = document
 		return True
 
-class switch(Action):
+class switch(Command):
 	document = constraints.OpenDocument()
-	def run(cls, cmdText, document, *args):
+	def run(cls, document, *args):
 		capi.currentDocument = document
 		return True
 		
 		
-class close(Action):
+class close(Command):
 	documents = constraints.OpenDocument(multiple=True, default=lambda:capi.currentDocument)
-	def pre_check(cls, cmdText):
+	def pre_check(cls):
 		return capi.currentDocument is not None
 
-	def run(cls, cmdText, documents, *args):
+	def run(cls, documents, *args):
 		for document in documents:
 			close.close_document(document)
 		return True
@@ -92,7 +92,7 @@ class close(Action):
 				capi.unsplit(parentContainer)
 		capi.del_file(document)
 
-class open(Action):
+class open(Command):
 	files = constraints.File(mode=(constraints.File.OPEN, constraints.File.NEW), multiple=True)
 	def open_a_file(cls, fileToOpen):
 		if not fileToOpen: return False
@@ -118,36 +118,35 @@ class open(Action):
 			doc.goto_index("%s.0"%lineToGo-1)
 		return True
 
-	def run(cls, cmdText, files, *args):
+	def run(cls, files, *args):
 		ret = True
 		for fileToOpen in files:
 			ret = ret and cls.open_a_file(fileToOpen)
 		return ret
 
-class quit(Action):
-	def run(cls, cmdText, *args):
+class quit(Command):
+	def run(cls, *args):
 		closeall()
 		return capi.quit()
 	
-class closeall(Action):
-	def run(cls, cmdText, *args):
+class closeall(Command):
+	def run(cls, *args):
 		ret = True
 		while len(capi.documents):
 			ret = ret and close.close_document(capi.get_nth_file(0))
 		return ret
 
-class split(Action):
-	Action.add_alias("vsplit", "split", 1)
-	Action.add_alias("unsplit", "split", 1)
-	def run(cls, cmdText, *args):
-		if cmdText in ["split", "vsplit"]:
-			vertical = 1 if cmdText=="vsplit" else 0
-			return capi.split(vertical)
-		if cmdText == "unsplit":
-			return capi.unsplit()
-		return False
+class split(Command):
+	Command.add_alias("vsplit", "split 1", 1)
+	vertical = constraints.Boolean(default= lambda : False)
+	def run(cls, vertical):
+		return capi.split(vertical)
 
-class search(Action):
+class unsplit(Command):
+	def run(cls):
+		return capi.unsplit()
+
+class search(Command):
 	lastSearch = None
 
 	@staticmethod
@@ -158,26 +157,25 @@ class search(Action):
 			return ("search", " ".join(match.groups()))
 		match = re.match(r"^\?(.*)$", line)
 		if match:
-			return ("bsearch", " ".join(match.groups()))
+			return ("search 1 ", " ".join(match.groups()))
 		return None
 
-	Action.add_expender(lambda line : search.regChecker(line))
-	Action.add_alias("bsearch", "search", 1)
-	searchText = constraints.Default(optional=True)
-	def run(cls, cmdText, searchText):
-		print searchText
-		backward = (cmdText == "bsearch")
-		if searchText is None:
-			searchText = cls.lastSearch
-		else:
-			cls.lastSearch = searchText
+	Command.add_expender(lambda line : search.regChecker(line))
+	Command.add_alias("bsearch", "search 1", 1)
+	searchText = constraints.Default(default=lambda : search.lastSearch)
+	backward = constraints.Boolean(true=("backward", "1"), false=("forward", "0"), default=lambda : False)
+	def run(cls, backward, searchText):
+		cls.lastSearch = searchText
 		if searchText:
 			return capi.currentDocument.search(backward, searchText)
 
-class goto(Action):
+class goto(Command):
 	@staticmethod
 	def regChecker(line):
 		import pyparsing
+		if not line:
+			return None
+
 		if line[0] != "g":
 			return None
 		
@@ -190,9 +188,9 @@ class goto(Action):
 		
 		return ("goto", line)
 
-	Action.add_expender(lambda line : goto.regChecker(line))
+	Command.add_expender(lambda line : goto.regChecker(line))
 	index = constraints.Index()
-	def run(cls, cmdText, index):
+	def run(cls, index):
 		try:
 			capi.currentDocument.goto_index(index)
 		except Exception:
