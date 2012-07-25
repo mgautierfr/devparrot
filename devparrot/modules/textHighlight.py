@@ -267,6 +267,8 @@ def process_token(tw, elem):
 		if not is_in_safeZone(tw, startP, endP):
 		
 			for n in tw.tag_names(startP):
+				if not n.startswith("DP::SH::"):
+					continue
 				if n != token_name:
 					tags.add(n)
 	
@@ -315,7 +317,6 @@ def _update_a_token(textWidget,realTime=False):
 			except StopIteration:
 				Tkinter.Text.mark_set(textWidget, "DP::SH::LASTSTOP", "1.0")
 				textWidget._highlight.idle_id = None
-				textWidget.set_currentLineTag()
 
 		textWidget._highlight.idle_id = textWidget.after_idle(do_next)
 
