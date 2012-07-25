@@ -100,7 +100,7 @@ class BasicTextController(Controller):
 	
 	@bind('<KeyPress>')
 	def on_key_pressed(self, event, modifiers):
-		if event.keysym in ( 'Return','Enter','KP_Enter','Tab','BackSpace','Delete','Insert' ):
+		if event.keysym in ( 'Return','Enter','KP_Enter','BackSpace','Delete','Insert' ):
 			event.widget.sel_clear()
 			return "break"
 		if len(event.char) > 0:
@@ -131,7 +131,23 @@ class BasicTextController(Controller):
 
 	@bind('<Tab>', '<ISO_Left_Tab>')
 	def on_tab(self, event, modifier):
-		event.widget.insert( 'insert', '\t' )
+		from devparrot.core.utils.annotations import Index, BadArgument
+		try:
+			start = Index(event.widget, 'sel.first')
+			stop = Index(event.widget, 'sel.last')
+		except BadArgument:
+			# no selection
+			if event.keysym == 'Tab':
+				event.widget.insert( 'insert', '\t' )
+			return "break"
+		if event.keysym == 'ISO_Left_Tab':
+			for line in xrange(start.line(), stop.line()+1):
+				print line, ":", event.widget.get( '%d.0'%line )
+				if event.widget.get( '%d.0'%line ) == '\t':
+					event.widget.delete('%d.0'%line, '%d.1'%line)
+		else:
+			for line in xrange(start.line(), stop.line()+1):
+				event.widget.insert( '%d.0'%line, '\t')
 		return "break"
 	
 	@bind('<BackSpace>')

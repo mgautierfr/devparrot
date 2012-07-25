@@ -26,6 +26,12 @@ class Index:
 			except Tkinter.TclError:
 				raise BadArgument()
 	
+	def line(self):
+		return self._split[0]
+
+	def char(self):
+		return self._split[1]
+
 	def __str__(self):
 		return self._index
 	
