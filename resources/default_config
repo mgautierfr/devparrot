@@ -11,6 +11,7 @@ binds["<Alt-F3>"] = "bsearch\n"
 binds["<<Cut>>"] = "cut\n"
 binds["<<Copy>>"] = "copy\n"
 binds["<<Paste>>"] = "paste\n"
+binds["<Control-w>"] = "close\n"
 
 textView = Section()
 textView.auto_indent = True
