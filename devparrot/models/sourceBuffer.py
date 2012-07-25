@@ -93,6 +93,10 @@ def bind(*events):
 		return func
 	return decorator
 
+from pyparsing import printables, punc8bit, alphas8bit
+validChars = set(printables+alphas8bit+punc8bit+" \t"+u'\u20ac')
+# euro signe (\u20ac) is not in alpha8bit => add it
+wordChars = set(printables+alphas8bit+punc8bit)
 
 class BasicTextController(Controller):
 	def __init__(self):
@@ -103,15 +107,14 @@ class BasicTextController(Controller):
 		if event.keysym in ( 'Return','Enter','KP_Enter','BackSpace','Delete','Insert' ):
 			event.widget.sel_clear()
 			return "break"
-		if len(event.char) > 0:
-			if modifiers.ctrl:
-				return
+		char = event.char.decode('utf8')
+		if char in validChars:
 			try:
 				event.widget.sel_delete( )
 			except:
 				pass
 	      
-			event.widget.insert( 'insert', event.char )
+			event.widget.insert( 'insert', char )
 			event.widget.sel_clear( )
 			return "break"
 			
