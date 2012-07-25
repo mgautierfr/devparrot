@@ -28,13 +28,29 @@ import Tkinter
 PREFIX = "tkController"
 
 class Modifiers(object):
-	def __init__(self, modifiers):
-		self.modifiers = modifiers
+	_button3 = 1024
+	_button2 = 512
+	_button1 = 256
+	_altgr   = 128
+	_super   = 64
+	_meta    = 32
+	_numlock = 16
+	_alt     = 8
+	_ctrl    = 4
+	_lock    = 2
+	_shift   = 1
+	def __init__(self, event):
+		self.state = event.state
+		self.modifiers = set()
+		for level in [2**i for i in xrange(10, -1, -1)]:
+			if self.state >= level:
+				self.modifiers.add(level)
+				self.state -= level
+			
 
 	def __getattr__(self, name):
-		if name in ["shift", "ctrl", "meta", "super", "lock"]:
-			return name in self.modifiers
-		raise AttibuteError
+		level = getattr(self, "_"+name)
+		return level in self.modifiers
 			
 
 class Controller(object):
@@ -48,21 +64,11 @@ class Controller(object):
 		self.create(bind)
 
 	def create(self, handle):
-		# override if necessary
-		# the default implementation looks for decorated methods
 		for key in dir(self):
 			method = getattr(self, key)
-			if hasattr(method, "tkevent") and hasattr(method, "tkmodif") and callable(method):
+			if hasattr(method, "tkevent") and callable(method):
 				for eventSequence in method.tkevent:
-					for modif in method.tkmodif:
-						rawEventSequence = [eventSequence[1:-1]]
-						if 'shift' in modif: rawEventSequence.insert(0, 'Shift')
-						if 'ctrl' in modif: rawEventSequence.insert(0, 'Control')
-						if 'alt' in modif: rawEventSequence.insert(0, 'Alt')
-						rawEventSequence = "-".join(rawEventSequence)
-						rawEventSequence = "<"+rawEventSequence+">" 
-						handle(rawEventSequence, lambda event, method=method, modif=modif:
-						                                   method(event, Modifiers(modif)))
+					handle(eventSequence, lambda event, method=method: method(event, Modifiers(event)))
 
 class MetaController:
 	def __init__(self, master=None):
@@ -81,65 +87,18 @@ class MetaController:
 		tags[tags.index(widgetclass):tags.index(widgetclass)+1] = [c.tag for c in self.subControllers]
 		widget.bindtags(tuple(tags))
 
-
-_none = ()
-_shift = ('shift',)
-_lock = ('lock',)
-_ctrl = ('ctrl',)
-_alt = ('alt',)
-_super = ('super',)
-_shiftctrl = ('shift','ctrl')
-_shiftalt  = ('shift','alt')
-_shiftsuper= ('shift','super')
-_lockctrl = ('lock','ctrl')
-_lockalt  = ('lock','alt')
-_locksuper= ('lock','super')
-_ctrlalt   = ('ctrl', 'alt')
-_ctrlsuper = ('ctrl', 'super')
-_altsuper  = ('alt', 'super')
-_shiftctrlalt = ('shift', 'ctrl', 'alt')
-_shiftctrlsuper = ('shift', 'ctrl', 'super')
-_shiftaltsuper = ('shift', 'alt', 'super')
-_lockctrlalt = ('lock', 'ctrl', 'alt')
-_lockctrlsuper = ('lock', 'ctrl', 'super')
-_lockaltsuper = ('lock', 'alt', 'super')
-_ctrlaltsuper = ('ctrl', 'alt', 'super')
-_shiftctrlaltsuper = ('shift', 'ctrl', 'alt', 'super')
-_lockctrlaltsuper = ('lock', 'ctrl', 'alt', 'super')
-
-
-
 def bind(*events):
-	if isinstance(events[-1], list):
-		modifiers = events[-1]
-		events = events[:-1]
-	else:
-		modifiers = [_none]
 	def decorator(func):
 		func.tkevent = events
-		func.tkmodif = modifiers
 		return func
 	return decorator
 
-def _bind(modifiersList, *events):
-	def decorator(func):
-		func.tkevent = events
-		func.tkmodif = modifiersList
-		return func
-	return decorator
-
-def bind(*events):
-	return _bind([_none], *events)
-
-def mbind(*events):
-	return _bind([_none, _shift, _ctrl, _alt, _lock, _super, _shiftctrl, _shiftalt, _shiftsuper, _ctrlalt, _ctrlsuper, _altsuper, _lockctrl, _lockalt, _locksuper, _shiftctrlalt, _shiftctrlsuper, _shiftaltsuper, _ctrlaltsuper, _shiftctrlaltsuper, _lockctrlalt, _lockctrlsuper, _lockaltsuper, _lockctrlaltsuper],
-	*events)
 
 class BasicTextController(Controller):
 	def __init__(self):
 		Controller.__init__(self)
 	
-	@mbind('<KeyPress>')
+	@bind('<KeyPress>')
 	def on_key_pressed(self, event, modifiers):
 		if event.keysym in ( 'Return','Enter','KP_Enter','Tab','BackSpace','Delete','Insert' ):
 			event.widget.sel_clear()
@@ -170,7 +129,7 @@ class BasicTextController(Controller):
 				text += event.widget.get(match_start, match_end)
 			event.widget.insert( 'insert', text )
 
-	@bind('<Key-Tab>')
+	@bind('<Tab>', '<ISO_Left_Tab>')
 	def on_tab(self, event, modifier):
 		event.widget.insert( 'insert', '\t' )
 		return "break"
@@ -207,7 +166,7 @@ class CarretController( Controller ):
 		else:
 			event.widget.sel_clear( )
 	
-	@mbind( "<Home>", "<KP_Home>")
+	@bind( "<Home>", "<KP_Home>")
 	def home(self, event, modifiers):
 		if len(event.char) > 0 : return
 		self._handle_shift(modifiers.shift,event)
@@ -226,7 +185,7 @@ class CarretController( Controller ):
 		event.widget.see('insert')
 		event.widget.update_idletasks()
 	
-	@mbind("<End>", "<KP_End>",)
+	@bind("<End>", "<KP_End>",)
 	def end(self, event, modifiers):
 		if len(event.char) > 0 : return
 		self._handle_shift(modifiers.shift, event)
@@ -237,7 +196,7 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@mbind("<Right>", "<KP_Right>")
+	@bind("<Right>", "<KP_Right>")
 	def right(self, event, modifiers):
 		if len(event.char) > 0 : return
 		self._handle_shift(modifiers.shift, event)
@@ -257,7 +216,7 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@mbind("<Left>", "<KP_Left>")
+	@bind("<Left>", "<KP_Left>")
 	def left(self, event, modifiers):
 		if len(event.char) > 0 : return
 		self._handle_shift(modifiers.shift, event)
@@ -278,7 +237,7 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@mbind("<Down>", "<KP_Down>")
+	@bind("<Down>", "<KP_Down>")
 	def down(self, event, modifiers):
 		if modifiers.ctrl: return
 		if len(event.char) > 0 : return
@@ -287,7 +246,7 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@mbind("<Up>", "<KP_Up>")
+	@bind("<Up>", "<KP_Up>")
 	def up(self, event, modifiers):
 		if modifiers.ctrl: return
 		if len(event.char) > 0 : return
@@ -301,7 +260,7 @@ class CarretController( Controller ):
 		nbLine = widget.tk.call(widget._w, "count", "-displaylines", "@0,0", "@%d,%d"%(widget.winfo_width(),widget.winfo_height()))
 		return nbLine
 
-	@mbind("<Prior>", "<KP_Prior>")
+	@bind("<Prior>", "<KP_Prior>")
 	def prior(self, event, modifiers):
 		if len(event.char) > 0 : return
 		event.widget.yview_scroll( -1, 'pages' )
@@ -311,7 +270,7 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 	
-	@mbind("<Next>", "<KP_Next>")
+	@bind("<Next>", "<KP_Next>")
 	def next(self, event, modifiers):
 		if len(event.char) > 0 : return
 		event.widget.yview_scroll( 1, 'pages' )
@@ -321,12 +280,12 @@ class CarretController( Controller ):
 		event.widget.see( 'insert' )
 		event.widget.update_idletasks()
 
-	@mbind("<Button-4>")
+	@bind("<Button-4>")
 	def scroll_up(self, event, modifiers):
 		event.widget.yview_scroll( -3, 'units' )
 		event.widget.update_idletasks()
 
-	@mbind("<Button-5>")
+	@bind("<Button-5>")
 	def scroll_down(self, event, modifiers):
 		event.widget.yview_scroll( 3, 'units' )
 		event.widget.update_idletasks()
@@ -356,7 +315,7 @@ class MouseController(Controller):
 	def __init__(self):
 		Controller.__init__(self)
 
-	@mbind( '<ButtonPress-1>' )
+	@bind( '<ButtonPress-1>' )
 	def click( self, event, modifiers):
 		event.widget.focus_set( )
 
