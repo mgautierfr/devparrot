@@ -221,15 +221,17 @@ class CarretController( Controller ):
 		self._handle_shift(modifiers.shift, event)
 		if modifiers.ctrl:
 			currentPos = event.widget.index( 'insert' )
-			maxPos     = event.widget.index( 'end wordstart' )
-	    
-			if currentPos == maxPos:
-				return
-	    
-			offset = 1
-			while event.widget.compare( currentPos, '==', event.widget.index('insert') ):
-				event.widget.mark_set( 'insert', 'insert wordend +%dc wordstart' % offset )
-				offset += 1
+			wordend    = event.widget.index( 'insert wordend' )
+			word = event.widget.get(currentPos, wordend)
+
+			while wordend != currentPos:
+				if len(set(word)&wordChars) != 0:
+					break
+				currentPos = wordend
+				wordend = event.widget.index( '%s wordend'%currentPos )
+				word = event.widget.get(currentPos, wordend)
+
+			event.widget.mark_set( 'insert', wordend)
 		else:
 			event.widget.mark_set( 'insert', 'insert +1 chars' )
 		event.widget.see( 'insert' )
@@ -241,16 +243,18 @@ class CarretController( Controller ):
 		self._handle_shift(modifiers.shift, event)
 		if modifiers.ctrl:
 			currentPos = event.widget.index( 'insert' )
-			minPos     = event.widget.index( '1.0 wordstart' )
-	    
-			if currentPos == minPos:
-				return
-	    
-			offset = 2
-			event.widget.mark_set( 'insert', 'insert wordstart' )
-			while event.widget.compare( currentPos, '==', event.widget.index('insert') ):
-				event.widget.mark_set( 'insert', 'insert -%dc wordstart' % offset )
-				offset += 1
+			wordstart  = event.widget.index( 'insert -1c wordstart' )
+			word = event.widget.get(wordstart, currentPos)
+
+			while wordstart != currentPos:
+				if len(set(word)&wordChars) != 0:
+					break
+				currentPos = wordstart
+				wordstart = event.widget.index( '%s -1c wordstart'%currentPos )
+				word = event.widget.get(wordstart, currentPos)
+
+
+			event.widget.mark_set( 'insert', wordstart)
 		else:
 			event.widget.mark_set( 'insert', 'insert -1 chars' )
 		event.widget.see( 'insert' )
