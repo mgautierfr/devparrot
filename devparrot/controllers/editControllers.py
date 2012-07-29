@@ -133,20 +133,20 @@ class CarretController( Controller ):
 	
 	@bind( "<Home>", "<KP_Home>")
 	def home(self, event, modifiers):
+		from devparrot.core import config
 		if len(event.char) > 0 : return
 		self._handle_shift(modifiers.shift,event)
+		newPos = 'insert linestart'
 		if modifiers.ctrl:
-			event.widget.mark_set( 'insert', '1.0' )
-		else:
+			newPos = '1.0'
+		elif config.textView.smart_home_end:
 			l, c = event.widget.index('insert').split('.')
 			match_start = ttk.Tkinter.Text.search(event.widget, "[^ \t]" , 'insert linestart', stopindex='insert lineend', regexp=True)
 			if match_start:
-				if event.widget.compare(match_start, '==', 'insert'):
-					event.widget.mark_set( 'insert', 'insert linestart' )
-				else:
-					event.widget.mark_set( 'insert', match_start)
-			else:
-				event.widget.mark_set( 'insert', 'insert linestart' )
+				if event.widget.compare(match_start, '!=', 'insert'):
+					newPos = match_start
+
+		event.widget.mark_set( 'insert', newPos )
 		event.widget.see('insert')
 		event.widget.update_idletasks()
 	
