@@ -26,7 +26,7 @@ from devparrot.core import config
 
 from devparrot.core.utils.annotations import Index
 
-from pygments.token import SyncPoint
+from pygments.token import SyncPoint, Token
 from devparrot.core.utils.variable import fcb
 
 import Tkinter
@@ -41,6 +41,7 @@ def activate():
 	create_fonts()
 	create_styles()
 	config.textView.font_register(on_font_changed)
+	config.textView.hlstyle_register(on_style_changed)
 	commandLauncher.eventSystem.connect("newDocument",on_new_document)
 	pass
 
@@ -51,6 +52,11 @@ def on_font_changed(var, old):
 	if var.get() == old:
 		return
 	create_fonts()
+	create_styles()
+
+def on_style_changed(var, old):
+	if var.get() == old:
+		return
 	create_styles()
 
 def create_fonts():
@@ -67,21 +73,37 @@ def create_styles():
 	from pygments.styles import get_style_by_name
 	global _fonts
 	global _styles
+	global _style
 	
-	style = get_style_by_name('default')
-	for token,tStyle in style:
+	_style = get_style_by_name(config.textView.hlstyle)
+	
+	tkStyles = dict(_style)
+	for token in sorted(tkStyles):
+		while True:
+			if token == Token:
+				break
+			parent = token.parent
+			if not tkStyles[token]['color']:
+				tkStyles[token]['color'] = tkStyles[parent]['color']
+			if not tkStyles[token]['bgcolor']:
+				tkStyles[token]['bgcolor'] = tkStyles[parent]['bgcolor']
+			if tkStyles[token]['color'] and tkStyles[token]['bgcolor']:
+				break
+			token = parent
+			
+	for token,tStyle in tkStyles.items():
 		token = "DP::SH::%s"%str(token).replace('.','_')
 		_styles[token] = {}
-		if tStyle['color']:
-			_styles[token]['foreground'] = "#%s"%tStyle['color']
-		if tStyle['bgcolor']:
-			_styles[token]['background'] = "#%s"%tStyle['bgcolor']
+		
+		_styles[token]['foreground'] = "#%s"%tStyle['color'] if tStyle['color'] else ""
+		_styles[token]['background'] = "#%s"%tStyle['bgcolor'] if tStyle['bgcolor'] else ""
 
 		_styles[token]['underline'] = tStyle['underline']
 		_styles[token]['font'] = _fonts[(tStyle['bold'],tStyle['italic'])]
 		
 
 def create_style_table(textWidget):
+	textWidget.configure(background=_style.background_color,selectbackground=_style.highlight_color)
 	for token, style in _styles.items():
 		textWidget.tag_configure(token, style)
 
@@ -95,6 +117,7 @@ class HighlightContext(object):
 def on_new_document(document):
 	create_style_table(document.models['text'])
 	config.textView.font_register(fcb(lambda v, o, tw=weakref.proxy(document.models['text']) : create_style_table(tw), weakref.ref(document)))
+	config.textView.hlstyle_register(fcb(lambda v, o, tw=weakref.proxy(document.models['text']) : create_style_table(tw), weakref.ref(document)))
 	document.connect('textSet', on_text_set)
 	document.models['text']._highlight = HighlightContext()
 	on_text_set(document)
