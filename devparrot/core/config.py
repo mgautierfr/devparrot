@@ -25,7 +25,7 @@ import sys
 
 import command
 
-from devparrot.controlers.defaultControllerMode import DefaultControllerMode
+from devparrot.controllers.defaultControllerMode import DefaultControllerMode
 from devparrot.core.utils.variable import Property, Variable, CbCaller, CbList
 
 

@@ -1,4 +1,7 @@
 
+controller = DefaultControllerMode()
+
+
 window = Section()
 window.height = 600
 window.width = 800
