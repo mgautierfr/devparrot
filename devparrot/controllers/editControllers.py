@@ -50,16 +50,18 @@ class BasicTextController(Controller):
 			
 	@bind('<Return>', '<KP_Enter>')
 	def on_return(self, event, modifiers):
+		from devparrot.core import config
 		try:
 			event.widget.sel_delete()
 		finally:
 			count = ttk.Tkinter.IntVar()
 			text = "\n"
 			l, c = event.widget.index('insert').split('.')
-			match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*" , '%s.0'%l, stopindex=event.widget.index('insert'), regexp=True, count=count)
-			if match_start:
-				match_end = "%s.%i"%(l,min(count.get(),int(c)))
-				text += event.widget.get(match_start, match_end)
+			if config.textView.auto_indent:
+				match_start = ttk.Tkinter.Text.search(event.widget, "blank*" , '%s.0'%l, stopindex=event.widget.index('insert'), regexp=True, count=count)
+				if match_start:
+					match_end = "%s.%i"%(l,min(count.get(),int(c)))
+					text += event.widget.get(match_start, match_end)
 			event.widget.insert( 'insert', text )
 
 	@bind('<Tab>', '<ISO_Left_Tab>')
