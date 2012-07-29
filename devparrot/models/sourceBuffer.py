@@ -501,7 +501,8 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 	
 	def set_currentLineTag(self):
 		self.tag_remove('currentLine_tag', '1.0', 'end')
-		self.tag_add( 'currentLine_tag', 'insert linestart', 'insert + 1l linestart')
+		if config.textView.highlight_current_line:
+			self.tag_add( 'currentLine_tag', 'insert linestart', 'insert + 1l linestart')
 
 	# Overloads
 	def mark_set( self, name, index ):
