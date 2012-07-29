@@ -422,7 +422,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 		ttk.Tkinter.Text.__init__(self, ui.mainWindow.workspaceContainer,
 		                          undo=True,
 		                          autoseparators=False,
-		                          font=config.textView.font)
+		                          tabstyle="wordprocessor")
 		utils.event.EventSource.__init__(self)
 		self.bind("<<Selection>>", self.on_selection_changed)
 		self.bind_class("Text","<Key>",insert_char)
@@ -439,9 +439,15 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 		
 		self.on_font_changed(None, None)
 		config.textView.font_register(mcb(self.on_font_changed))
+		config.textView.tab_width_register(mcb(self.on_tab_width_changed))
 	
 	def on_font_changed(self, var, old):
 		self.config(font = config.textView.font)
+		self.on_tab_width_changed(None, None)
+	
+	def on_tab_width_changed(self, var, old):
+		import tkFont
+		self.config(tabs = config.textView.tab_width*tkFont.Font(font=config.textView.font).measure(" "))
 	
 	# Selection Operations
 	def sel_clear( self ):
