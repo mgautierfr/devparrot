@@ -18,35 +18,21 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
+from variable import CbCaller
 
-class Event(object):
-	def __init__(self):
-		self.listeners = set()
-		pass
-
+class Event(CbCaller):
 	def __call__(self, *args, **kwords):
-		for listener in self.listeners:
-			listener(*args, **kwords)
-	
-	
-	def connect(self, listener):
-		self.listeners.add(listener)
-	__iadd__ = connect
-
-	
-	def disconnect(self, listener):
-		self.listeners.discard(listener)
-	__isub__ = disconnect
+		self.notify(*args, **kwords)
 
 
 class EventSource(object):
 	def __init__(self):
-		self.events = dict()
+		self.__events = dict()
 
-	def connect(self, eventName, listener):
-		self.events.setdefault(eventName, Event()).connect(listener)
+	def connect(self, eventName, callback):
+		self.__events.setdefault(eventName, Event()).register(callback)
 
 	def event(self, eventName):
-		return self.events.get(eventName, Event())
+		return self.__events.get(eventName, Event())
 
 

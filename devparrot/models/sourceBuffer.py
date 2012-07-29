@@ -21,6 +21,7 @@
 import ttk
 
 from devparrot.core import config, ui, utils
+from devparrot.core.utils.variable import mcb
 from time import time
 
 import Tkinter
@@ -429,9 +430,9 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 		bindtags.insert(1,"Command")
 		bindtags = " ".join(bindtags)
 		self.bindtags(bindtags)
-		controller = MetaController()
-		controller.set_subControllers(CarretController(), AdvancedTextController(), BasicTextController(), MouseController() )
-		controller.install( self )
+
+		config.controller.install( self )
+		
 		self.tag_configure('currentLine_tag', background=config.color.currentLine_tag_color)
 		self.tag_raise("currentLine_tag")
 		self.tag_raise("sel", "currentLine_tag")

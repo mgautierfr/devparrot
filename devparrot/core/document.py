@@ -25,18 +25,23 @@ import commandLauncher
 from datetime import datetime
 import ttk
 import utils.event
-import utils.variable
+from utils.variable import Property, Variable
 from devparrot.models.sourceBuffer import SourceBuffer
 
 
 class Document(utils.event.EventSource):
+	def get_title(self):
+		return self.documentSource.title
+
+	def get_longTitle(self):
+		return self.documentSource.longTitle
+	title, title_notify, title_register, title_unregister = Property("title", get_title)
+	longTitle, longTitle_notify, longTitle_register, longTitle_unregister = Property("longTitle", get_longTitle)
 	def __init__(self, documentSource):
 		utils.event.EventSource.__init__(self)
 		self.models = {}
-		self.title = utils.variable.ProxyVar(self.get_title)
-		self.longTitle = utils.variable.ProxyVar(self.get_longTitle)
 		self.set_path(documentSource)
-		self.modifiedVar = utils.variable.Variable("normal")
+		self.modifiedVar = Variable("normal")
 		self.documentView = DocumentView(self)
 		self.models['text'] = SourceBuffer(self)
 		self.models['text'].bind("<<Modified>>", self.on_modified_changed)
@@ -72,12 +77,6 @@ class Document(utils.event.EventSource):
 	def get_model(self):
 		return self.models['text']
 	
-	def get_title(self):
-		return self.documentSource.title
-	
-	def get_longTitle(self):
-		return self.documentSource.longTitle
-	
 	def has_a_path(self):
 		return self.documentSource.has_path()
 	
@@ -92,8 +91,8 @@ class Document(utils.event.EventSource):
 			except AttributeError:
 				oldPath = None
 			self.documentSource = documentSource
-			self.title.notify()
-			self.longTitle.notify()
+			self.title_notify()
+			self.longTitle_notify()
 			self.event('textSet')(self)
 			self.event('pathChanged')(self, oldPath)
 		
@@ -126,7 +125,7 @@ class Document(utils.event.EventSource):
 		model = self.models['text']
 		if model.edit_modified():
 			import ui.mainWindow
-			return ui.mainWindow.Helper().ask_questionYesNo("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.get_title()})
+			return ui.mainWindow.Helper().ask_questionYesNo("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.title})
 		return False
 		
 	def search(self, backward, text):

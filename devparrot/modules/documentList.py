@@ -79,7 +79,6 @@ class DocumentListView(ttk.Treeview):
 
 	def on_documentDeleted(self,document):
 		self.delete(document.get_path())
-		document.event('pathChanged').disconnect(self.on_path_changed)
 		self.sort()
 	
 	def on_path_changed(self, document, oldPath):

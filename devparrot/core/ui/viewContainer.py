@@ -20,6 +20,7 @@
 
 import Tkinter,ttk,Tkdnd
 import mainWindow
+from devparrot.core.utils.variable import fcb, proxy, ref
 
 class ContainerChild():
 	def __init__(self):
@@ -221,9 +222,9 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
 		child.set_parentContainer(self)
 		self._children.append(child)
 		self.add(child, text=child.document.title)
-		child.document.title.register(lambda value, child=child : self.change_title(child, value))
+		child.document.title_register(fcb(lambda v,o, s=proxy(self), child=proxy(child): s.change_title(child), ref(self)))
 	
-	def change_title(self, child, value):
+	def change_title(self, child):
 		self.tab(child, text=child.document.title)
 	
 	def detach_child(self, child):

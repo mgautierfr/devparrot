@@ -20,6 +20,7 @@
 
 import Tkinter,ttk,Tkdnd
 from viewContainer import NotebookContainer,ContainerChild
+from devparrot.core.utils.variable import mcb
 
 import mainWindow
 
@@ -37,7 +38,7 @@ class DocumentView(ContainerChild, ttk.Frame):
 		self.label['text'] = document.longTitle
 		self.label['font'] = self.label.font
 		self.label.pack()
-		document.longTitle.register(self.on_title_changed)
+		document.longTitle_register(mcb(self.on_title_changed))
 
 		self.bind('<FocusIn>', self.on_focus)
 		
@@ -55,8 +56,8 @@ class DocumentView(ContainerChild, ttk.Frame):
 		self.set_bold(var.get())		
 		return False
 	
-	def on_title_changed(self, newtitle):
-		self.label['text'] = newtitle
+	def on_title_changed(self, newtitle, oldTitle):
+		self.label['text'] = self.document.longTitle
 
 	def set_bold(self, bold):
 		self.label.font['weight'] = "bold" if bold else "normal"
