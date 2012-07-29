@@ -63,26 +63,40 @@ class BasicTextController(Controller):
 					match_end = "%s.%i"%(l,min(count.get(),int(c)))
 					text += event.widget.get(match_start, match_end)
 			event.widget.insert( 'insert', text )
+	
+	@bind('<ISO_Left_Tab>')
+	def on_back_tab(self, event, modifier):
+		from devparrot.core import config
+		from devparrot.core.utils.annotations import Index, BadArgument
+		tabs = ['\t']
+		if config.textView.space_indent:
+			tabs += [' '*i for i in xrange(config.textView.tab_width, 0, -1)]
+		try:
+			start = Index(event.widget, 'sel.first').line()
+			stop = Index(event.widget, 'sel.last').line()
+		except BadArgument:
+			start = Index(event.widget, 'insert').line()
+			stop = start
+		for line in xrange(start, stop+1):
+			for tab in tabs:
+				if event.widget.get( '%d.0'%line, '%d.%d'%(line, len(tab)) ) == tab:
+					event.widget.delete('%d.0'%line, '%d.%d'%(line, len(tab)))
+					break
 
-	@bind('<Tab>', '<ISO_Left_Tab>')
+	@bind('<Tab>')
 	def on_tab(self, event, modifier):
 		from devparrot.core.utils.annotations import Index, BadArgument
+		from devparrot.core import config
+		tab = ' '*config.textView.tab_width if config.textView.space_indent else '\t'
 		try:
 			start = Index(event.widget, 'sel.first')
 			stop = Index(event.widget, 'sel.last')
 		except BadArgument:
 			# no selection
-			if event.keysym == 'Tab':
-				event.widget.insert( 'insert', '\t' )
-			return "break"
-		if event.keysym == 'ISO_Left_Tab':
-			for line in xrange(start.line(), stop.line()+1):
-				print line, ":", event.widget.get( '%d.0'%line )
-				if event.widget.get( '%d.0'%line ) == '\t':
-					event.widget.delete('%d.0'%line, '%d.1'%line)
+			event.widget.insert( 'insert', tab )
 		else:
 			for line in xrange(start.line(), stop.line()+1):
-				event.widget.insert( '%d.0'%line, '\t')
+				event.widget.insert( '%d.0'%line, tab)
 		return "break"
 	
 	@bind('<BackSpace>')
