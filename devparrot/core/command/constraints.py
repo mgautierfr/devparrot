@@ -25,6 +25,8 @@ import grammar
 
 import Tkinter
 
+from tokenParser import MissingToken, InvalidToken
+
 class noDefault(Exception):
 	pass
 
