@@ -24,7 +24,7 @@ import os.path
 
 from devparrot.core import config
 
-from devparrot.core.utils.annotations import Index
+from devparrot.core.utils.posrange import Index
 
 from pygments.token import SyncPoint, Token
 from devparrot.core.utils.variable import fcb
@@ -150,7 +150,7 @@ def on_text_set(document):
 def on_insert(model, insertMark, text):
 	if model._highlight.lexer :
 		start = Index(model, insertMark)
-		stop = start + '%d c'%len(text)
+		stop = Index(model, "%s + %d c"%(insertMark, len(text)))
 		model._highlight.no_tagMarkZone = (start, stop)
 		update_highlight(model, start)
 #		import cProfile
@@ -164,7 +164,7 @@ def on_delete(model, fromMark, toMark):
 
 def update_highlight(textWidget, insertPoint):
 	start = find_startPoint(textWidget,insertPoint)
-	content = textWidget.get(start,"end")
+	content = textWidget.get(str(start),"end")
 	textWidget._highlight.startPoint = start
 	tokens = textWidget._highlight.lexer.get_tokens_unprocessed(content)
 	tokens = append_lastSyncPoint(tokens, len(content))
@@ -173,7 +173,7 @@ def update_highlight(textWidget, insertPoint):
 	_update_a_token(textWidget, False)
 
 def find_next(textWidget, index, forceAfter=False):
-	next = textWidget.mark_next(index)
+	next = textWidget.mark_next(str(index))
 	while next:
 		nextI = Index(textWidget, next, True)
 		if next.startswith("DP::SH::_synctx_") and (not forceAfter or nextI > index):
@@ -184,7 +184,7 @@ def find_next(textWidget, index, forceAfter=False):
 	return None, Index(textWidget, "end", True)
 
 def find_previous(textWidget, index):
-	previous = textWidget.mark_previous(index)
+	previous = textWidget.mark_previous(str(index))
 	while previous:
 		previousI = Index(textWidget, previous, True) 
 		if previous.startswith("DP::SH::_synctx_"):
@@ -192,7 +192,7 @@ def find_previous(textWidget, index):
 				break
 			#remove all syncpoint at index pos
 			textWidget.mark_unset(previous)
-		previous = textWidget.mark_previous(previousI)
+		previous = textWidget.mark_previous(str(previousI))
 	if previous:
 		return previousI
 	return None
@@ -220,7 +220,7 @@ def filter_token_stream(textWidget, tokens, startPoint, insertPoint):
 	for i, t, v in tokens:
 		if t == SyncPoint:
 			if i != currentPos[0]:
-				currentPos = (i, startPoint + "%dc"%i)
+				currentPos = (i, Index(textWidget, "%s + %d c"%(startPoint,i)))
 
 			# remove all syncPoint between lastSyncPoint and currentPos
 			
@@ -238,7 +238,7 @@ def filter_token_stream(textWidget, tokens, startPoint, insertPoint):
 			
 				if next[1] <= currentPos[1]:
 					i = next
-					while i[1]<currentPos[1]:
+					while i[0] is not None and i[1]<currentPos[1]:
 						textWidget.mark_unset(i[0])
 						i = find_next(textWidget, i[1])
 				
@@ -253,7 +253,7 @@ def filter_token_stream(textWidget, tokens, startPoint, insertPoint):
 			# mark the new one if not already in the buffer
 			if currentPos[1] != i[1]:
 				lastSyncPoint = ("DP::SH::_synctx_%d"%textWidget._highlight.markNb, currentPos[1])
-				Tkinter.Text.mark_set(textWidget, *lastSyncPoint)
+				Tkinter.Text.mark_set(textWidget, *(str(i) for i in lastSyncPoint))
 				textWidget._highlight.markNb += 1
 				
 				# we have finish to handle syncPoint => go to next stream element
@@ -273,7 +273,7 @@ def filter_token_stream(textWidget, tokens, startPoint, insertPoint):
 			else:
 				start = startPoint + "%dc"%i
 			
-			currentPos = (currentPos[0]+l, start+"%dc"%l)
+			currentPos = (currentPos[0]+l, "%s + %dc"%(start, l))
 			yield start, currentPos[1], t
 
 
@@ -293,13 +293,13 @@ def process_token(tw, elem):
 	startP,endP,t = elem
 	token_name = "DP::SH::%s"%str(t).replace('.', '_')
 	
-	if tw.tag_nextrange(token_name, startP, endP) != (startP._index, endP._index):
+	if tw.tag_nextrange(token_name, str(startP), str(endP)) != (str(startP), str(endP)):
 	
 		tags = set()
 
 		if not is_in_safeZone(tw, startP, endP):
 		
-			for n in tw.tag_names(startP):
+			for n in tw.tag_names(str(startP)):
 				if not n.startswith("DP::SH::"):
 					continue
 				if n != token_name:
@@ -319,13 +319,13 @@ def process_token(tw, elem):
 				if key == 'tagoff' and pos != startP:
 					tags.add(name)
 
-			tw.dump(startP, endP, command=process_dump, tag=True)
+			tw.dump(str(startP), str(endP), command=process_dump, tag=True)
 
 		map(lambda n: tagdel(n, startP, endP), tags)
-		tw.tag_add(token_name, startP, endP)
+		tw.tag_add(token_name, str(startP), str(endP))
 
 	if Index(tw, "DP::SH::LASTSTOP") < endP:
-		Tkinter.Text.mark_set(tw, "DP::SH::LASTSTOP", endP)
+		Tkinter.Text.mark_set(tw, "DP::SH::LASTSTOP", str(endP))
 
 
 
@@ -334,7 +334,7 @@ def _update_a_token(textWidget,realTime=False):
 	startPoint = textWidget._highlight.startPoint
 	
 	if Index(textWidget, "DP::SH::LASTSTOP") < startPoint:
-		Tkinter.Text.mark_set(textWidget, "DP::SH::LASTSTOP", startPoint)
+		Tkinter.Text.mark_set(textWidget, "DP::SH::LASTSTOP", str(startPoint))
 
 	if realTime:
 		map(lambda t, tw=textWidget : process_token(tw,t) , tokens)
