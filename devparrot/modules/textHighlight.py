@@ -27,8 +27,10 @@ from devparrot.core import config
 from devparrot.core.utils.annotations import Index
 
 from pygments.token import SyncPoint
+from devparrot.core.utils.variable import fcb
 
 import Tkinter
+import weakref
 
 
 _fonts = {}
@@ -38,11 +40,18 @@ def activate():
 	from devparrot.core import commandLauncher
 	create_fonts()
 	create_styles()
+	config.textView.font_register(on_font_changed)
 	commandLauncher.eventSystem.connect("newDocument",on_new_document)
 	pass
 
 def deactivate():
 	pass
+
+def on_font_changed(var, old):
+	if var.get() == old:
+		return
+	create_fonts()
+	create_styles()
 
 def create_fonts():
 	global _fonts
@@ -85,6 +94,7 @@ class HighlightContext(object):
 
 def on_new_document(document):
 	create_style_table(document.models['text'])
+	config.textView.font_register(fcb(lambda v, o, tw=weakref.proxy(document.models['text']) : create_style_table(tw), weakref.ref(document)))
 	document.connect('textSet', on_text_set)
 	document.models['text']._highlight = HighlightContext()
 	on_text_set(document)

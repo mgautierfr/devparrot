@@ -437,6 +437,11 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 		self.tag_raise("currentLine_tag")
 		self.tag_raise("sel", "currentLine_tag")
 		
+		self.on_font_changed(None, None)
+		config.textView.font_register(mcb(self.on_font_changed))
+	
+	def on_font_changed(self, var, old):
+		self.config(font = config.textView.font)
 	
 	# Selection Operations
 	def sel_clear( self ):
