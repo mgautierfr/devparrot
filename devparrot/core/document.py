@@ -120,6 +120,7 @@ class Document(utils.event.EventSource):
 				#ctx = self.currentView.get_context()
 				self.load()
 				#glib.idle_add(self.currentView.set_context, ctx)
+			self.documentSource.init_timestamp()
 
 	def check_for_save(self):
 		model = self.models['text']
