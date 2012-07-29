@@ -57,6 +57,10 @@ class BasicTextController(Controller):
 			count = ttk.Tkinter.IntVar()
 			text = "\n"
 			l, c = event.widget.index('insert').split('.')
+			if config.textView.remove_tail_space:
+				match_start = ttk.Tkinter.Text.search(event.widget, "blank*$", '%s.0'%l, regexp=True)
+				if match_start:
+					event.widget.delete(match_start, '%s.0 lineend'%l)
 			if config.textView.auto_indent:
 				match_start = ttk.Tkinter.Text.search(event.widget, "blank*" , '%s.0'%l, stopindex=event.widget.index('insert'), regexp=True, count=count)
 				if match_start:

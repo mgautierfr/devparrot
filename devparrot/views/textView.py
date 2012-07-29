@@ -132,16 +132,6 @@ class TextView():
 		self.view.bind('<FocusIn>', self.document.documentView.on_focus_child)
 		self.view.connect('insert', mcb(self.on_event_lineChanged))
 		self.view.connect('delete', mcb(self.on_event_lineChanged))
-
-	
-		#self.view.set_auto_indent(config.getboolean('textView','auto_indent'))
-		#self.view.set_tab_width(config.getint('textView','tab_width'))
-		#self.view.set_draw_spaces(config.getint('textView','draw_spaces'))
-		#self.view.set_insert_spaces_instead_of_tabs(config.getboolean('textView','space_indent'))
-		#self.view.set_highlight_current_line(config.getboolean('textView','highlight_current_line'))
-		#self.view.set_show_line_numbers(config.getboolean('textView','show_line_numbers'))
-		#self.view.set_smart_home_end(config.getboolean('textView','smart_home_end'))
-		#self.view.props.sensitive = True
 	
 	def copy_clipboard(self):
 		if self.view:

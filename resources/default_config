@@ -19,8 +19,8 @@ binds["<Control-f>"] = "/"
 
 textView = Section()
 textView.auto_indent = True
+textView.remove_tail_space = True
 textView.tab_width = 4
-textView.draw_spaces = 0
 textView.space_indent = False
 textView.highlight_current_line = True
 textView.show_line_numbers = True
