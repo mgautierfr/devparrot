@@ -63,8 +63,8 @@ def checkIndex(s, l, t):
 		if not doc:
 			raise pyparsing.ParseException(s, l, "No doc given and no currentDoc")
 	try:
-		index = utils.annotations.Index(doc.get_model(), indexstr)
-	except utils.annotations.BadArgument:
+		index = utils.posrange.Index(doc.get_model(), indexstr)
+	except utils.posrange.BadArgument:
 		raise pyparsing.ParseException(s, l, "Invalid value for index")
 	return [index]
 
@@ -77,10 +77,10 @@ def checkRange(s, l, t):
 		if not doc:
 			raise pyparsing.ParseException(s, l, "No doc given and no currentDoc")
 	try:
-		start_ = utils.annotations.Index(doc.get_model(), start)
-		end_ = utils.annotations.Index(doc.get_model(), end)
-		range_ = utils.annotations.Range(doc.get_model(), start_, end_)
-	except utils.annotations.BadArgument:
+		start_ = utils.posrange.Index(doc.get_model(), start)
+		end_ = utils.posrange.Index(doc.get_model(), end)
+		range_ = utils.posrange.Range(doc.get_model(), start_, end_)
+	except utils.posrange.BadArgument:
 		raise pyparsing.ParseException(s, l, "Invalid value for range")
 	return [range_]
 
