@@ -58,11 +58,11 @@ class BasicTextController(Controller):
 			text = "\n"
 			l, c = event.widget.index('insert').split('.')
 			if config.textView.remove_tail_space:
-				match_start = ttk.Tkinter.Text.search(event.widget, "blank*$", '%s.0'%l, regexp=True)
+				match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*$", '%s.0'%l, regexp=True)
 				if match_start:
 					event.widget.delete(match_start, '%s.0 lineend'%l)
 			if config.textView.auto_indent:
-				match_start = ttk.Tkinter.Text.search(event.widget, "blank*" , '%s.0'%l, stopindex=event.widget.index('insert'), regexp=True, count=count)
+				match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*" , '%s.0'%l, stopindex=event.widget.index('insert'), regexp=True, count=count)
 				if match_start:
 					match_end = "%s.%i"%(l,min(count.get(),int(c)))
 					text += event.widget.get(match_start, match_end)
@@ -71,7 +71,7 @@ class BasicTextController(Controller):
 	@bind('<ISO_Left_Tab>')
 	def on_back_tab(self, event, modifier):
 		from devparrot.core import config
-		from devparrot.core.utils.annotations import Index, BadArgument
+		from devparrot.core.utils.posrange import Index, BadArgument
 		tabs = ['\t']
 		if config.textView.space_indent:
 			tabs += [' '*i for i in xrange(config.textView.tab_width, 0, -1)]
@@ -89,7 +89,7 @@ class BasicTextController(Controller):
 
 	@bind('<Tab>')
 	def on_tab(self, event, modifier):
-		from devparrot.core.utils.annotations import Index, BadArgument
+		from devparrot.core.utils.posrange import Index, BadArgument
 		from devparrot.core import config
 		tab = ' '*config.textView.tab_width if config.textView.space_indent else '\t'
 		try:
@@ -99,7 +99,7 @@ class BasicTextController(Controller):
 			# no selection
 			event.widget.insert( 'insert', tab )
 		else:
-			for line in xrange(start.line(), stop.line()+1):
+			for line in xrange(start.line, stop.line+1):
 				event.widget.insert( '%d.0'%line, tab)
 		return "break"
 	
