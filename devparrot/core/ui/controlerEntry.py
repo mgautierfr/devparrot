@@ -58,7 +58,8 @@ class ControlerEntry(ttk.Entry):
 			else:
 				self.insert("end", commandLauncher.currentSession.get_history().get_next())
 			return
-		if event.keysym == 'Tab':
+		#deactivate completion on public repo
+		if False and event.keysym == 'Tab':
 			self.set_position()
 			self.toplevel.deiconify()
 			self.listbox.focus()
