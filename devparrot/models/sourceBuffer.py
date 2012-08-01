@@ -139,12 +139,13 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 				pass 
 		
 	def insert(self, index, *args, **kword):
+		insertPos = self.index(index)
 		ttk.Tkinter.Text.insert(self, index, *args)
 		self.edit_separator()
 		self.set_currentLineTag()
 		if kword.get('forceUpdate', False):
 			self.update()
-		self.event('insert')(self, self.index(index), args[0])
+		self.event('insert')(self, insertPos, args[0])
 		if index=='insert':
 			self.see('insert')
 		
