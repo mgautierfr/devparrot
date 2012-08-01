@@ -35,7 +35,7 @@ uinteger = pyparsing.Word(pyparsing.nums).setParseAction(toInt)
 integer = pyparsing.Word(pyparsing.nums+"-+", pyparsing.nums)
 integer.setParseAction(toInt)
 
-path_elem = pyparsing.Word(pyparsing.srange("[a-zA-Z0-9_.]"))|"."|".."|"/"
+path_elem = pyparsing.Word(pyparsing.srange("[a-zA-Z0-9_.-]"))|"."|".."|"/"
 path = pyparsing.OneOrMore(path_elem)
 path = pyparsing.Combine(path)
 
