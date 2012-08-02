@@ -76,10 +76,10 @@ class BasicTextController(Controller):
 		if config.textView.space_indent:
 			tabs += [' '*i for i in xrange(config.textView.tab_width, 0, -1)]
 		try:
-			start = Index(event.widget, 'sel.first').line()
-			stop = Index(event.widget, 'sel.last').line()
+			start = Index(event.widget, 'sel.first').line
+			stop = Index(event.widget, 'sel.last').line
 		except BadArgument:
-			start = Index(event.widget, 'insert').line()
+			start = Index(event.widget, 'insert').line
 			stop = start
 		for line in xrange(start, stop+1):
 			for tab in tabs:
