@@ -288,8 +288,29 @@ class MouseController(Controller):
 	def __init__(self):
 		Controller.__init__(self)
 
+	@staticmethod
+	def set_current(event):
+		try:
+			pos1 = '@%d,%d' % (event.x, event.y)
+			pos2 = '%s +1c'%pos1
+			coord1 = event.widget.bbox(pos1)[0]
+			coord2 = event.widget.bbox(pos2)[0]
+			halfx = (coord1 + coord2)/2
+			if event.x < halfx:
+				event.widget.mark_set( 'current' , pos1)
+			else:
+				event.widget.mark_set( 'current' , '%s + 1c'%pos1)
+		except TypeError:
+			pass
+
+	@bind( '<Motion>' )
+	def on_motion( self, event, modifiers):
+		MouseController.set_current(event)
+
+
 	@bind( '<ButtonPress-1>' )
 	def click( self, event, modifiers):
+		MouseController.set_current(event)
 		event.widget.focus_set( )
 
 		if not modifiers.shift and not modifiers.ctrl:
@@ -298,6 +319,7 @@ class MouseController(Controller):
 
 	@bind( '<ButtonPress-2>' )
 	def middle_click( self, event, modifiers):
+		MouseController.set_current(event)
 		try:
 			event.widget.insert( 'current', event.widget.selection_get() )
 			event.widget.edit_separator()
@@ -306,12 +328,14 @@ class MouseController(Controller):
 
 	@bind( '<ButtonRelease-3>' )
 	def right_click( self, event, modifiers):
+		MouseController.set_current(event)
 		from devparrot.core import ui
 		ui.mainWindow.popupMenu.post(event.x_root, event.y_root)
 		return "break"
 
 	@bind( '<B1-Motion>', '<Shift-Button1-Motion>' )
 	def dragSelection( self, event, modifiers):
+		MouseController.set_current(event)
 		widget = event.widget
 
 		if event.y < 0:
@@ -320,12 +344,13 @@ class MouseController(Controller):
 			widget.yview_scroll( 1, 'units' )
 
 		if not widget.sel_isAnchorSet( ):
-			widget.sel_setAnchor( '@%d,%d' % (event.x+2, event.y) )
+			widget.sel_setAnchor( 'current' )
 
-		widget.mark_set( 'insert', '@%d,%d' % (event.x+2, event.y) )
+		widget.mark_set( 'insert', 'current' )
    
 	@bind( '<ButtonRelease-1>')
 	def moveCarrot_deselect( self, event, modifiers):
+		MouseController.set_current(event)
 		widget = event.widget
 
 		widget.grab_release()
@@ -333,11 +358,13 @@ class MouseController(Controller):
    
 	@bind( '<Double-ButtonPress-1>' )
 	def selectWord( self, event, modifiers):
+		MouseController.set_current(event)
 		event.widget.sel_setAnchor( 'current wordstart' )
 		event.widget.mark_set( 'insert', 'current wordend' )
    
 	@bind( '<Triple-ButtonPress-1>' )
 	def selectLine( self, event, modifiers):
+		MouseController.set_current(event)
 		event.widget.sel_setAnchor( 'current linestart' )
 		event.widget.mark_set( 'insert', 'current lineend' )
 
