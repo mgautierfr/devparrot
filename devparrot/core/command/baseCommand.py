@@ -22,6 +22,7 @@ import types
 import constraints
 import tokenParser
 import pyparsing
+from constraintInstance import ConstraintInstance
 
 class MetaCommand(type):
 	def __new__(cls, name, bases, dct):
@@ -74,4 +75,4 @@ class Command:
 		
 	def get_allConstraints(cls):
 		for name in cls.run.func_code.co_varnames[1:cls.run.func_code.co_argcount]:
-			yield cls.get_constraint(name)
+			yield ConstraintInstance(cls.get_constraint(name), name)

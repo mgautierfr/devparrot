@@ -169,6 +169,7 @@ class Controler:
 		return ret
 	
 	def run_command(self, text):
+		from command.tokenParser import MissingToken
 		commandName, rawTokens = self.tokenize(text)
 		command  = self.get_command(commandName)
 		if command is None:
@@ -177,7 +178,11 @@ class Controler:
 		rawTokens = " ".join(extraArgs) + rawTokens		
 		if not command.pre_check():
 			return False
-		tokens = self.expand_tokens(command, rawTokens)
+		try:
+			tokens = self.expand_tokens(command, rawTokens)
+		except MissingToken, e:
+			print "Input missing for argument %s"%e.constraint
+			return False
 		if tokens == False:
 			print "refused"
 			return False
