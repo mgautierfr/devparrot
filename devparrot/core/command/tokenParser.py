@@ -55,7 +55,6 @@ class TokenParser(object):
 		
 	def check_a_token(self, token):
 		constraint = self.get_constraint()
-		print constraint
 		if constraint is None:
 			raise InvalidToken(token)
 		if not constraint.check_token(token):
@@ -66,7 +65,6 @@ class TokenParser(object):
 		self.init()
 		
 		for token in tokens:
-			print "parse ", token
 			self.check_a_token(token)
 		
 		self.close_remaining()

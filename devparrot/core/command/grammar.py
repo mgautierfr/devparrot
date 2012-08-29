@@ -70,7 +70,6 @@ def checkIndex(s, l, t):
 
 def checkRange(s, l, t):
 	from devparrot.core import commandLauncher, utils
-	print "checkRange"
 	doc, start, end = t
 	if doc is None:
 		doc = commandLauncher.currentSession.get_currentDocument()
@@ -85,10 +84,8 @@ def checkRange(s, l, t):
 	return [range_]
 
 def resolveRange(s, l, t):
-	print "resolveRange"
 	range_ = t[0]
 	content = range_.get_content()
-	print content
 	return [content]
 
 docindex = uinteger.copy()

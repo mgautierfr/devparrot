@@ -75,7 +75,6 @@ class _ValidSection(Section):
 		
 		variable = getattr(self, "_"+name, None)
 		if variable is None:
-			print "-", name, "new", value
 			(pro, notify, register, unregister) = Property(name)
 			setattr(type(self), name, pro)
 			setattr(type(self), name+"_notify", notify)
@@ -86,7 +85,6 @@ class _ValidSection(Section):
 			else:
 				object.__setattr__(self, "_"+name, Variable(value))
 		else:
-			print "-", name, "update", variable, "with", value
 			variable.set(value)
 
 class Config(_ValidSection):
