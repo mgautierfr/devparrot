@@ -71,6 +71,11 @@ class DocumentListView(ttk.Treeview):
 		self.heading('name', text="document")
 		self['selectmode'] =(Tkinter.BROWSE)
 		self.bind('<Double-Button-1>', self.on_double_click)
+		bindtags = list(self.bindtags())
+		bindtags.insert(1,"Command")
+		bindtags = " ".join(bindtags)
+		self.bindtags(bindtags)
+
 
 	def on_documentAdded(self, document):
 		ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=(document.title))

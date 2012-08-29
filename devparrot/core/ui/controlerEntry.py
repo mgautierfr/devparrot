@@ -41,6 +41,13 @@ class ControlerEntry(ttk.Entry):
 		self.listbox.bind('<Key>', self.on_listbox_event)
 		
 		self.textVariable.trace('w', self.on_textChanged)
+
+		bindtags = list(self.bindtags())
+		bindtags.insert(1,"Command")
+		bindtags = " ".join(bindtags)
+		self.bindtags(bindtags)
+
+
 		self.on_textChanged()
 		
 	def set_position(self):
