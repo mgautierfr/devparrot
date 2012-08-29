@@ -177,9 +177,8 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 
 
 class SourceBuffer(CodeText):
-	def __init__(self, document):
+	def __init__(self):
 		CodeText.__init__(self)
-		self.document = document
 		self.highlight_tag_protected = False
 		self.tag_configure("highlight_tag", background=config.color.highlight_tag_color)
 		self.tag_configure("search_tag", background=config.color.search_tag_color)
@@ -188,9 +187,6 @@ class SourceBuffer(CodeText):
 		self.tag_lower("search_tag", "sel")
 		self.tag_raise("highlight_tag", "currentLine_tag")
 		self.tag_raise("search_tag", "currentLine_tag")
-		
-	def get_document(self):
-		return self.document
 	
 	def set_text(self, content):
 		self.delete("0.1", "end")

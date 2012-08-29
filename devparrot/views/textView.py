@@ -60,16 +60,8 @@ class TextView():
 		self.lastLineCreated = 0
 		self.actualLineNumberWidth = 0
 
-	def clone(self):
-		new = TextView(self.document)
-		self.document.add_view('text', new)
-		return new
-		
 	def focus(self):
 		return self.view.focus()
-
-	def get_document(self):
-		return self.document
 
 	def proxy_yview(self, *args, **kwords):
 		if self.view:

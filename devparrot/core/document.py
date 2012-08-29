@@ -44,7 +44,7 @@ class Document(utils.event.EventSource):
 		self.set_path(documentSource)
 		self.modifiedVar = Variable("normal")
 		self.documentView = DocumentView(self)
-		self.model = SourceBuffer(self)
+		self.model = SourceBuffer()
 		self.model.bind("<<Modified>>", self.on_modified_changed)
 		self.currentView = None	
 		self.set_view(TextView(self))
