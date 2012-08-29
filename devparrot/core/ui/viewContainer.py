@@ -198,7 +198,7 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
 			self.bind_class("Drag", "<ButtonRelease-1>", on_button_released)
 			NotebookContainer.initialized=True
 		self.bindtags(" ".join(["Drag"]+[t for t in self.bindtags()]))
-
+		self.bind("<<NotebookTabChanged>>",self.on_tabChanged)
 	
 	def register(self):
 		NotebookContainer.notebookList.add(self)
@@ -257,6 +257,11 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
 	
 	def set_as_current(self):
 		NotebookContainer.current = self
+
+	def on_tabChanged(self, arg):
+		selected = self.select()
+		if selected:
+			self.nametowidget(selected).focus()
 
 def split(documentView, direction, first=True):
 	notebook = documentView.get_parentContainer()

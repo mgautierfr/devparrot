@@ -121,7 +121,6 @@ class TextView():
 		self.HScrollbar['command'] = self.view.xview
 		self.view.grid(column=1, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
 		self.view.lift(self.uiContainer)
-		self.view.bind('<FocusIn>', self.document.documentView.on_focus_child)
 		self.view.connect('insert', mcb(self.on_event_lineChanged))
 		self.view.connect('delete', mcb(self.on_event_lineChanged))
 	

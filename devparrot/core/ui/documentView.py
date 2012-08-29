@@ -45,6 +45,8 @@ class DocumentView(ContainerChild, ttk.Frame):
 	def set_view(self, child):
 		child.uiContainer.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)
 		self.currentView = child
+		child.view.bind('<FocusIn>', self.on_focus_child)
+
 	
 	def lift(self):
 		ttk.Frame.lift(self, self.parentContainer)
@@ -69,6 +71,7 @@ class DocumentView(ContainerChild, ttk.Frame):
 		self.currentView.focus()
 
 	def on_focus_child(self, event):
+		print "focus child", self, self.parentContainer
 		NotebookContainer.current = self.parentContainer
 		
 	def dnd_end(self, target, event):

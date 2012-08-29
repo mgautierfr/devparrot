@@ -30,10 +30,13 @@ class Workspace(TopContainer):
 		self.get_currentContainer().set_documentView(document.documentView)
 
 	def get_currentDocument(self):
-		child = self.get_currentContainer().get_documentView()
-		if child:
-			return child.document
-		return None
+		try:
+			return self.get_currentContainer().get_documentView().document
+		except AttributeError:
+			return None
 
 	def get_currentContainer(self):
-		return NotebookContainer.current
+		if NotebookContainer.current:
+			return NotebookContainer.current
+		else:
+			return self.container
