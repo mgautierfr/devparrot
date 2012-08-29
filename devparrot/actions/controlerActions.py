@@ -69,8 +69,8 @@ class switch(Command):
 	def run(cls, document, *args):
 		capi.currentDocument = document
 		return True
-		
-		
+
+
 class close(Command):
 	documents = constraints.OpenDocument(multiple=True, default=lambda:capi.currentDocument)
 	def pre_check(cls):

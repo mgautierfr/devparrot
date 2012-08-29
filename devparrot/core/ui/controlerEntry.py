@@ -58,8 +58,7 @@ class ControlerEntry(ttk.Entry):
 			else:
 				self.insert("end", commandLauncher.currentSession.get_history().get_next())
 			return
-		#deactivate completion on public repo
-		if False and event.keysym == 'Tab':
+		if event.keysym == 'Tab':
 			self.set_position()
 			self.toplevel.deiconify()
 			self.listbox.focus()
@@ -111,3 +110,4 @@ class ControlerEntry(ttk.Entry):
 			self.toClean = False
 			self['style'] = ""
 			self.delete(0,'end')
+		self.on_textChanged()

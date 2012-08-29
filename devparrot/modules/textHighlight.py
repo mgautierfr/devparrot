@@ -118,16 +118,16 @@ class HighlightContext(object):
 		self.markNb=0
 
 def on_new_document(document):
-	create_style_table(document.models['text'])
-	config.textView.font_register(fcb(lambda v, o, tw=weakref.proxy(document.models['text']) : create_style_table(tw), weakref.ref(document)))
-	config.textView.hlstyle_register(fcb(lambda v, o, tw=weakref.proxy(document.models['text']) : create_style_table(tw), weakref.ref(document)))
+	create_style_table(document.model)
+	config.textView.font_register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
+	config.textView.hlstyle_register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
 	document.connect('textSet', on_text_set)
-	document.models['text']._highlight = HighlightContext()
+	document.model._highlight = HighlightContext()
 	on_text_set(document)
-	document.models['text'].connect('insert', on_insert)
-	document.models['text'].connect('delete', on_delete)
-	Tkinter.Text.mark_set(document.models['text'], "DP::SH::_synctx_START", "1.0")
-	Tkinter.Text.mark_gravity(document.models['text'], "DP::SH::_synctx_START", "left")
+	document.model.connect('insert', on_insert)
+	document.model.connect('delete', on_delete)
+	Tkinter.Text.mark_set(document.model, "DP::SH::_synctx_START", "1.0")
+	Tkinter.Text.mark_gravity(document.model, "DP::SH::_synctx_START", "left")
 	pass
 
 def on_text_set(document):
@@ -142,14 +142,14 @@ def on_text_set(document):
 			return guess_lexer_for_filename(filename)
 		except:
 			pass
-		return guess_lexer(document.models['text'].get("1.0", "end"))
+		return guess_lexer(document.model.get("1.0", "end"))
 
 	if not document.has_a_path():
 		return
 
 	filename = os.path.basename(document.get_path())
-	document.models['text']._highlight.lexer = find_lexer(filename)	
-	document.models['text']._highlight.lexer.noSyncPoint = False
+	document.model._highlight.lexer = find_lexer(filename)
+	document.model._highlight.lexer.noSyncPoint = False
 
 def on_insert(model, insertMark, text):
 	if model._highlight.lexer :
