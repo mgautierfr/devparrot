@@ -30,15 +30,19 @@ class ControlerEntry(ttk.Entry):
 		
 		
 		self.bind('<FocusIn>', self.on_get_focus)
+		self.bind('<FocusOut>', self.on_lost_focus)
 		self.bind('<Key>', self.on_entry_event)
-		
+
 		self.pack(side=ttk.Tkinter.TOP, fill=ttk.Tkinter.X)
 		self.toplevel = ttk.Tkinter.Toplevel()
-		self.toplevel.withdraw()
+		self.toplevel.bind('<FocusOut>', self.on_lost_focus)
+		self.display_list(False)
 		self.toplevel.wm_overrideredirect(True)
+
 		self.listbox = ttk.Tkinter.Listbox(self.toplevel)
 		self.listbox.place(relwidth=1.0, relheight=1.0)
 		self.listbox.bind('<Key>', self.on_listbox_event)
+		self.bind('<Control-Return>', lambda e: "continue")
 		
 		self.textVariable.trace('w', self.on_textChanged)
 
@@ -47,31 +51,50 @@ class ControlerEntry(ttk.Entry):
 		bindtags = " ".join(bindtags)
 		self.bindtags(bindtags)
 
+	def display_list(self, display):
+		self.displayed = display
+		if display:
+			self.set_position()
+			self.toplevel.deiconify()
+		else:
+			self.toplevel.withdraw()
 
-		self.on_textChanged()
-		
 	def set_position(self):
 		xroot = self.winfo_rootx()
 		yroot = self.winfo_rooty()+self.winfo_height()
 		self.toplevel.wm_geometry("+%d+%d"% (xroot, yroot))
 		self.toplevel.minsize(width=self.winfo_width(), height=0)
-		
+
+	def on_lost_focus(self, event):
+		focused = self.focus_get()
+		if focused not in (self, self.toplevel, self.listbox):
+			self.display_list(False)
 	
 	def on_entry_event(self, event):
-		if event.keysym in ('Up', 'Down'):
+		if event.keysym == 'Up':
 			self.delete("0", "end")
-			if event.keysym == 'Up':
-				self.insert("end", commandLauncher.currentSession.get_history().get_previous())
-			else:
+			self.insert("end", commandLauncher.currentSession.get_history().get_previous())
+		if event.keysym == "Down":
+			next = commandLauncher.currentSession.get_history().get_next()
+			if next:
 				self.insert("end", commandLauncher.currentSession.get_history().get_next())
+			else:
+				self.display_list(True)
+				self.listbox.focus()
+				self.listbox.select_set(0)
 			return
 		if event.keysym == 'Tab':
-			self.set_position()
-			self.toplevel.deiconify()
+			startIndex = self.startIndex
+			toInsert = self.commonString
+			self.delete(startIndex, 'insert')
+			self.insert(startIndex, toInsert)
+			self.icursor(startIndex+len(toInsert))
+			self.display_list(True)
 			self.listbox.focus()
 			self.listbox.select_set(0)
-			return
+			return "break"
 		if event.keysym == 'Return':
+			self.display_list(False)
 			text = self.textVariable.get()
 			ret = commandLauncher.run_command(text+"\n")
 			if ret is None:
@@ -84,37 +107,67 @@ class ControlerEntry(ttk.Entry):
 			if commandLauncher.currentSession.get_workspace().get_currentDocument():
 				commandLauncher.currentSession.get_workspace().get_currentDocument().get_currentView().focus()
 		if event.keysym == 'Escape':
+			self.display_list(False)
 			if commandLauncher.currentSession.get_workspace().get_currentDocument():
 				commandLauncher.currentSession.get_workspace().get_currentDocument().get_currentView().focus()
 			return
 	
 	def on_listbox_event(self, event):
+		from pyparsing import printables
 		if event.keysym == 'Escape':
-			self.toplevel.withdraw()
+			self.display_list(False)
 			self.focus()
 			return
 		if event.keysym == 'Return':
+			self.display_list(False)
 			try:
-				print 'select is', self.completions[int(self.listbox.curselection()[0])]
+				completion = self.completions[int(self.listbox.curselection()[0])]
+				startIndex = self.startIndex
+				self.delete(startIndex, 'insert')
+				self.insert(startIndex, completion)
+				self.icursor(startIndex+len(completion))
+				self.focus()
 			except:
 				pass
 			return
+		if event.keysym == 'Tab':
+			try:
+				startIndex = self.startIndex
+				toInsert = self.commonString or self.completions[int(self.listbox.curselection()[0])]
+				self.delete(startIndex, 'insert')
+				self.insert(startIndex, toInsert)
+				self.icursor(startIndex+len(toInsert))
+			except:
+				pass
+			return
+		if event.keysym == 'Left':
+			self.icursor(str(self.index('insert')-1))
+			self.update_completion()
+			return
+		if event.keysym == 'Right':
+			self.icursor(str(self.index('insert')+1))
+			self.update_completion()
+			return
 		if event.keysym == 'BackSpace':
 			self.delete(self.index('insert')-1)
+			self.update_completion()
 			return
-		if len(event.char) > 0:
+		char = event.char.decode('utf8')
+		if char and char in printables:
 			self.insert('insert', event.char)
+			self.focus()
 	
-	def on_textChanged(self, *args):
-		self.completions = commandLauncher.get_completions(self.get()[:self.index('insert')])
+	def update_completion(self):
+		self.startIndex, self.commonString, self.completions = commandLauncher.get_completions(self.get()[:self.index('insert')])
 		self.listbox.delete('0', 'end')
 		for v in self.completions:
 			self.listbox.insert('end', v)
-		
+
+	def on_textChanged(self, *args):
+		self.update_completion()
 		
 	def on_get_focus(self, event):
 		if self.toClean:
 			self.toClean = False
 			self['style'] = ""
 			self.delete(0,'end')
-		self.on_textChanged()

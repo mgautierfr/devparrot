@@ -21,14 +21,13 @@
 import os,sys
 
 import utils.event
-import shlex
 
+from command.splitter import Splitter, Token
 
 currentSession = None
 alias = {}
 lineExpenders = []
 eventSystem = utils.event.EventSource()
-
 
 def add_alias(aliasName, command, prio=2):
 	if prio not in alias:
@@ -59,23 +58,35 @@ class ListGenerator:
 		return self.index >= len(self.l)
 		return self.bend
 
+
+def getcommonstart(seq):
+    if not seq:return ""
+    s1, s2 = min(seq), max(seq)
+    l = min(len(s1), len(s2))
+    if l == 0 :
+        return ""
+    for i in xrange(l) :
+        if s1[i] != s2[i] :
+            return s1[:i]
+    return s1[:l]
+
+
 class Controler:
 	def __init__(self):
 		pass
 		
-	def tokenize(self, text):
+	def tokenize(self, text, faultTolerent=False):
 		commandName = None
 		for expender in lineExpenders:
 			tokens = expender(text)
 			if tokens:
 				return tokens
 
-		splitted = text.split(' ')
+		splitted = list(Splitter(text, faultTolerent))
 		if splitted:
 			commandName = splitted[0]
-		args = ' '.join(splitted[1:])
 
-		return (commandName, args)
+		return (commandName, splitted[1:])
 		
 	def get_command(self, commandName):
 		extraArgs = []
@@ -87,72 +98,29 @@ class Controler:
 					if isinstance(command, basestring):
 						args = command.split(' ')
 						commandName = args[0]
-						extraArgs.extend(args[1:])
+						for arg in args[1:]:
+							token = Token()
+							token.value = arg
+							extraArgs.append(token)
 						break
 					else:
 						return (command, extraArgs)
 		return None
 	
-	def expand_tokens(self, command, args):
-		import shlex
+	def expand_tokens(self, command, rawTokens):
 		import command.grammar as grammarModule
 		rangeExpander = grammarModule.rangeExpander
-		args = rangeExpander.transformString(args)
+		for token in rawTokens:
+			token.value = rangeExpander.transformString(token.value)
 		tokenParser = command.get_tokenParser()
-		rawTokens = shlex.split(args)
 		tokens = tokenParser.parse(rawTokens)
 		return tokens
-	
+
 	def expand_and_complete(self, command, rawTokens):
-		constraints = command.get_allConstraints()
-		rawTokenIter = ListGenerator(rawTokens)
-		completions = []
-		for constraint in constraints:
-			while True:
-				rawToken = rawTokenIter.next()
-				print "rawToken",rawToken
-				ret = constraint.check_rawToken(rawToken, False)
-				print "ret", ret
-				if ret != 'again':
-					break
-				if rawTokenIter.end():
-					break
-			
-			if ret in ('ok', 'changed'):
-				print "1"
-				#good token to good constraint => change constraint
-				return [" "]
-				continue
-			
-			if ret == 'refused':
-				print "5"
-				#bad constraint and madatory => complete and exit
-				completions.extend(constraint.complete(rawToken))
-				break
-
-			if rawTokenIter.end():
-				print "2", ret
-				#no more token => complete and change constraint
-				completions.extend(constraint.complete(None))
-				continue
-
-			if ret == 'optional':
-				print "3"
-				#bad constraint but optional => complete and change constraint
-				completions.extend(constraint.complete(rawToken))
-				rawTokenIter.back()
-				continue
-
-			if ret == 'end':
-				print "4"
-				#bad constraint but array => complete and change constraint
-				completions.extend(constraint.complete(rawToken))
-				rawTokenIter.back()
-				continue
-			
-			
+		import command.grammar as grammarModule
+		tokenParser = command.get_tokenParser()
+		completions = tokenParser.complete(rawTokens)
 		return completions
-			
 	
 	def launch_command(self, command, args):
 		eventSystem.event("%s-"%command.__name__)(args)
@@ -165,17 +133,19 @@ class Controler:
 		for prio in sorted(alias, reverse=True):
 			for aliasName,command in alias[prio]:
 				if aliasName.startswith(commandName):
-					ret.append(aliasName)
-		return ret
+					ret.append(aliasName+" ")
+		return (0, ret)
 	
 	def run_command(self, text):
 		from command.tokenParser import MissingToken
 		commandName, rawTokens = self.tokenize(text)
-		command  = self.get_command(commandName)
-		if command is None:
+		try:
+			command, extraArgs  = self.get_command(commandName.value)
+		except AttributeError:
 			return None
-		(command, extraArgs) = command
-		rawTokens = " ".join(extraArgs) + rawTokens		
+		except TypeError:
+			return None
+		rawTokens = extraArgs + rawTokens
 		if not command.pre_check():
 			return False
 		try:
@@ -193,11 +163,16 @@ class Controler:
 		return ret
 		
 	def get_completions(self, text):
-		commandName, rawTokens = self.tokenize(text)
-		command = self.get_command(commandName)
+		commandName, rawTokens = self.tokenize(text, True)
+		if not rawTokens:
+			return self.get_commandCompletions(commandName.value if commandName else "")
+		command = self.get_command(commandName.value)
 		if command is None:
-			return self.get_commandCompletions(commandName if commandName else "")
-		return []
+			return (0, [])
+		(command, extraArgs) = command
+		rawTokens = extraArgs + rawTokens
+		if not command.pre_check():
+			return (0, [])
 		return self.expand_and_complete(command, rawTokens)
 		
 		
@@ -230,4 +205,5 @@ def run_command(text):
 	return ret
 
 def get_completions(text):
-	return controler.get_completions(text)
+	start, completions = controler.get_completions(text)
+	return (start, getcommonstart(completions), completions)

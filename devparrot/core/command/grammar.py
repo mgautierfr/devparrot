@@ -21,9 +21,10 @@
 import pyparsing
 import os.path
 
-#pyparsing.ParserElement.setDefaultWhitespaceChars('')
+pyparsing.ParserElement.setDefaultWhitespaceChars('')
 allalphanums = pyparsing.alphanums + pyparsing.alphas8bit
 word = pyparsing.Word(allalphanums)
+any = pyparsing.Regex(r".*")
 
 def toInt(s, l, t):
 	try:
@@ -34,10 +35,6 @@ def toInt(s, l, t):
 uinteger = pyparsing.Word(pyparsing.nums).setParseAction(toInt)
 integer = pyparsing.Word(pyparsing.nums+"-+", pyparsing.nums)
 integer.setParseAction(toInt)
-
-path_elem = pyparsing.Word(pyparsing.srange("[a-zA-Z0-9_.-]"))|"."|".."|"/"
-path = pyparsing.OneOrMore(path_elem)
-path = pyparsing.Combine(path)
 
 def int2Doc(s, l, t):
 	""" transform a integer to a doc"""
@@ -91,7 +88,7 @@ def resolveRange(s, l, t):
 docindex = uinteger.copy()
 docindex.addParseAction(int2Doc)
 
-docpath = path.copy()
+docpath = any.copy()
 docpath.setParseAction(path2Doc)
 doc = docindex | docpath
 

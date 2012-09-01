@@ -99,24 +99,36 @@ class _Constraint:
 
 		if self.token and not self.multiple:
 			return False
-		
+
 		try:
 			parsed = self.grammar.parseString(token)
 		except pyparsing.ParseException:
 			return False
 		self.set_token(parsed.get("result"))
 		return True
-	
+
+	def complete_token(self, token):
+		if self.is_consume():
+			return []
+		return self.complete(token)
+
+
 	def check(self, token):
 		return True
 	
 	def ask_user(self):
 		return None
 
+	def complete(self, token):
+		return []
+
 class Default(_Constraint):
 	def __init__(self, optional=False, multiple=False, default=None):
 		_Constraint.__init__(self, optional, multiple, default)
 		self.set_grammar(pyparsing.Word(pyparsing.printables))
+
+	def complete(self, token):
+		return [token]
 
 
 class Keyword(_Constraint):
@@ -130,6 +142,11 @@ class Keyword(_Constraint):
 	
 	def __repr__(self):
 		return "<Constraint.Keyword %s>"%self.keywords
+
+	def complete(self, token):
+		return [keyword
+		           for keyword in self.keywords
+		           if keyword.startswith(token)]
 
 class Boolean(_Constraint):
 	def __init__(self, true=["True", "true", "1"], false=["False", "false", "0"], *args, **kwords):
@@ -147,6 +164,11 @@ class Boolean(_Constraint):
 		gram = pyparsing.oneOf(" ".join(self.true+self.false))
 		gram.setParseAction(check)
 		self.set_grammar(gram)
+
+	def complete(self,token):
+		return [keyword
+		           for keyword in self.true+self.false
+		           if keyword.startswith(token)]
 			
 class File(_Constraint):
 	OPEN, SAVE, NEW = xrange(3)
@@ -168,7 +190,7 @@ class File(_Constraint):
 
 		_Constraint.__init__(self, optional, multiple, default, askUser=True)
 		self.mode = mode		
-		gram = grammar.path.copy()
+		gram = grammar.any.copy()
 		gram.setParseAction( check )
 		self.set_grammar(gram)
 
@@ -176,15 +198,51 @@ class File(_Constraint):
 		from devparrot.core import commandLauncher, ui
 		path = None
 		currentDoc = commandLauncher.currentSession.get_currentDocument()
+		d = {}
 		if currentDoc:
 			path = currentDoc.get_path()
-			if path: path = os.path.dirname(path)
-			
+			if path:
+				d['initialdir'] = os.path.dirname(path)
+
 		if File.SAVE in self.mode:
-			token = ui.mainWindow.Helper().ask_filenameSave(initialdir=path)
+			token = ui.mainWindow.Helper().ask_filenameSave(**d)
 		else:
-			token = ui.mainWindow.Helper().ask_filenameOpen(initialdir=path, multiple=self.multiple)
+			d['multiple'] = self.multiple
+			token = ui.mainWindow.Helper().ask_filenameOpen(**d)
 		return token if token else None
+
+	def _complete(self, directory, filestart, prefix):
+		completions = []
+		for f in os.listdir(directory):
+			if f.startswith(filestart):
+				name = os.path.join(prefix, f)
+				if os.path.isdir(os.path.join(directory, f)):
+					name += "/"
+				else:
+					name += " "
+				completions.append(name)
+		return completions
+
+	def complete(self, token):
+		completions = []
+		currentFile = os.path.abspath(token)
+
+		if token:
+			if os.path.isdir(currentFile):
+				completions.extend(self._complete(currentFile, "", token))
+
+			directory, file_ = os.path.split(currentFile)
+			prefix, tail = os.path.split(token)
+			if tail == "":
+				"""token ends with a '/'."""
+				prefix, tail = os.path.split(prefix)
+		else:
+			directory = os.getcwd()
+			file_ = ""
+			prefix = ""
+
+		completions.extend(self._complete(directory, file_, prefix))
+		return completions
 
 
 class Index(_Constraint):

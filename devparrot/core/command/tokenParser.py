@@ -23,6 +23,7 @@ class TokenParser(object):
 	
 	def init(self):
 		self.currentConstraint = 0
+		self.completions = []
 		for constraint in self.constraints:
 			constraint.init()
 	
@@ -41,6 +42,9 @@ class TokenParser(object):
 	def get_tokens_from_constraints(self):
 		for constraint in self.constraints:
 			yield constraint.token
+
+	def get_completions(self):
+		return self.completions
 	
 	def advance_constraints(self):
 		constraint = self.constraints[self.currentConstraint]
@@ -60,12 +64,24 @@ class TokenParser(object):
 		if not constraint.check_token(token):
 			self.advance_constraints()
 			self.check_a_token(token)
+
+	def complete_a_token(self, token):
+		constraint = self.get_constraint()
+		if constraint is None:
+			return
+		self.completions.extend(constraint.complete_token(token))
+		try:
+			self.advance_constraints()
+		except MissingToken:
+			return
+		else:
+			self.complete_a_token(token)
 	
 	def _parse(self, tokens):
 		self.init()
 		
 		for token in tokens:
-			self.check_a_token(token)
+			self.check_a_token(token.value)
 		
 		self.close_remaining()
 	
@@ -78,7 +94,19 @@ class TokenParser(object):
 			return False
 		return self.all_constraints_validated()
 		
-
 	def parse(self, tokens):
 		self._parse(tokens)
 		return list(self.get_tokens_from_constraints())
+
+	def complete(self, tokens):
+		self.init()
+
+		for token in tokens[:-1]:
+			self.check_a_token(token.value)
+
+		try:
+			self.complete_a_token(tokens[-1].value)
+		except IndexError:
+			self.complete_a_token("")
+
+		return (tokens[-1].startIndex, self.get_completions())
