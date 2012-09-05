@@ -1,12 +1,16 @@
+
 class Token(object):
-	def __init__(self):
-		self.value = ""
-		self.startIndex = self.endIndex = self.quote = None
+	def __init__(self, startIndex, value="", endIndex=None, quote=None):
+		self.value = value
+		self.startIndex = startIndex
+		self.quote = quote
+		self.endIndex = endIndex
 
 	def add(self, char):
 		self.value += char
 
-
+	def __str__(self):
+		return self.value
 
 class Splitter(object):
 	whitespace = " "
@@ -32,8 +36,7 @@ class Splitter(object):
 			if char in Splitter.whitespace:
 				return Splitter.SPACE
 
-			self.token = Token()
-			self.token.startIndex = self.currentChar
+			self.token = Token(startIndex=self.currentChar)
 			if char in Splitter.quotes:
 				self.token.quote = char
 				return Splitter.QUOTE
@@ -45,8 +48,7 @@ class Splitter(object):
 			return Splitter.NORMAL
 		except IndexError:
 			if self.forCompletion:
-				self.token = Token()
-				self.token.startIndex = self.token.endIndex = len(self.string)
+				self.token = Token(startIndex=len(self.string), endIndex=len(self.string))
 			return Splitter.END
 
 	def _quote_read(self):

@@ -121,7 +121,7 @@ class ControlerEntry(ttk.Entry):
 		if event.keysym == 'Return':
 			self.display_list(False)
 			try:
-				completion = self.completions[int(self.listbox.curselection()[0])]
+				completion = str(self.completions[int(self.listbox.curselection()[0])])
 				startIndex = self.startIndex
 				self.delete(startIndex, 'insert')
 				self.insert(startIndex, completion)
@@ -133,7 +133,7 @@ class ControlerEntry(ttk.Entry):
 		if event.keysym == 'Tab':
 			try:
 				startIndex = self.startIndex
-				toInsert = self.commonString or self.completions[int(self.listbox.curselection()[0])]
+				toInsert = self.commonString or str(self.completions[int(self.listbox.curselection()[0])])
 				self.delete(startIndex, 'insert')
 				self.insert(startIndex, toInsert)
 				self.icursor(startIndex+len(toInsert))
@@ -161,7 +161,7 @@ class ControlerEntry(ttk.Entry):
 		self.startIndex, self.commonString, self.completions = commandLauncher.get_completions(self.get()[:self.index('insert')])
 		self.listbox.delete('0', 'end')
 		for v in self.completions:
-			self.listbox.insert('end', v)
+			self.listbox.insert('end', v.value)
 
 	def on_textChanged(self, *args):
 		self.update_completion()

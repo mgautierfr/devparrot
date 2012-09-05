@@ -27,6 +27,21 @@ import Tkinter
 
 from tokenParser import MissingToken, InvalidToken
 
+def escape_token(value):
+	if set("'\"\\ ") | set(value):
+		for specialChar in "'\"\\ ":
+			value = value.replace(specialChar, '\\'+specialChar)
+	return value
+
+class Completion(object):
+	def __init__(self, value, final):
+		self.value = value
+		self.final = final
+
+	def __str__(self):
+		template = "%s " if self.final else "%s"
+		return template%escape_token(self.value)
+
 class noDefault(Exception):
 	pass
 
@@ -128,8 +143,7 @@ class Default(_Constraint):
 		self.set_grammar(pyparsing.Word(pyparsing.printables))
 
 	def complete(self, token):
-		return [token]
-
+		return [Completion(token, False)]
 
 class Keyword(_Constraint):
 	def __init__(self, keywords, *args, **kwords):
@@ -144,7 +158,7 @@ class Keyword(_Constraint):
 		return "<Constraint.Keyword %s>"%self.keywords
 
 	def complete(self, token):
-		return [keyword
+		return [Completion(keyword, True)
 		           for keyword in self.keywords
 		           if keyword.startswith(token)]
 
@@ -166,7 +180,7 @@ class Boolean(_Constraint):
 		self.set_grammar(gram)
 
 	def complete(self,token):
-		return [keyword
+		return [Completion(keyword, True)
 		           for keyword in self.true+self.false
 		           if keyword.startswith(token)]
 			
@@ -217,10 +231,10 @@ class File(_Constraint):
 			if f.startswith(filestart):
 				name = os.path.join(prefix, f)
 				if os.path.isdir(os.path.join(directory, f)):
-					name += "/"
+					completion = Completion(name+"/", False)
 				else:
-					name += " "
-				completions.append(name)
+					completion = Completion(name, True)
+				completions.append(completion)
 		return completions
 
 	def complete(self, token):

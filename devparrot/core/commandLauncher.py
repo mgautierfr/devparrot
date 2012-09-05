@@ -23,6 +23,7 @@ import os,sys
 import utils.event
 
 from command.splitter import Splitter, Token
+from command.constraints import Completion
 
 currentSession = None
 alias = {}
@@ -99,8 +100,7 @@ class Controler:
 						args = command.split(' ')
 						commandName = args[0]
 						for arg in args[1:]:
-							token = Token()
-							token.value = arg
+							token = Token(startIndex=len(commandName)+1, value=arg)
 							extraArgs.append(token)
 						break
 					else:
@@ -133,7 +133,8 @@ class Controler:
 		for prio in sorted(alias, reverse=True):
 			for aliasName,command in alias[prio]:
 				if aliasName.startswith(commandName):
-					ret.append(aliasName+" ")
+					token = Completion(value=aliasName, final=True)
+					ret.append(token)
 		return (0, ret)
 	
 	def run_command(self, text):
@@ -206,4 +207,4 @@ def run_command(text):
 
 def get_completions(text):
 	start, completions = controler.get_completions(text)
-	return (start, getcommonstart(completions), completions)
+	return (start, getcommonstart([str(c) for c in completions]), completions)
