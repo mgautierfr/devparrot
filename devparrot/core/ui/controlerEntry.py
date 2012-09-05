@@ -18,13 +18,12 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import ttk
+import Tkinter
 from devparrot.core import commandLauncher
 
-class ControlerEntry(ttk.Entry):
+class ControlerEntry(Tkinter.Text):
 	def __init__(self, parent):
-		self.textVariable = ttk.Tkinter.StringVar()
-		ttk.Entry.__init__(self, parent, textvariable=self.textVariable)
+		Tkinter.Text.__init__(self, parent, height=1)
 		self.toClean = False
 		
 		
@@ -33,18 +32,18 @@ class ControlerEntry(ttk.Entry):
 		self.bind('<FocusOut>', self.on_lost_focus)
 		self.bind('<Key>', self.on_entry_event)
 
-		self.pack(side=ttk.Tkinter.TOP, fill=ttk.Tkinter.X)
-		self.toplevel = ttk.Tkinter.Toplevel()
+		self.pack(side=Tkinter.TOP, fill=Tkinter.X)
+		self.toplevel = Tkinter.Toplevel()
 		self.toplevel.bind('<FocusOut>', self.on_lost_focus)
 		self.display_list(False)
 		self.toplevel.wm_overrideredirect(True)
 
-		self.listbox = ttk.Tkinter.Listbox(self.toplevel)
+		self.listbox = Tkinter.Listbox(self.toplevel)
 		self.listbox.place(relwidth=1.0, relheight=1.0)
 		self.listbox.bind('<Key>', self.on_listbox_event)
 		self.bind('<Control-Return>', lambda e: "continue")
 		
-		self.textVariable.trace('w', self.on_textChanged)
+		self.bind("<<Modified>>", self.on_textChanged)
 
 		bindtags = list(self.bindtags())
 		bindtags.insert(1,"Command")
@@ -72,11 +71,12 @@ class ControlerEntry(ttk.Entry):
 	
 	def on_entry_event(self, event):
 		if event.keysym == 'Up':
-			self.delete("0", "end")
+			self.delete("1.0", "end")
 			self.insert("end", commandLauncher.currentSession.get_history().get_previous())
 		if event.keysym == "Down":
 			next = commandLauncher.currentSession.get_history().get_next()
 			if next:
+				self.delete("1.0", "end")
 				self.insert("end", commandLauncher.currentSession.get_history().get_next())
 			else:
 				self.display_list(True)
@@ -88,24 +88,26 @@ class ControlerEntry(ttk.Entry):
 			toInsert = self.commonString
 			self.delete(startIndex, 'insert')
 			self.insert(startIndex, toInsert)
-			self.icursor(startIndex+len(toInsert))
+			self.mark_set("insert", startIndex+" + %dc"%len(toInsert))
 			self.display_list(True)
 			self.listbox.focus()
 			self.listbox.select_set(0)
 			return "break"
 		if event.keysym == 'Return':
+			from devparrot.core import config
 			self.display_list(False)
-			text = self.textVariable.get()
-			ret = commandLauncher.run_command(text+"\n")
+			text = self.get("1.0", "end")
+			ret = commandLauncher.run_command(text)
 			if ret is None:
-				self['style'] = "notFoundStyle.TEntry"
+				self.configure(background=config.color.notFoundColor)
 			elif ret:
-				self['style'] = "okStyle.TEntry"
+				self.configure(background=config.color.okColor)
 				self.toClean = True
 			else:
-				self['style'] = "errorStyle.TEntry"
+				self.configure(background=config.color.errorColor)
 			if commandLauncher.currentSession.get_workspace().get_currentDocument():
 				commandLauncher.currentSession.get_workspace().get_currentDocument().get_currentView().focus()
+			return "break"
 		if event.keysym == 'Escape':
 			self.display_list(False)
 			if commandLauncher.currentSession.get_workspace().get_currentDocument():
@@ -125,7 +127,7 @@ class ControlerEntry(ttk.Entry):
 				startIndex = self.startIndex
 				self.delete(startIndex, 'insert')
 				self.insert(startIndex, completion)
-				self.icursor(startIndex+len(completion))
+				self.mark_set("index", startIndex + "+ %dc"%len(completion))
 				self.focus()
 			except:
 				pass
@@ -136,16 +138,16 @@ class ControlerEntry(ttk.Entry):
 				toInsert = self.commonString or str(self.completions[int(self.listbox.curselection()[0])])
 				self.delete(startIndex, 'insert')
 				self.insert(startIndex, toInsert)
-				self.icursor(startIndex+len(toInsert))
+				self.mark_set("index", startIndex + "+ %dc"%len(toInsert))
 			except:
 				pass
 			return
 		if event.keysym == 'Left':
-			self.icursor(str(self.index('insert')-1))
+			self.mark_set("index", "index - 1c")
 			self.update_completion()
 			return
 		if event.keysym == 'Right':
-			self.icursor(str(self.index('insert')+1))
+			self.mark_set("index", "index + 1c")
 			self.update_completion()
 			return
 		if event.keysym == 'BackSpace':
@@ -158,16 +160,18 @@ class ControlerEntry(ttk.Entry):
 			self.focus()
 	
 	def update_completion(self):
-		self.startIndex, self.commonString, self.completions = commandLauncher.get_completions(self.get()[:self.index('insert')])
+		self.startIndex, self.commonString, self.completions = commandLauncher.get_completions(self.get("1.0", "insert"))
+		self.startIndex = "1.%d"%self.startIndex
 		self.listbox.delete('0', 'end')
 		for v in self.completions:
 			self.listbox.insert('end', v.value)
 
 	def on_textChanged(self, *args):
 		self.update_completion()
+		self.edit_modified(False)
 		
 	def on_get_focus(self, event):
 		if self.toClean:
 			self.toClean = False
-			self['style'] = ""
-			self.delete(0,'end')
+			self.configure(background="white")
+			self.delete("1.0",'end')

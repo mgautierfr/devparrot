@@ -199,10 +199,10 @@ def run_command(text):
 		if not ret:
 			return ret
 	import ui.mainWindow
-	ui.mainWindow.entry.textVariable.set(commands[-1])
+	ui.mainWindow.entry.insert("1.0", commands[-1])
 	if commands[-1]:
 		ui.mainWindow.entry.focus()
-		ui.mainWindow.entry.icursor("end")
+		ui.mainWindow.entry.mark_set("index", "end")
 	return ret
 
 def get_completions(text):
