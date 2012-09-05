@@ -23,7 +23,7 @@ import os,sys
 import utils.event
 
 from command.splitter import Splitter, Token
-from command.constraints import Completion
+from completion import Completion
 
 currentSession = None
 alias = {}
@@ -58,19 +58,6 @@ class ListGenerator:
 	def end(self):
 		return self.index >= len(self.l)
 		return self.bend
-
-
-def getcommonstart(seq):
-    if not seq:return ""
-    s1, s2 = min(seq), max(seq)
-    l = min(len(s1), len(s2))
-    if l == 0 :
-        return ""
-    for i in xrange(l) :
-        if s1[i] != s2[i] :
-            return s1[:i]
-    return s1[:l]
-
 
 class Controler:
 	def __init__(self):
@@ -206,5 +193,4 @@ def run_command(text):
 	return ret
 
 def get_completions(text):
-	start, completions = controler.get_completions(text)
-	return (start, getcommonstart([str(c) for c in completions]), completions)
+	return controler.get_completions(text)

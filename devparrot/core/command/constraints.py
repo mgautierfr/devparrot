@@ -27,20 +27,7 @@ import Tkinter
 
 from tokenParser import MissingToken, InvalidToken
 
-def escape_token(value):
-	if set("'\"\\ ") | set(value):
-		for specialChar in "'\"\\ ":
-			value = value.replace(specialChar, '\\'+specialChar)
-	return value
-
-class Completion(object):
-	def __init__(self, value, final):
-		self.value = value
-		self.final = final
-
-	def __str__(self):
-		template = "%s " if self.final else "%s"
-		return template%escape_token(self.value)
+from devparrot.core.completion import Completion
 
 class noDefault(Exception):
 	pass
