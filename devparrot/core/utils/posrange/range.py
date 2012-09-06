@@ -1,3 +1,5 @@
+from error import BadArgument
+
 class Range:
 	def __init__(self, textWidget, startIndex, endIndex):
 		if startIndex > endIndex:

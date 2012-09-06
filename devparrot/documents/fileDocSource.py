@@ -18,9 +18,10 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import os,sys
+import os, sys
 
 class FileDocSource(object):
+    """ This class is used for document comming from a file (most of document)"""
     def __init__(self, path):
         self.path = os.path.abspath(path)
         self.timestamp = None
@@ -38,12 +39,20 @@ class FileDocSource(object):
         return False
         
     def get_path(self):
+        """ return the path of the file """
         return self.path
 
     def has_path(self):
+        """
+        return True if the source has a path.
+        Always True for fileDocSource
+        """
         return True
     
     def get_content(self):
+        """
+        return the content of the file
+        """
         if not os.path.exists(self.path):
             return ""
 
@@ -59,11 +68,12 @@ class FileDocSource(object):
             sys.stderr.write("Error while loading file %s\n"%self.path)
         return text
     
-
     def init_timestamp(self):
+        """ reinit the timestamp saved from the file """
         self.timestamp = os.stat(self.path).st_mtime
 
     def set_content(self, content):
+        """ set the content of the file (save it) """
         try :
             fileOut = open(self.path, 'w')
             fileOut.write(content.encode('utf8'))
@@ -75,7 +85,9 @@ class FileDocSource(object):
             return False
     
     def need_reload(self):
-        if not self.timestamp: return False
+        """ return True if the file has been modified since last init_timestamp """
+        if not self.timestamp:
+            return False
         modif = os.stat(self.path).st_mtime
         return  modif > self.timestamp
 

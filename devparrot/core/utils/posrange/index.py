@@ -6,8 +6,6 @@ from error import BadArgument
 Index_ = namedtuple('Index', "line col text")
 
 class _Index(Index_):
-	__slots__ = ()
-
 	def __str__(self):
 		return self.text
 	

@@ -43,6 +43,7 @@ class MetaCommand(type):
 class Command:
     __metaclass__ = MetaCommand
 
+    @classmethod
     def add_alias(cls, newName, oldName = None, prio=None):
         from devparrot.core import commandLauncher
         oldName = oldName or cls.__name__
@@ -51,28 +52,36 @@ class Command:
         else:
             commandLauncher.add_alias(newName, oldName, prio)
 
+    @classmethod
     def add_expender(cls, expender):
         from devparrot.core import commandLauncher
         commandLauncher.add_expender(expender)
 
+    @classmethod
     def pre_check(cls):
         return True
-    
+
+    @classmethod
     def get_tokenParser(cls):
         return tokenParser.TokenParser(cls.get_allConstraints(),askUser=True)
-    
+
+    @classmethod
     def get_argNumber(cls):
         return cls.run.func_code.co_argcount-1
-        
+
+    @classmethod
     def get_argName(cls, index):
         return cls.run.func_code.co_varnames[index+1]
-    
+
+    @classmethod
     def get_argNames(cls):
         return cls.run.func_code.co_varnames[1:cls.run.func_code.co_argcount]
 
+    @classmethod
     def get_constraint(cls, name):
         return cls.__dict__.get(name, constraints.Default())
-        
+
+    @classmethod
     def get_allConstraints(cls):
         for name in cls.run.func_code.co_varnames[1:cls.run.func_code.co_argcount]:
             yield ConstraintInstance(cls.get_constraint(name), name)

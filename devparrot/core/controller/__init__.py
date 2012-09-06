@@ -48,7 +48,9 @@ class Controller(object):
             method = getattr(self, key)
             if hasattr(method, "tkevent") and callable(method):
                 for eventSequence in method.tkevent:
-                    handle(eventSequence, lambda event, method=method: method(event, Modifiers(event)))
+                    handle(eventSequence,
+                           lambda event, method=method: method(event, Modifiers(event))
+                          )
 
 class ControllerMode:
     def __init__(self):
@@ -64,7 +66,8 @@ class ControllerMode:
         widgetclass = widget.winfo_class()
         # remove widget class bindings and other controllers
         tags = list(widget.bindtags())
-        tags[tags.index(widgetclass):tags.index(widgetclass)+1] = [c.tag for c in self.subControllers]
+        i = tags.index(widgetclass)
+        tags[i:i+1] = [c.tag for c in self.subControllers]
         widget.bindtags(tuple(tags))
     
     def configure(self, master=None):

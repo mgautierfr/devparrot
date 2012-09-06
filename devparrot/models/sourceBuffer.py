@@ -28,7 +28,7 @@ from time import time
 
 def insert_char(event):
     if event.widget and event.char:
-        event.widget.insert('insert',event.char)
+        event.widget.insert('insert', event.char)
 
 
 class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
@@ -38,7 +38,6 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
                                   autoseparators=False,
                                   tabstyle="wordprocessor")
         utils.event.EventSource.__init__(self)
-        self.bind("<<Selection>>", self.on_selection_changed)
         self.bind_class("Text","<Key>",insert_char)
         bindtags = list(self.bindtags())
         bindtags.insert(1,"Command")
@@ -93,17 +92,17 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
             return False
 
     def sel_update( self ):
-        if widget.compare( 'sel.anchor', '<', 'insert' ):
-            widget.mark_set( 'sel.first', 'sel.anchor' )
-            widget.mark_set( 'sel.last', 'insert' )
-        elif widget.compare( 'sel.anchor', '>', 'insert' ):
-            widget.mark_set( 'sel.first', 'insert' )
-            widget.mark_set( 'sel.last', 'sel.anchor' )
+        if self.compare( 'sel.anchor', '<', 'insert' ):
+            self.mark_set( 'sel.first', 'sel.anchor' )
+            self.mark_set( 'sel.last', 'insert' )
+        elif self.compare( 'sel.anchor', '>', 'insert' ):
+            self.mark_set( 'sel.first', 'insert' )
+            self.mark_set( 'sel.last', 'sel.anchor' )
         else:
             return
       
-        widget.tag_remove( 'sel', '1.0', 'end' )
-        widget.tag_add( 'sel', 'sel.first', 'sel.last' )
+        self.tag_remove( 'sel', '1.0', 'end' )
+        self.tag_add( 'sel', 'sel.first', 'sel.last' )
    
     def sel_delete( self ):
         try:
@@ -182,6 +181,7 @@ class SourceBuffer(CodeText):
         self.highlight_tag_protected = False
         self.tag_configure("highlight_tag", background=config.color.highlight_tag_color)
         self.tag_configure("search_tag", background=config.color.search_tag_color)
+        self.bind("<<Selection>>", self.on_selection_changed)
         self.hl_callId = None
         self.tag_lower("highlight_tag", "sel")
         self.tag_lower("search_tag", "sel")

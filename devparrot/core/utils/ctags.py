@@ -14,7 +14,7 @@ class Ctags_file:
         self.file.seek(0, os.SEEK_SET)
         return self.look_for_tag(tag, 0, high)
  
- 	def look_for_tag(self, tag, low, high):
+    def look_for_tag(self, tag, low, high):
         current = int((high+low)/2)
         
         self.file.seek(current)

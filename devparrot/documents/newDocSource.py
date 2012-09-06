@@ -18,12 +18,11 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import os,sys
-
 class NewDocSource(object):
+    """ This class is used for new document """
     newFileNumber = 0
     def __init__(self):
-        self.name = "NewFile%d"%NewDocSource.newFileNumber
+        self.name = "NewFile%d" % NewDocSource.newFileNumber
         NewDocSource.newFileNumber += 1
         
     def __getattr__(self, name):
@@ -40,14 +39,21 @@ class NewDocSource(object):
         return self.title
 
     def has_path(self):
+        """
+        return True if the source has a path.
+        Always False for newDocSource
+        """
         return False
         
     def get_content(self):
+        """ return the content of the file """
         return ""
     
     def set_content(self):
+        """ set the contente of the file """
         pass
 
     def need_reload(self):
+        """ return True if the file has been modified since last time """
         return False
 

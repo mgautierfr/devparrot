@@ -25,7 +25,8 @@ import ttk
 class TextView():
     def __init__(self, document):
         self.uiContainer = ttk.Frame(ui.mainWindow.workspaceContainer)
-        self.HScrollbar = ttk.Scrollbar(ui.mainWindow.workspaceContainer,orient=ttk.Tkinter.HORIZONTAL)
+        self.HScrollbar = ttk.Scrollbar(ui.mainWindow.workspaceContainer,
+                                        orient=ttk.Tkinter.HORIZONTAL)
         self.HScrollbar.grid(column=0,
                              row=1,
                              columnspan=10,
@@ -33,17 +34,23 @@ class TextView():
                              sticky="nsew"
                             )
 
-        self.VScrollbar = ttk.Scrollbar(ui.mainWindow.workspaceContainer,orient=ttk.Tkinter.VERTICAL)	
-        self.VScrollbar.grid(column=10, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
+        self.VScrollbar = ttk.Scrollbar(ui.mainWindow.workspaceContainer,
+                                        orient=ttk.Tkinter.VERTICAL)
+        self.VScrollbar.grid(column=10,
+                             row=0,
+                             in_=self.uiContainer,
+                             sticky="nsew")
 
         self.lineNumbers = ttk.Tkinter.Canvas(ui.mainWindow.workspaceContainer,
                                               highlightthickness = 0,
                                               takefocus = 0,
                                               bd=0,
                                               background = 'lightgrey',
-                                              state='disable',
-                                             )
-        self.lineNumbers.grid(column=0, row=0, in_=self.uiContainer, sticky="nsw")
+                                              state='disable')
+        self.lineNumbers.grid(column=0,
+                              row=0,
+                              in_=self.uiContainer,
+                              sticky="nsw")
 
         self.uiContainer.columnconfigure(0, weight=0)
         self.uiContainer.columnconfigure(1, weight=1)
@@ -73,11 +80,16 @@ class TextView():
         self.set_lineNumbers()
 
     def _create_textLine(self, name):
-        self.lineNumbers.create_text("0","0", anchor="nw", text=name, tags=name, state="hidden")
-        
+        self.lineNumbers.create_text("0", "0",
+                                     anchor="nw",
+                                     text=name,
+                                     tags=name,
+                                     state="hidden")
+
+
     def set_lineNumbers(self):
         self.lineNumbers.config(state='normal')
-        
+
         nbLine = int(self.view.index('end').split('.')[0])
         if self.lastLineCreated < nbLine:
             [self._create_textLine('%d'%(i+1)) for i in range(self.lastLineCreated, nbLine)]

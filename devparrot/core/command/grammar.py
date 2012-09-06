@@ -30,7 +30,7 @@ def toInt(s, l, t):
     try:
         return [int(t[0])]
     except ValueError:
-        raise pyparsing.ParseException(s,l,"not an int")
+        raise pyparsing.ParseException(s, l, "not an int")
 
 uinteger = pyparsing.Word(pyparsing.nums).setParseAction(toInt)
 integer = pyparsing.Word(pyparsing.nums+"-+", pyparsing.nums)
@@ -42,8 +42,9 @@ def int2Doc(s, l, t):
     index = int(t[0])
     document = commandLauncher.currentSession.get_documentManager().get_nthFile(index)
     if document is None:
-        raise pyparsing.ParseException(s,l,"Wrong number")
+        raise pyparsing.ParseException(s, l, "Wrong number")
     return [document]
+
 def path2Doc(s, l, t):
     """ transform a path to a doc"""
     from devparrot.core import commandLauncher
@@ -129,12 +130,21 @@ modifier = pyparsing.ZeroOrMore(countedmodifier | directmodifier)
         
 # ((mark ^ positional ^ tag) + modifier) will parse "1 chars" as 1.0 (+ error) instead of "insert + 1 chars"
 # so split expression
-positional_modifier = pyparsing.Combine(positional + modifier, adjacent=False, joinString=" ")
-mark_modifier = pyparsing.Combine(mark + modifier, adjacent=False, joinString=" ")
-tag_modifier = pyparsing.Combine(tagPositional + modifier, adjacent=False, joinString=" ")
+positional_modifier = pyparsing.Combine(positional + modifier,
+                                        adjacent=False,
+                                        joinString=" ")
+mark_modifier = pyparsing.Combine(mark + modifier,
+                                  adjacent=False,
+                                  joinString=" ")
+tag_modifier = pyparsing.Combine(tagPositional + modifier,
+                                 adjacent=False,
+                                 joinString=" ")
 
-index = pyparsing.Combine(mark_modifier ^ positional_modifier ^ tag_modifier, adjacent=False, joinString=" ")
-fullindex = pyparsing.And([pyparsing.Optional( doc + pyparsing.Suppress("@"), default=None ), index], savelist=False)
+index = pyparsing.Combine(mark_modifier ^ positional_modifier ^ tag_modifier,
+                          adjacent=False,
+                          joinString=" ")
+fullindex = pyparsing.And([pyparsing.Optional( doc + pyparsing.Suppress("@"), default=None ), index],
+                          savelist=False)
 fullindex.setParseAction(checkIndex)
 
 indexRange = pyparsing.Optional( doc + pyparsing.Suppress("@"), default=None ) + index + pyparsing.Suppress(":") + index

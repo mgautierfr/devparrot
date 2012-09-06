@@ -319,6 +319,7 @@ class MouseController(Controller):
 
     @bind( '<ButtonPress-2>' )
     def middle_click( self, event, modifiers):
+        import Tkinter.TclError
         MouseController.set_current(event)
         try:
             event.widget.insert( 'current', event.widget.selection_get() )

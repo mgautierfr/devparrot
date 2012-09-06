@@ -41,6 +41,7 @@ class Document(utils.event.EventSource):
 
     def __init__(self, documentSource):
         utils.event.EventSource.__init__(self)
+        self.documentSource = None
         self.set_path(documentSource)
         self.modifiedVar = Variable("normal")
         self.documentView = DocumentView(self)

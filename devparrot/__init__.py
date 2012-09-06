@@ -20,15 +20,21 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import os.path
-from devparrot.core import config, ui, session, commandLauncher, command, modules
+"""
+This is the main module of devparrot
+"""
+
+import os.path as path
+from devparrot.core import config
+from devparrot.core import ui, session, commandLauncher, command, modules
 
 class DevParrot(object):
+    """ This is the main class representing an instance of devparrot"""
     def __init__(self):
         ui.mainWindow.init()
         commandLauncher.init()
-        currentPath = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
-        devparrotPath = os.path.join(os.path.dirname(currentPath), "devparrot")
+        currentPath = path.dirname(path.abspath(path.realpath(__file__)))
+        devparrotPath = path.join(path.dirname(currentPath), "devparrot")
         command.init(devparrotPath)
         modules.init(devparrotPath)
         self.session = session.Session()

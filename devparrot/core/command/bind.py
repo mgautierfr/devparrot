@@ -1,4 +1,3 @@
-import capi
 import re
 
 TkEventMatcher = re.compile(r"<.*>")
