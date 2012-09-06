@@ -3,6 +3,6 @@ from devparrot.controllers.editControllers import CarretController, AdvancedText
 
 
 class DefaultControllerMode(ControllerMode):
-	def __init__(self):
-		ControllerMode.__init__(self)
-		self.subControllers = [ CarretController(), AdvancedTextController(), BasicTextController(), MouseController() ]
+    def __init__(self):
+        ControllerMode.__init__(self)
+        self.subControllers = [ CarretController(), AdvancedTextController(), BasicTextController(), MouseController() ]

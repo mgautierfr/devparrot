@@ -26,23 +26,23 @@ from devparrot.core import popupMenu as popupMenuModule
 import controlerEntry
 
 class Helper:
-	def __init__(self):
-		global window
-		self.window = window
+    def __init__(self):
+        global window
+        self.window = window
 
-	def ask_questionYesNo(self, title, message):
-		import tkMessageBox
-		return tkMessageBox.askyesno(title, message)
+    def ask_questionYesNo(self, title, message):
+        import tkMessageBox
+        return tkMessageBox.askyesno(title, message)
 
-	def ask_filenameSave(self, *args, **kwords):
-		import tkFileDialog
-		response = tkFileDialog.asksaveasfilename(title="Save a file", *args, **kwords)
-		return response
+    def ask_filenameSave(self, *args, **kwords):
+        import tkFileDialog
+        response = tkFileDialog.asksaveasfilename(title="Save a file", *args, **kwords)
+        return response
 
-	def ask_filenameOpen(self, *args, **kwords):
-		import tkFileDialog
-		response = tkFileDialog.askopenfilename(title="Open a file", *args, **kwords)
-		return response
+    def ask_filenameOpen(self, *args, **kwords):
+        import tkFileDialog
+        response = tkFileDialog.askopenfilename(title="Open a file", *args, **kwords)
+        return response
 
 window = None
 entry = None
@@ -52,74 +52,74 @@ vpaned = None
 popupMenu = None
 
 def quit(event):
-	from actions.controlerActions import quit
-	quit.run()
+    from actions.controlerActions import quit
+    quit.run()
 
 def init():
-	from devparrot.core import config
-	global window
-	global entry
-	global workspaceContainer
-	global hpaned
-	global vpaned
-	global popupMenu
-	window = ttk.Tkinter.Tk()
-	style = ttk.Style()
-	style.configure("notFoundStyle.TEntry", fieldbackground=config.color.notFoundColor)
-	style.configure("okStyle.TEntry", fieldbackground=config.color.okColor)
-	style.configure("errorStyle.TEntry", fieldbackground=config.color.errorColor)
-	geom = window.wm_geometry()
-	x = geom.split('+')[1]
-	y = geom.split('+')[2]
-	window.wm_geometry("%dx%d+%s+%s"%(config.window.width,config.window.height,x,y))
-	icon_path = os.path.dirname(os.path.realpath(__file__))
-	icon_path = os.path.join(icon_path,"../resources/icon.png")
+    from devparrot.core import config
+    global window
+    global entry
+    global workspaceContainer
+    global hpaned
+    global vpaned
+    global popupMenu
+    window = ttk.Tkinter.Tk()
+    style = ttk.Style()
+    style.configure("notFoundStyle.TEntry", fieldbackground=config.color.notFoundColor)
+    style.configure("okStyle.TEntry", fieldbackground=config.color.okColor)
+    style.configure("errorStyle.TEntry", fieldbackground=config.color.errorColor)
+    geom = window.wm_geometry()
+    x = geom.split('+')[1]
+    y = geom.split('+')[2]
+    window.wm_geometry("%dx%d+%s+%s"%(config.window.width,config.window.height,x,y))
+    icon_path = os.path.dirname(os.path.realpath(__file__))
+    icon_path = os.path.join(icon_path,"../resources/icon.png")
 #	window.wm_iconwindow(icon_path)
-	window.wm_title("DevParrot")
+    window.wm_title("DevParrot")
 
-	vbox = ttk.Tkinter.Frame(window)
-	vbox.pack(expand=True,fill=ttk.Tkinter.BOTH)
-	entry = controlerEntry.ControlerEntry(vbox)
+    vbox = ttk.Tkinter.Frame(window)
+    vbox.pack(expand=True,fill=ttk.Tkinter.BOTH)
+    entry = controlerEntry.ControlerEntry(vbox)
 
-	hpaned = ttk.PanedWindow(vbox,orient=ttk.Tkinter.HORIZONTAL)
-	hpaned.pack(expand=True,fill=ttk.Tkinter.BOTH)
+    hpaned = ttk.PanedWindow(vbox,orient=ttk.Tkinter.HORIZONTAL)
+    hpaned.pack(expand=True,fill=ttk.Tkinter.BOTH)
 
-	vpaned = ttk.PanedWindow(hpaned,orient=ttk.Tkinter.VERTICAL)
-	vpaned.pack(expand=True,fill=ttk.Tkinter.BOTH)
+    vpaned = ttk.PanedWindow(hpaned,orient=ttk.Tkinter.VERTICAL)
+    vpaned.pack(expand=True,fill=ttk.Tkinter.BOTH)
 
-	workspaceContainer = ttk.Frame(vpaned, borderwidth=1, padding=0, relief="ridge")
-	vpaned.add(workspaceContainer)
+    workspaceContainer = ttk.Frame(vpaned, borderwidth=1, padding=0, relief="ridge")
+    vpaned.add(workspaceContainer)
 
-	hpaned.add(vpaned)
+    hpaned.add(vpaned)
 
 
-	popupMenu = popupMenuModule.Menu()
+    popupMenu = popupMenuModule.Menu()
 
-	def focus_and_break(event):
-		entry.focus()
-		return "break"
+    def focus_and_break(event):
+        entry.focus()
+        return "break"
 
-	window.bind_class("Command", "<Control-Return>", focus_and_break)
-	window.bind('<ButtonRelease>', lambda e: popupMenu.unpost() )
-	window.bind('<Configure>', lambda e: popupMenu.unpost() )
-	bindtags = list(window.bindtags())
-	bindtags.insert(1,"Command")
-	bindtags = " ".join(bindtags)
-	window.bindtags(bindtags)
+    window.bind_class("Command", "<Control-Return>", focus_and_break)
+    window.bind('<ButtonRelease>', lambda e: popupMenu.unpost() )
+    window.bind('<Configure>', lambda e: popupMenu.unpost() )
+    bindtags = list(window.bindtags())
+    bindtags.insert(1,"Command")
+    bindtags = " ".join(bindtags)
+    window.bindtags(bindtags)
 
-	from devparrot.core import command
-	command.binder.bind()
+    from devparrot.core import command
+    command.binder.bind()
 
 def add_helper(widget, pos):
-	global hpaned
-	global vpaned
-	if pos == 'left':
-		hpaned.insert(0, widget)
-	if pos == 'right':
-		hpaned.insert('end', widget)
-	if pos == 'top':
-		vpaned.insert(0, widget)
-	if pos == 'bottom':
-		vpaned.insert('end', widget)
+    global hpaned
+    global vpaned
+    if pos == 'left':
+        hpaned.insert(0, widget)
+    if pos == 'right':
+        hpaned.insert('end', widget)
+    if pos == 'top':
+        vpaned.insert(0, widget)
+    if pos == 'bottom':
+        vpaned.insert('end', widget)
 
 

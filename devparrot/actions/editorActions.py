@@ -22,22 +22,22 @@ from devparrot.core.command.baseCommand import Command
 from devparrot.core.command import capi
 
 class cut(Command):
-	def run(cls):
-		return capi.currentDocument.get_currentView().cut_clipboard()
+    def run(cls):
+        return capi.currentDocument.get_currentView().cut_clipboard()
 
 class copy(Command):
-	def run(cls):
-		return capi.currentDocument.get_currentView().copy_clipboard()
+    def run(cls):
+        return capi.currentDocument.get_currentView().copy_clipboard()
 
 class paste(Command):
-	def run(cls):
-		return capi.currentDocument.get_currentView().paste_clipboard()
+    def run(cls):
+        return capi.currentDocument.get_currentView().paste_clipboard()
 
 class undo(Command):
-	def run(cls):
-		return capi.currentDocument.get_model().undo()
+    def run(cls):
+        return capi.currentDocument.get_model().undo()
 
 class redo(Command):
-	def run(cls):
-		return capi.currentDocument.get_model().redo()
+    def run(cls):
+        return capi.currentDocument.get_model().redo()
 

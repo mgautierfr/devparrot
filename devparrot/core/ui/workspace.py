@@ -23,20 +23,20 @@ from viewContainer import TopContainer,NotebookContainer
 import mainWindow
 
 class Workspace(TopContainer):
-	def __init__(self):
-		TopContainer.__init__(self)
+    def __init__(self):
+        TopContainer.__init__(self)
 
-	def set_currentDocument(self, document):
-		self.get_currentContainer().set_documentView(document.documentView)
+    def set_currentDocument(self, document):
+        self.get_currentContainer().set_documentView(document.documentView)
 
-	def get_currentDocument(self):
-		try:
-			return self.get_currentContainer().get_documentView().document
-		except AttributeError:
-			return None
+    def get_currentDocument(self):
+        try:
+            return self.get_currentContainer().get_documentView().document
+        except AttributeError:
+            return None
 
-	def get_currentContainer(self):
-		if NotebookContainer.current:
-			return NotebookContainer.current
-		else:
-			return self.container
+    def get_currentContainer(self):
+        if NotebookContainer.current:
+            return NotebookContainer.current
+        else:
+            return self.container

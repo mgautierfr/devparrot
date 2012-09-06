@@ -21,18 +21,18 @@
 from variable import CbCaller
 
 class Event(CbCaller):
-	def __call__(self, *args, **kwords):
-		self.notify(*args, **kwords)
+    def __call__(self, *args, **kwords):
+        self.notify(*args, **kwords)
 
 
 class EventSource(object):
-	def __init__(self):
-		self.__events = dict()
+    def __init__(self):
+        self.__events = dict()
 
-	def connect(self, eventName, callback):
-		self.__events.setdefault(eventName, Event()).register(callback)
+    def connect(self, eventName, callback):
+        self.__events.setdefault(eventName, Event()).register(callback)
 
-	def event(self, eventName):
-		return self.__events.get(eventName, Event())
+    def event(self, eventName):
+        return self.__events.get(eventName, Event())
 
 

@@ -23,48 +23,48 @@ import commandLauncher
 
 
 class Menu(ttk.Tkinter.Menu):
-	def __init__(self):
-		ttk.Tkinter.Menu.__init__(self)
-		self.sections = []
-		self.config(postcommand=self.postCommand)
-		self.add_section(EditSection(self))
-		self.createMenu()
-		pass
-	
-	def add_section(self, section):
-		self.sections.append(section)
-	
-	def createMenu(self):
-		for section in self.sections:
-			section.createMenu()
-	
-	def postCommand(self):
-		for section in self.sections:
-			section.postCommand()
-		
+    def __init__(self):
+        ttk.Tkinter.Menu.__init__(self)
+        self.sections = []
+        self.config(postcommand=self.postCommand)
+        self.add_section(EditSection(self))
+        self.createMenu()
+        pass
+    
+    def add_section(self, section):
+        self.sections.append(section)
+    
+    def createMenu(self):
+        for section in self.sections:
+            section.createMenu()
+    
+    def postCommand(self):
+        for section in self.sections:
+            section.postCommand()
+        
 class EditSection:
-	def __init__(self, menu):
-		self.menu = menu
-	
-	def createMenu(self):
-		self.menu.add_command(label='Undo', command=lambda:commandLauncher.run_command('undo\n'))
-		self.menu.add_command(label='Redo', command=lambda:commandLauncher.run_command('redo\n'))
-		self.menu.add_separator()
-		self.menu.add_command(label='Copy',  command=lambda:commandLauncher.run_command('copy\n'))
-		self.menu.add_command(label='Cut',   command=lambda:commandLauncher.run_command('cut\n'))
-		self.menu.add_command(label='Paste', command=lambda:commandLauncher.run_command('paste\n'))
-	
-	def postCommand(self):
-		try:
-			self.menu.clipboard_get()
-			self.menu.entryconfigure('Paste', state="normal")
-		except:
-			self.menu.entryconfigure('Paste', state="disable")
+    def __init__(self, menu):
+        self.menu = menu
+    
+    def createMenu(self):
+        self.menu.add_command(label='Undo', command=lambda:commandLauncher.run_command('undo\n'))
+        self.menu.add_command(label='Redo', command=lambda:commandLauncher.run_command('redo\n'))
+        self.menu.add_separator()
+        self.menu.add_command(label='Copy',  command=lambda:commandLauncher.run_command('copy\n'))
+        self.menu.add_command(label='Cut',   command=lambda:commandLauncher.run_command('cut\n'))
+        self.menu.add_command(label='Paste', command=lambda:commandLauncher.run_command('paste\n'))
+    
+    def postCommand(self):
+        try:
+            self.menu.clipboard_get()
+            self.menu.entryconfigure('Paste', state="normal")
+        except:
+            self.menu.entryconfigure('Paste', state="disable")
 
-		import command.capi
-		if command.capi.currentDocument.get_currentView().view.sel_isSelection():
-			self.menu.entryconfigure('Cut', state="normal")
-			self.menu.entryconfigure('Copy', state="normal")
-		else:
-			self.menu.entryconfigure('Cut', state="disable")
-			self.menu.entryconfigure('Copy', state="disable")
+        import command.capi
+        if command.capi.currentDocument.get_currentView().view.sel_isSelection():
+            self.menu.entryconfigure('Cut', state="normal")
+            self.menu.entryconfigure('Copy', state="normal")
+        else:
+            self.menu.entryconfigure('Cut', state="disable")
+            self.menu.entryconfigure('Copy', state="disable")

@@ -21,33 +21,33 @@
 import os,sys
 
 class NewDocSource(object):
-	newFileNumber = 0
-	def __init__(self):
-		self.name = "NewFile%d"%NewDocSource.newFileNumber
-		NewDocSource.newFileNumber += 1
-		
-	def __getattr__(self, name):
-		if name in ["title", "longTitle"]:
-			return self.name
-		raise AttributeError
+    newFileNumber = 0
+    def __init__(self):
+        self.name = "NewFile%d"%NewDocSource.newFileNumber
+        NewDocSource.newFileNumber += 1
+        
+    def __getattr__(self, name):
+        if name in ["title", "longTitle"]:
+            return self.name
+        raise AttributeError
 
-	def __eq__(self, other):
-		if self.__class__ == other.__class__:
-			return self.name == other.name
-		return False
-		
-	def get_path(self):
-		return self.title
+    def __eq__(self, other):
+        if self.__class__ == other.__class__:
+            return self.name == other.name
+        return False
+        
+    def get_path(self):
+        return self.title
 
-	def has_path(self):
-		return False
-		
-	def get_content(self):
-		return ""
-	
-	def set_content(self):
-		pass
+    def has_path(self):
+        return False
+        
+    def get_content(self):
+        return ""
+    
+    def set_content(self):
+        pass
 
-	def need_reload(self):
-		return False
+    def need_reload(self):
+        return False
 

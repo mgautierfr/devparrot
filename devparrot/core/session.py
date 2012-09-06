@@ -19,45 +19,45 @@
 #    Copyright 2011 Matthieu Gautier
 
 class Session(object):
-	class History(object):
-		def __init__(self):
-			self.history = list()
-			self.currentIndex = 0
+    class History(object):
+        def __init__(self):
+            self.history = list()
+            self.currentIndex = 0
 
-		def push(self, line):
-			self.history.append(line)
-			self.currentIndex = 0
+        def push(self, line):
+            self.history.append(line)
+            self.currentIndex = 0
 
-		def get_previous(self):
-			if self.currentIndex < len(self.history):
-				self.currentIndex += 1
-			if self.currentIndex==0 : return ""
-			return self.history[-self.currentIndex]
+        def get_previous(self):
+            if self.currentIndex < len(self.history):
+                self.currentIndex += 1
+            if self.currentIndex==0 : return ""
+            return self.history[-self.currentIndex]
 
-		def get_next(self):
-			if self.currentIndex != 0:
-				self.currentIndex -= 1
-			if self.currentIndex == 0 : return ""
-			return self.history[-self.currentIndex]
+        def get_next(self):
+            if self.currentIndex != 0:
+                self.currentIndex -= 1
+            if self.currentIndex == 0 : return ""
+            return self.history[-self.currentIndex]
 
-	def __init__(self):
-		import documentManager
-		import ui.workspace
-		import commandLauncher
-		self.documentManager = documentManager.DocumentManager(self)
-		self.workspace = ui.workspace.Workspace()
-		self.history = Session.History()
-		commandLauncher.set_session(self)
+    def __init__(self):
+        import documentManager
+        import ui.workspace
+        import commandLauncher
+        self.documentManager = documentManager.DocumentManager(self)
+        self.workspace = ui.workspace.Workspace()
+        self.history = Session.History()
+        commandLauncher.set_session(self)
 
-	def get_workspace(self):
-		return self.workspace
+    def get_workspace(self):
+        return self.workspace
 
-	def get_documentManager(self):
-		return self.documentManager
+    def get_documentManager(self):
+        return self.documentManager
 
-	def get_currentDocument(self):
-		return self.workspace.get_currentDocument()
-		
-	def get_history(self):
-		return self.history
+    def get_currentDocument(self):
+        return self.workspace.get_currentDocument()
+        
+    def get_history(self):
+        return self.history
 

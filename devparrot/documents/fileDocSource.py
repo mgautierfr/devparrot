@@ -21,62 +21,62 @@
 import os,sys
 
 class FileDocSource(object):
-	def __init__(self, path):
-		self.path = os.path.abspath(path)
-		self.timestamp = None
-		
-	def __getattr__(self, name):
-		if name == "title":
-			return os.path.basename(self.path)
-		if name == "longTitle":
-			return self.path
-		raise AttributeError
-		
-	def __eq__(self, other):
-		if self.__class__ == other.__class__:
-			return self.path == other.path
-		return False
-		
-	def get_path(self):
-		return self.path
+    def __init__(self, path):
+        self.path = os.path.abspath(path)
+        self.timestamp = None
+        
+    def __getattr__(self, name):
+        if name == "title":
+            return os.path.basename(self.path)
+        if name == "longTitle":
+            return self.path
+        raise AttributeError
+        
+    def __eq__(self, other):
+        if self.__class__ == other.__class__:
+            return self.path == other.path
+        return False
+        
+    def get_path(self):
+        return self.path
 
-	def has_path(self):
-		return True
-	
-	def get_content(self):
-		if not os.path.exists(self.path):
-			return ""
+    def has_path(self):
+        return True
+    
+    def get_content(self):
+        if not os.path.exists(self.path):
+            return ""
 
-		text = ""
-		try:
-			fileIn = open(self.path, 'r')
-			text = fileIn.read()
-			if text and text[-1] == '\n':
-				text = text[:-1]
-			fileIn.close()
-			self.init_timestamp()
-		except:
-			sys.stderr.write("Error while loading file %s\n"%self.path)
-		return text
-	
+        text = ""
+        try:
+            fileIn = open(self.path, 'r')
+            text = fileIn.read()
+            if text and text[-1] == '\n':
+                text = text[:-1]
+            fileIn.close()
+            self.init_timestamp()
+        except:
+            sys.stderr.write("Error while loading file %s\n"%self.path)
+        return text
+    
 
-	def init_timestamp(self):
-		self.timestamp = os.stat(self.path).st_mtime
+    def init_timestamp(self):
+        self.timestamp = os.stat(self.path).st_mtime
 
-	def set_content(self, content):
-		try :
-			fileOut = open(self.path, 'w')
-			fileOut.write(content.encode('utf8'))
-			fileOut.close()
-			self.init_timestamp()
-			return True
-		except:
-			sys.stderr.write("Error while writing file %s\n"%self.path)
-			return False
-	
-	def need_reload(self):
-		if not self.timestamp: return False
-		modif = os.stat(self.path).st_mtime
-		return  modif > self.timestamp
+    def set_content(self, content):
+        try :
+            fileOut = open(self.path, 'w')
+            fileOut.write(content.encode('utf8'))
+            fileOut.close()
+            self.init_timestamp()
+            return True
+        except:
+            sys.stderr.write("Error while writing file %s\n"%self.path)
+            return False
+    
+    def need_reload(self):
+        if not self.timestamp: return False
+        modif = os.stat(self.path).st_mtime
+        return  modif > self.timestamp
 
 

@@ -25,79 +25,79 @@ from devparrot.core import commandLauncher, ui
 documentListView = None
 
 def activate():
-	commandLauncher.eventSystem.connect('newSession', on_new_session)
+    commandLauncher.eventSystem.connect('newSession', on_new_session)
 
 def on_new_session(session):
-	global documentListView
-	documentManager = commandLauncher.currentSession.get_documentManager()
-	documentListView = DocumentListView(ui.mainWindow.window)
-	documentManager.connect('documentDeleted', documentListView.on_documentDeleted)
-	documentManager.connect('documentAdded', documentListView.on_documentAdded)
-	ui.mainWindow.add_helper(documentListView, 'left')
-	pass
+    global documentListView
+    documentManager = commandLauncher.currentSession.get_documentManager()
+    documentListView = DocumentListView(ui.mainWindow.window)
+    documentManager.connect('documentDeleted', documentListView.on_documentDeleted)
+    documentManager.connect('documentAdded', documentListView.on_documentAdded)
+    ui.mainWindow.add_helper(documentListView, 'left')
+    pass
 
 def deactivate():
-	pass
+    pass
 
 
 class DocumentListView(ttk.Treeview):
-	class PseudoList(object):
-		def __init__(self, ttkTreeView):
-			self.view = ttkTreeView
+    class PseudoList(object):
+        def __init__(self, ttkTreeView):
+            self.view = ttkTreeView
 
-		def __len__(self):
-			return len(self.view.get_children(''))
+        def __len__(self):
+            return len(self.view.get_children(''))
 
-		def __getitem__(self, key):
-			return self.view.get_children('')[key]
+        def __getitem__(self, key):
+            return self.view.get_children('')[key]
 
-		def __delitem__(self, key):
-			self.view.detach(self.__getitem__(key))
+        def __delitem__(self, key):
+            self.view.detach(self.__getitem__(key))
 
-		def sort(self):
-			sorted_ = sorted(self)
-			for i in range(len(self)):
-				del self[0]
-			for i,p in enumerate(sorted_):
-				self.view.reattach(p, '', i)
-				self.view.item(p, text="%d"%i)
-
-
-	def __init__(self,parent):
-		ttk.Treeview.__init__(self,parent)
-		self['columns'] = ('name')
-		self.column('#0', width=30, stretch=False)
-		self.heading('#0', text="id")
-		self.heading('name', text="document")
-		self['selectmode'] =(Tkinter.BROWSE)
-		self.bind('<Double-Button-1>', self.on_double_click)
-		bindtags = list(self.bindtags())
-		bindtags.insert(1,"Command")
-		bindtags = " ".join(bindtags)
-		self.bindtags(bindtags)
+        def sort(self):
+            sorted_ = sorted(self)
+            for i in range(len(self)):
+                del self[0]
+            for i,p in enumerate(sorted_):
+                self.view.reattach(p, '', i)
+                self.view.item(p, text="%d"%i)
 
 
-	def on_documentAdded(self, document):
-		ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=(document.title))
-		document.connect('pathChanged', self.on_path_changed)
-		self.sort()
+    def __init__(self,parent):
+        ttk.Treeview.__init__(self,parent)
+        self['columns'] = ('name')
+        self.column('#0', width=30, stretch=False)
+        self.heading('#0', text="id")
+        self.heading('name', text="document")
+        self['selectmode'] =(Tkinter.BROWSE)
+        self.bind('<Double-Button-1>', self.on_double_click)
+        bindtags = list(self.bindtags())
+        bindtags.insert(1,"Command")
+        bindtags = " ".join(bindtags)
+        self.bindtags(bindtags)
 
-	def on_documentDeleted(self,document):
-		self.delete(document.get_path())
-		self.sort()
-	
-	def on_path_changed(self, document, oldPath):
-		if oldPath:
-			self.delete(oldPath)
-		ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=(document.title))
-		self.sort()
 
-	def on_double_click(self, event):
-		selection = self.selection()
-		if selection:
-			document = commandLauncher.currentSession.get_documentManager().get_file(selection[0])
-			commandLauncher.currentSession.get_documentManager().switch_to_document(document)
+    def on_documentAdded(self, document):
+        ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=(document.title))
+        document.connect('pathChanged', self.on_path_changed)
+        self.sort()
 
-	def sort(self):
-		DocumentListView.PseudoList(self).sort()
+    def on_documentDeleted(self,document):
+        self.delete(document.get_path())
+        self.sort()
+    
+    def on_path_changed(self, document, oldPath):
+        if oldPath:
+            self.delete(oldPath)
+        ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=(document.title))
+        self.sort()
+
+    def on_double_click(self, event):
+        selection = self.selection()
+        if selection:
+            document = commandLauncher.currentSession.get_documentManager().get_file(selection[0])
+            commandLauncher.currentSession.get_documentManager().switch_to_document(document)
+
+    def sort(self):
+        DocumentListView.PseudoList(self).sort()
 

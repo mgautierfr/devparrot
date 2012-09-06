@@ -24,12 +24,12 @@ import os.path
 from devparrot.core import config, ui, session, commandLauncher, command, modules
 
 class DevParrot(object):
-	def __init__(self):
-		ui.mainWindow.init()
-		commandLauncher.init()
-		currentPath = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
-		devparrotPath = os.path.join(os.path.dirname(currentPath), "devparrot")
-		command.init(devparrotPath)
-		modules.init(devparrotPath)
-		self.session = session.Session()
+    def __init__(self):
+        ui.mainWindow.init()
+        commandLauncher.init()
+        currentPath = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+        devparrotPath = os.path.join(os.path.dirname(currentPath), "devparrot")
+        command.init(devparrotPath)
+        modules.init(devparrotPath)
+        self.session = session.Session()
 #		ui.mainWindow.window.mainloop()

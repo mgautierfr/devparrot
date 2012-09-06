@@ -27,63 +27,63 @@ word = pyparsing.Word(allalphanums)
 any = pyparsing.Regex(r".*")
 
 def toInt(s, l, t):
-	try:
-		return [int(t[0])]
-	except ValueError:
-		raise pyparsing.ParseException(s,l,"not an int")
+    try:
+        return [int(t[0])]
+    except ValueError:
+        raise pyparsing.ParseException(s,l,"not an int")
 
 uinteger = pyparsing.Word(pyparsing.nums).setParseAction(toInt)
 integer = pyparsing.Word(pyparsing.nums+"-+", pyparsing.nums)
 integer.setParseAction(toInt)
 
 def int2Doc(s, l, t):
-	""" transform a integer to a doc"""
-	from devparrot.core import commandLauncher
-	index = int(t[0])
-	document = commandLauncher.currentSession.get_documentManager().get_nthFile(index)
-	if document is None:
-		raise pyparsing.ParseException(s,l,"Wrong number")
-	return [document]
+    """ transform a integer to a doc"""
+    from devparrot.core import commandLauncher
+    index = int(t[0])
+    document = commandLauncher.currentSession.get_documentManager().get_nthFile(index)
+    if document is None:
+        raise pyparsing.ParseException(s,l,"Wrong number")
+    return [document]
 def path2Doc(s, l, t):
-	""" transform a path to a doc"""
-	from devparrot.core import commandLauncher
-	tok = os.path.abspath(t[0])
-	if not commandLauncher.currentSession.get_documentManager().has_file(tok):
-		raise pyparsing.ParseException(s, l, "Wrong name")
-	return [commandLauncher.currentSession.get_documentManager().get_file(tok)]
+    """ transform a path to a doc"""
+    from devparrot.core import commandLauncher
+    tok = os.path.abspath(t[0])
+    if not commandLauncher.currentSession.get_documentManager().has_file(tok):
+        raise pyparsing.ParseException(s, l, "Wrong name")
+    return [commandLauncher.currentSession.get_documentManager().get_file(tok)]
 
 def checkIndex(s, l, t):
-	from devparrot.core import commandLauncher, utils
-	doc, indexstr = t
-	if doc is None:
-		doc = commandLauncher.currentSession.get_currentDocument()
-		if not doc:
-			raise pyparsing.ParseException(s, l, "No doc given and no currentDoc")
-	try:
-		index = utils.posrange.Index(doc.get_model(), indexstr)
-	except utils.posrange.BadArgument:
-		raise pyparsing.ParseException(s, l, "Invalid value for index")
-	return [index]
+    from devparrot.core import commandLauncher, utils
+    doc, indexstr = t
+    if doc is None:
+        doc = commandLauncher.currentSession.get_currentDocument()
+        if not doc:
+            raise pyparsing.ParseException(s, l, "No doc given and no currentDoc")
+    try:
+        index = utils.posrange.Index(doc.get_model(), indexstr)
+    except utils.posrange.BadArgument:
+        raise pyparsing.ParseException(s, l, "Invalid value for index")
+    return [index]
 
 def checkRange(s, l, t):
-	from devparrot.core import commandLauncher, utils
-	doc, start, end = t
-	if doc is None:
-		doc = commandLauncher.currentSession.get_currentDocument()
-		if not doc:
-			raise pyparsing.ParseException(s, l, "No doc given and no currentDoc")
-	try:
-		start_ = utils.posrange.Index(doc.get_model(), start)
-		end_ = utils.posrange.Index(doc.get_model(), end)
-		range_ = utils.posrange.Range(doc.get_model(), start_, end_)
-	except utils.posrange.BadArgument:
-		raise pyparsing.ParseException(s, l, "Invalid value for range")
-	return [range_]
+    from devparrot.core import commandLauncher, utils
+    doc, start, end = t
+    if doc is None:
+        doc = commandLauncher.currentSession.get_currentDocument()
+        if not doc:
+            raise pyparsing.ParseException(s, l, "No doc given and no currentDoc")
+    try:
+        start_ = utils.posrange.Index(doc.get_model(), start)
+        end_ = utils.posrange.Index(doc.get_model(), end)
+        range_ = utils.posrange.Range(doc.get_model(), start_, end_)
+    except utils.posrange.BadArgument:
+        raise pyparsing.ParseException(s, l, "Invalid value for range")
+    return [range_]
 
 def resolveRange(s, l, t):
-	range_ = t[0]
-	content = range_.get_content()
-	return [content]
+    range_ = t[0]
+    content = range_.get_content()
+    return [content]
 
 docindex = uinteger.copy()
 docindex.addParseAction(int2Doc)
@@ -106,7 +106,7 @@ tag = ( pyparsing.Literal("sel")
       | pyparsing.Literal("s").setParseAction( pyparsing.replaceWith("sel") )
       )
 tagPositional = pyparsing.Combine(tag+"."+pyparsing.oneOf("first last"))
-		
+        
 countedmodifierkw = ( pyparsing.Literal("chars")
                     | pyparsing.Literal("indices")
                     | pyparsing.Literal("lines")
@@ -126,7 +126,7 @@ directmodifier =  ( pyparsing.Literal("linestart")
                   | pyparsing.Literal("we").setParseAction( pyparsing.replaceWith("wordend") )
                   )
 modifier = pyparsing.ZeroOrMore(countedmodifier | directmodifier)
-		
+        
 # ((mark ^ positional ^ tag) + modifier) will parse "1 chars" as 1.0 (+ error) instead of "insert + 1 chars"
 # so split expression
 positional_modifier = pyparsing.Combine(positional + modifier, adjacent=False, joinString=" ")

@@ -22,71 +22,71 @@ import Tkinter
 from devparrot.core import commandLauncher, completion
 
 class ControlerEntry(Tkinter.Text):
-	def __init__(self, parent):
-		Tkinter.Text.__init__(self, parent, height=1)
-		self.toClean = False
-		
-		self.bind('<FocusIn>', self.on_get_focus)
-		self.bind('<Key>', self.on_entry_event)
+    def __init__(self, parent):
+        Tkinter.Text.__init__(self, parent, height=1)
+        self.toClean = False
+        
+        self.bind('<FocusIn>', self.on_get_focus)
+        self.bind('<Key>', self.on_entry_event)
 
-		self.completionSystem = completion.CompletionSystem(self)
-		
+        self.completionSystem = completion.CompletionSystem(self)
+        
 
-		self.pack(side=Tkinter.TOP, fill=Tkinter.X)
+        self.pack(side=Tkinter.TOP, fill=Tkinter.X)
 
-		self.bind('<Control-Return>', lambda e: "continue")
-		
-		self.bind("<<Modified>>", self.on_textChanged)
+        self.bind('<Control-Return>', lambda e: "continue")
+        
+        self.bind("<<Modified>>", self.on_textChanged)
 
-		bindtags = list(self.bindtags())
-		bindtags.insert(1,"Command")
-		bindtags = " ".join(bindtags)
-		self.bindtags(bindtags)
-	
-	def on_entry_event(self, event):
-		if event.keysym == 'Up':
-			self.delete("1.0", "end")
-			self.insert("end", commandLauncher.currentSession.get_history().get_previous())
-		if event.keysym == "Down":
-			next = commandLauncher.currentSession.get_history().get_next()
-			if next:
-				self.delete("1.0", "end")
-				self.insert("end", commandLauncher.currentSession.get_history().get_next())
-			else:
-				self.completionSystem.start_completion()
-			return
-		if event.keysym == 'Tab':
-			self.completionSystem.complete(self.completionSystem.get_common())
-			self.completionSystem.start_completion()
-			return "break"
-		if event.keysym == 'Return':
-			from devparrot.core import config
-			self.completionSystem.stop_completion()
-			text = self.get("1.0", "end")
-			ret = commandLauncher.run_command(text)
-			if ret is None:
-				self.configure(background=config.color.notFoundColor)
-			elif ret:
-				self.configure(background=config.color.okColor)
-				self.toClean = True
-			else:
-				self.configure(background=config.color.errorColor)
-			if commandLauncher.currentSession.get_workspace().get_currentDocument():
-				commandLauncher.currentSession.get_workspace().get_currentDocument().get_currentView().focus()
-			return "break"
-		if event.keysym == 'Escape':
-			self.completionSystem.stop_completion()
-			if commandLauncher.currentSession.get_workspace().get_currentDocument():
-				commandLauncher.currentSession.get_workspace().get_currentDocument().get_currentView().focus()
-			return
+        bindtags = list(self.bindtags())
+        bindtags.insert(1,"Command")
+        bindtags = " ".join(bindtags)
+        self.bindtags(bindtags)
+    
+    def on_entry_event(self, event):
+        if event.keysym == 'Up':
+            self.delete("1.0", "end")
+            self.insert("end", commandLauncher.currentSession.get_history().get_previous())
+        if event.keysym == "Down":
+            next = commandLauncher.currentSession.get_history().get_next()
+            if next:
+                self.delete("1.0", "end")
+                self.insert("end", commandLauncher.currentSession.get_history().get_next())
+            else:
+                self.completionSystem.start_completion()
+            return
+        if event.keysym == 'Tab':
+            self.completionSystem.complete(self.completionSystem.get_common())
+            self.completionSystem.start_completion()
+            return "break"
+        if event.keysym == 'Return':
+            from devparrot.core import config
+            self.completionSystem.stop_completion()
+            text = self.get("1.0", "end")
+            ret = commandLauncher.run_command(text)
+            if ret is None:
+                self.configure(background=config.color.notFoundColor)
+            elif ret:
+                self.configure(background=config.color.okColor)
+                self.toClean = True
+            else:
+                self.configure(background=config.color.errorColor)
+            if commandLauncher.currentSession.get_workspace().get_currentDocument():
+                commandLauncher.currentSession.get_workspace().get_currentDocument().get_currentView().focus()
+            return "break"
+        if event.keysym == 'Escape':
+            self.completionSystem.stop_completion()
+            if commandLauncher.currentSession.get_workspace().get_currentDocument():
+                commandLauncher.currentSession.get_workspace().get_currentDocument().get_currentView().focus()
+            return
 
-	def on_textChanged(self, *args):
-		startIndex, completions = commandLauncher.get_completions(self.get("1.0", "insert"))
-		self.completionSystem.update_completion("1.%d"%startIndex, completions)
-		self.edit_modified(False)
-		
-	def on_get_focus(self, event):
-		if self.toClean:
-			self.toClean = False
-			self.configure(background="white")
-			self.delete("1.0",'end')
+    def on_textChanged(self, *args):
+        startIndex, completions = commandLauncher.get_completions(self.get("1.0", "insert"))
+        self.completionSystem.update_completion("1.%d"%startIndex, completions)
+        self.edit_modified(False)
+        
+    def on_get_focus(self, event):
+        if self.toClean:
+            self.toClean = False
+            self.configure(background="white")
+            self.delete("1.0",'end')

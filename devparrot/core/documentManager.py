@@ -21,46 +21,46 @@
 import utils.event
 
 class DocumentManager(utils.event.EventSource):
-	def __init__(self, session):
-		utils.event.EventSource.__init__(self)
-		self.session = session
-		self.documents = {}
-		self.signalConnections = {}
-	
-	def get_nbDocuments(self):
-		return len(self.documents)
-	
-	def get_nthFile(self, index):
-		index = int(index)
-		for i, doc in enumerate(sorted(self.documents)):
-			if i==index:
-				return self.documents[doc]
-		return None
+    def __init__(self, session):
+        utils.event.EventSource.__init__(self)
+        self.session = session
+        self.documents = {}
+        self.signalConnections = {}
+    
+    def get_nbDocuments(self):
+        return len(self.documents)
+    
+    def get_nthFile(self, index):
+        index = int(index)
+        for i, doc in enumerate(sorted(self.documents)):
+            if i==index:
+                return self.documents[doc]
+        return None
 
-	def has_file(self, path):
-		return (path in self.documents)
+    def has_file(self, path):
+        return (path in self.documents)
 
-	def get_file(self, path):
-		return self.documents[path]
+    def get_file(self, path):
+        return self.documents[path]
 
-	def del_file(self, document):
-		del self.documents[document.get_path()]
-		self.event('documentDeleted')(document)
-		return True
-	
-	def switch_to_document(self, document):
-		import commandLauncher
-		if document.documentView.is_displayed():
-			document.documentView.focus()
-		else:
-			commandLauncher.currentSession.get_workspace().set_currentDocument(document)
+    def del_file(self, document):
+        del self.documents[document.get_path()]
+        self.event('documentDeleted')(document)
+        return True
+    
+    def switch_to_document(self, document):
+        import commandLauncher
+        if document.documentView.is_displayed():
+            document.documentView.focus()
+        else:
+            commandLauncher.currentSession.get_workspace().set_currentDocument(document)
 
-	def add_file(self, document):
-		self.documents[document.get_path()] = document
-		self.event('documentAdded')(document)
-	
-	def __str__(self):
-		return "Open Files\n[\n%(openfiles)s\n]"%{
-			'openfiles' : "\n".join([str(doc) for (doc) in self])
-		}
+    def add_file(self, document):
+        self.documents[document.get_path()] = document
+        self.event('documentAdded')(document)
+    
+    def __str__(self):
+        return "Open Files\n[\n%(openfiles)s\n]"%{
+            'openfiles' : "\n".join([str(doc) for (doc) in self])
+        }
 
