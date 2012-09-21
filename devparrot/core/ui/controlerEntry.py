@@ -47,12 +47,12 @@ class ControlerEntry(Tkinter.Text):
         from devparrot.core import session
         if event.keysym == 'Up':
             self.delete("1.0", "end")
-            self.insert("end", commandLauncher.history.get_previous())
+            self.insert("end", commandLauncher.controler.history.get_previous())
         if event.keysym == "Down":
-            next = commandLauncher.history.get_next()
+            next = commandLauncher.controler.history.get_next()
             if next:
                 self.delete("1.0", "end")
-                self.insert("end", commandLauncher.history.get_next())
+                self.insert("end", commandLauncher.controler.history.get_next())
             else:
                 self.completionSystem.start_completion()
             return

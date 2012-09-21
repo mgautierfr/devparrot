@@ -70,7 +70,7 @@ def checkRange(s, l, t):
     from devparrot.core import session, utils
     doc, start, end = t
     if doc is None:
-        doc = sessionget_currentDocument()
+        doc = session.get_currentDocument()
         if not doc:
             raise pyparsing.ParseException(s, l, "No doc given and no currentDoc")
     try:

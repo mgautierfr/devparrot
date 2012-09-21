@@ -331,7 +331,7 @@ class MouseController(Controller):
     def right_click( self, event, modifiers):
         MouseController.set_current(event)
         from devparrot.core import ui
-        ui.mainWindow.popupMenu.post(event.x_root, event.y_root)
+        ui.window.popupMenu.post(event.x_root, event.y_root)
         return "break"
 
     @bind( '<B1-Motion>', '<Shift-Button1-Motion>' )

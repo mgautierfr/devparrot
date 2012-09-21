@@ -333,6 +333,7 @@ def unsplit_notebook(notebook):
 
 class DragHandler(ttk.Tkinter.Toplevel):
     def __init__(self, container):
+        from devparrot.core import ui
         ttk.Tkinter.Toplevel.__init__(self, ui.window)
         self.container = container
         self.init()

@@ -96,7 +96,7 @@ def open_file(filePath):
     if file_is_opened(filePath):
         return get_file(filePath)
     from devparrot.core import document
-    doc = document.Document(documents.fileDocSource.FileDocSource(filePath))
+    doc = document.Document(document.fileDocSource.FileDocSource(filePath))
     add_file(doc)
     doc.load()
     return doc

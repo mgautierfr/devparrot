@@ -24,6 +24,4 @@
 This is the main module of devparrot
 """
 
-import os.path as path
-
 import core
