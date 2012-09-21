@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 #    This file is part of DevParrot.
 #
 #    Author: Matthieu Gautier <matthieu.gautier@mgautier.fr>
@@ -20,10 +18,21 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-"""
-This is the main module of devparrot
-"""
 
-import os.path as path
+class Helper:
+    def __init__(self, window):
+        self.window = window
 
-import core
+    def ask_questionYesNo(self, title, message):
+        import tkMessageBox
+        return tkMessageBox.askyesno(title, message)
+
+    def ask_filenameSave(self, *args, **kwords):
+        import tkFileDialog
+        response = tkFileDialog.asksaveasfilename(title="Save a file", *args, **kwords)
+        return response
+
+    def ask_filenameOpen(self, *args, **kwords):
+        import tkFileDialog
+        response = tkFileDialog.askopenfilename(title="Open a file", *args, **kwords)
+        return response

@@ -19,7 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 import Tkinter,ttk,Tkdnd
-import mainWindow
+from devparrot.core import session
 from devparrot.core.utils.variable import fcb, proxy, ref
 
 class ContainerChild():
@@ -33,9 +33,9 @@ class ContainerChild():
 class TopContainer(ContainerChild,Tkinter.Frame):
     def __init__(self):
         ContainerChild.__init__(self)
-        Tkinter.Frame.__init__(self,mainWindow.workspaceContainer) 
+        Tkinter.Frame.__init__(self,session.get_globalContainer()) 
         self.pack(expand=True, fill=ttk.Tkinter.BOTH)
-        mainWindow.workspaceContainer.dnd_accept = self.dnd_accept
+        session.get_globalContainer().dnd_accept = self.dnd_accept
         self.init_default()
     
     def dnd_accept(self, source, event):
@@ -80,7 +80,7 @@ class TopContainer(ContainerChild,Tkinter.Frame):
 class SplittedContainer(ContainerChild,Tkinter.PanedWindow):
     def __init__(self, isVertical):
         ContainerChild.__init__(self)
-        Tkinter.PanedWindow.__init__(self, mainWindow.workspaceContainer,
+        Tkinter.PanedWindow.__init__(self, session.get_globalContainer(),
                                      orient=Tkinter.VERTICAL if isVertical else Tkinter.HORIZONTAL,
                                      sashrelief="raised",
                                      borderwidth=0,
@@ -189,7 +189,7 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
     
     def __init__(self):
         ContainerChild.__init__(self)
-        ttk.Notebook.__init__(self, mainWindow.workspaceContainer, padding=0)
+        ttk.Notebook.__init__(self, session.get_globalContainer(), padding=0)
         self._children = []
         self.drag_handler = None
         if not NotebookContainer.initialized:
@@ -333,7 +333,7 @@ def unsplit_notebook(notebook):
 
 class DragHandler(ttk.Tkinter.Toplevel):
     def __init__(self, container):
-        ttk.Tkinter.Toplevel.__init__(self, mainWindow.window)
+        ttk.Tkinter.Toplevel.__init__(self, ui.window)
         self.container = container
         self.init()
         

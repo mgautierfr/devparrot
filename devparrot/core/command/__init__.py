@@ -1,4 +1,3 @@
-import capi
 import bind
 import os
 
@@ -7,7 +6,9 @@ import baseCommand
 
 binder = bind.Binder()
 
-def init(path):
+def load():
+    path = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+    path = os.path.join(os.path.dirname(path), "..")
     path = os.path.join(path, 'actions')
     moduleList = os.listdir(path)
     for module in moduleList:
@@ -33,3 +34,4 @@ def load_module(path, name):
         # Since we may exit via an exception, close fp explicitly.
         if fp:
             fp.close()
+

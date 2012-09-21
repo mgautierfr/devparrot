@@ -61,8 +61,8 @@ class EditSection:
         except:
             self.menu.entryconfigure('Paste', state="disable")
 
-        import command.capi
-        if command.capi.currentDocument.get_currentView().view.sel_isSelection():
+        import capi
+        if capi.currentDocument.get_currentView().view.sel_isSelection():
             self.menu.entryconfigure('Cut', state="normal")
             self.menu.entryconfigure('Copy', state="normal")
         else:

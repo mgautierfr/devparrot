@@ -1,5 +1,6 @@
 from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import constraints, capi
+from devparrot.core.command import constraints
+from devparrot.core import capi
 
 def close_a_document(document):
     if document.check_for_save():

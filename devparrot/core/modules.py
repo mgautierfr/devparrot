@@ -20,7 +20,9 @@
 
 import os
 
-def init(path):
+def load():
+    path = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+    path = os.path.join(os.path.dirname(path))
     path = os.path.join(path, 'modules')
     moduleList = os.listdir(path)
     for module in moduleList:

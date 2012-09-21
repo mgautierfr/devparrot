@@ -18,14 +18,14 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from devparrot.core import config, ui
+from devparrot.core import session
 from devparrot.core.utils.variable import mcb
 import ttk
 
 class TextView():
     def __init__(self, document):
-        self.uiContainer = ttk.Frame(ui.mainWindow.workspaceContainer)
-        self.HScrollbar = ttk.Scrollbar(ui.mainWindow.workspaceContainer,
+        self.uiContainer = ttk.Frame(session.get_globalContainer())
+        self.HScrollbar = ttk.Scrollbar(session.get_globalContainer(),
                                         orient=ttk.Tkinter.HORIZONTAL)
         self.HScrollbar.grid(column=0,
                              row=1,
@@ -34,14 +34,14 @@ class TextView():
                              sticky="nsew"
                             )
 
-        self.VScrollbar = ttk.Scrollbar(ui.mainWindow.workspaceContainer,
+        self.VScrollbar = ttk.Scrollbar(session.get_globalContainer(),
                                         orient=ttk.Tkinter.VERTICAL)
         self.VScrollbar.grid(column=10,
                              row=0,
                              in_=self.uiContainer,
                              sticky="nsew")
 
-        self.lineNumbers = ttk.Tkinter.Canvas(ui.mainWindow.workspaceContainer,
+        self.lineNumbers = ttk.Tkinter.Canvas(session.get_globalContainer(),
                                               highlightthickness = 0,
                                               takefocus = 0,
                                               bd=0,

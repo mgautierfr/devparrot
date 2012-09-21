@@ -196,9 +196,9 @@ class File(_Constraint):
         self.set_grammar(gram)
 
     def ask_user(self):
-        from devparrot.core import commandLauncher, ui
+        from devparrot.core import session, ui
         path = None
-        currentDoc = commandLauncher.currentSession.get_currentDocument()
+        currentDoc = session.get_currentDocument()
         d = {}
         if currentDoc:
             path = currentDoc.get_path()
@@ -206,10 +206,10 @@ class File(_Constraint):
                 d['initialdir'] = os.path.dirname(path)
 
         if File.SAVE in self.mode:
-            token = ui.mainWindow.Helper().ask_filenameSave(**d)
+            token = ui.Helper().ask_filenameSave(**d)
         else:
             d['multiple'] = self.multiple
-            token = ui.mainWindow.Helper().ask_filenameOpen(**d)
+            token = ui.Helper().ask_filenameOpen(**d)
         return token if token else None
 
     def _complete(self, directory, filestart, prefix):

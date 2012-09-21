@@ -29,8 +29,8 @@ class Binder(object):
         if TkEventMatcher.match(accel):
             from devparrot.core import ui
             bindLauncher = TkBindLauncher(command)
-            if ui.mainWindow.window:
-                ui.mainWindow.window.bind_class("Command", accel, bindLauncher)
+            if ui.window:
+                ui.window.bind_class("Command", accel, bindLauncher)
         else:
             from devparrot.core import commandLauncher
             bindLauncher = EventBindLauncher(command)
@@ -38,18 +38,20 @@ class Binder(object):
             currentBinds.add(commandLauncher.eventSystem.connect(accel, bindLauncher))
         self.tkBinds[accel] = bindLauncher
 
-    def bind(self):
-        from devparrot.core import ui
-        if ui.mainWindow.window:
+    def bind(self, window=None):
+        if window is None:
+            from devparrot.core import ui
+            window = ui.window
+        if window:
             for accel, func in self.tkBinds.items():
                 if TkEventMatcher.match(accel):
-                    ui.mainWindow.window.bind_class("Command", accel, func)
+                    window.bind_class("Command", accel, func)
 
     def __delitem__(self, accel):
         if TkEventMatcher.match(accel):
             from devparrot.core import ui
-            if ui.mainWindow.window:
-                ui.mainWindow.window.unbind_class("Command", accel)
+            if ui.window:
+                ui.window.unbind_class("Command", accel)
         else:
             from devparrot.core import commandLauncher
             for bind in self.binds.get(accel, []):

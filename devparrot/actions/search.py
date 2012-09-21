@@ -1,5 +1,6 @@
 from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import constraints, capi
+from devparrot.core.command import constraints
+from devparrot.core import capi
 
 class search(Command):
     lastSearch = None

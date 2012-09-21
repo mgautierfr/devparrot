@@ -20,14 +20,9 @@
 
 from collections import MutableMapping
 
-import os, pwd
 import sys
 
-import command
-
-from devparrot.controllers.defaultControllerMode import DefaultControllerMode
-from devparrot.core.utils.variable import Property, Variable, CbCaller, CbList
-
+from devparrot.core.utils.variable import CbCaller
 
 class ModuleWrapper(object):
     def __init__(self, config):
@@ -41,6 +36,7 @@ class ModuleWrapper(object):
 
 class Section(CbCaller):
     def __init__(self):
+        from devparrot.core.utils.variable import CbList
         object.__setattr__(self, "_callbacks", CbList())
 
     def __setattr__(self, name, value):
@@ -51,6 +47,7 @@ class Section(CbCaller):
     
     @property
     def variables(self):
+	from devparrot.core.utils.variable import Variable
         return (getattr(self,name) for name in dir(self)
                            if name.startswith("_")
                            and isinstance(getattr(self, name), Variable))
@@ -65,6 +62,7 @@ class _ValidSection(Section):
         Section.__init__(self)
 
     def __setattr__(self, name, value):
+        from devparrot.core.utils.variable import Property, Variable
         if value.__class__ == Section:
             # we create a new class for each a section
             # this way, we can add different properties for each a section
@@ -108,26 +106,29 @@ class Config(_ValidSection):
 
     def __len__(self):
         return self.__dict__.__len__()
-        
 
-_homedir = pwd.getpwuid(os.getuid())[5]
-_user_config_path = os.path.join(_homedir,'.devparrot')
-_default_config_path = os.path.dirname(os.path.realpath(__file__))
-_default_config_path = os.path.join(_default_config_path,"../../resources/default_config")
+def load():
+    config = Config()
+    from pwd import getpwuid
+    import os, sys
+    from devparrot.core import command, capi
+    from devparrot.controllers.defaultControllerMode import DefaultControllerMode
+    _homedir = getpwuid(os.getuid())[5]
+    _user_config_path = os.path.join(_homedir,'.devparrot')
+    _default_config_path = sys.modules['__main__'].__file__
+    _default_config_path = os.path.dirname(os.path.realpath(_default_config_path))
+    _default_config_path = os.path.join(_default_config_path,"../resources/default_config")
 
-_config = Config()
-mdWrapper = ModuleWrapper(_config)
-_global = {'Section':Section,
-           'binds':command.binder,
-           'Command':command.baseCommand.Command,
-           'constraints':command.constraints,
-           'capi':command.capi,
-           'DefaultControllerMode' : DefaultControllerMode,
-           'config': mdWrapper
-          }
+    _global = {'Section':Section,
+               'binds':command.binder,
+               'Command':command.baseCommand.Command,
+               'constraints':command.constraints,
+               'capi':capi,
+               'DefaultControllerMode' : DefaultControllerMode,
+               'config': config
+              }
 
-execfile(_default_config_path, _global, _config)
-execfile(_user_config_path, _global, _config)
-
-sys.modules[__name__] = mdWrapper
+    execfile(_default_config_path, _global, config)
+    execfile(_user_config_path, _global, config)
+    return config
 

@@ -1,6 +1,7 @@
 import os
 from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import constraints, capi
+from devparrot.core.command import constraints
+from devparrot.core import capi
 
 class open(Command):
     files = constraints.File(mode=(constraints.File.OPEN, constraints.File.NEW), multiple=True)

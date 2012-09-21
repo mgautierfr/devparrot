@@ -19,8 +19,8 @@
 #    Copyright 2011 Matthieu Gautier
 
 
-from devparrot.core.ui import viewContainer
 import sys
+from devparrot.core import session
 
 class ModuleWrapper(object):
     def __init__(self, module):
@@ -40,20 +40,19 @@ class DocumentWrapper(object):
         pass
         
     def __len__(self):
-        from devparrot.core import commandLauncher
-        return commandLauncher.currentSession.get_documentManager().get_nbDocuments()
+        from devparrot.core import documentManager
+        return documentManager.documentManager.get_nbDocuments()
     
     def __getitem__(self, key):
-        from devparrot.core import commandLauncher
-        return commandLauncher.currentSession.get_documentManager().get_nthFile(key)
+        from devparrot.core import documentManager
+        return documentManager.documentManager.get_nthFile(key)
 
 
 def __getattr__(name):
-    from devparrot.core import commandLauncher
     if name == 'currentDocument':
-        return commandLauncher.currentSession.get_currentDocument()
+        return session.get_currentDocument()
     if name == 'currentContainer':
-        return commandLauncher.currentSession.get_workspace().get_currentContainer()
+        return session.get_currentContainer()
     if name == 'bind':
         from devparrot.core.command import binder
         return binder
@@ -62,36 +61,36 @@ def __getattr__(name):
 def __setattr__(name, value):
     if name == 'currentDocument':
         if value == None:
-            __getattr__('currentContainer').set_documentView(None)
+            session.get_currentContainer().set_documentView(None)
         elif value.documentView.is_displayed():
             value.documentView.parentContainer.select(value.documentView)
             value.documentView.focus()
         else:
-            __getattr__('currentContainer').set_documentView(value.documentView)
+            session.get_currentContainer().set_documentView(value.documentView)
             value.documentView.focus()
 
         return
     raise AttributeError
 
 def add_file(document):
-    from devparrot.core import commandLauncher
-    return commandLauncher.currentSession.get_documentManager().add_file(document)
+    from devparrot.core import documentManager
+    return documentManager.documentManager.add_file(document)
 
 def file_is_opened(filePath):
-    from devparrot.core import commandLauncher
-    return commandLauncher.currentSession.get_documentManager().has_file(filePath)
+    from devparrot.core import documentManager
+    return documentManager.documentManager.has_file(filePath)
 
 def get_file(filePath):
-    from devparrot.core import commandLauncher
-    return commandLauncher.currentSession.get_documentManager().get_file(filePath)
+    from devparrot.core import documentManager
+    return documentManager.documentManager.get_file(filePath)
     
 def get_nth_file(index):
-    from devparrot.core import commandLauncher
-    return commandLauncher.currentSession.get_documentManager().get_nthFile(index)
+    from devparrot.core import documentManager
+    return documentManager.documentManager.get_nthFile(index)
 
 def del_file(document):
-    from devparrot.core import commandLauncher
-    return commandLauncher.currentSession.get_documentManager().del_file(document)
+    from devparrot.core import documentManager
+    return documentManager.documentManager.del_file(document)
 
 def open_file(filePath):
     if file_is_opened(filePath):
@@ -105,15 +104,17 @@ def open_file(filePath):
 def quit():
     from devparrot.core import ui
     def destroy():
-        ui.mainWindow.window.destroy()	
-    ui.mainWindow.window.after_idle(destroy)
+        ui.window.destroy()	
+    ui.window.after_idle(destroy)
     
 def split(vertical, first=True):
-    return viewContainer.split(__getattr__('currentContainer').get_documentView(), vertical, first)
+    from devparrot.core.ui import viewContainer
+    return viewContainer.split(session.get_currentContainer().get_documentView(), vertical, first)
 
 def unsplit(container=None):
+    from devparrot.core.ui import viewContainer
     if not container:
-        container = __getattr__('currentContainer')
+        container = session.get_currentContainer()
     return viewContainer.unsplit(container)
 
 sys.modules[__name__] = ModuleWrapper(sys.modules[__name__])

@@ -19,7 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import capi
+from devparrot.core import capi
 
 class cut(Command):
     def run(cls):

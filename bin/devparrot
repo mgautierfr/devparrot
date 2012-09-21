@@ -31,10 +31,14 @@ except ImportError:
 
 if __name__ == "__main__":
 	import devparrot
-	app = devparrot.DevParrot()
+	config = devparrot.core.configLoader.load()
+	devparrot.core.session.set_config(config)
+	devparrot.core.ui.init()
+	devparrot.core.command.load()
+	devparrot.core.modules.load()
 	if len(sys.argv) > 1:
 		pathes = sys.argv[1:]
 #		devparrot.core.commandLauncher.run_command("open %s"%" ".join([p for p in pathes if os.path.exists(p)]))
 		devparrot.core.commandLauncher.run_command("open %s\n"%" ".join(['"%s"'%p for p in pathes]))
-	devparrot.core.ui.mainWindow.window.mainloop()
+	devparrot.core.ui.window.mainloop()
 

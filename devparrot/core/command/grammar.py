@@ -38,26 +38,26 @@ integer.setParseAction(toInt)
 
 def int2Doc(s, l, t):
     """ transform a integer to a doc"""
-    from devparrot.core import commandLauncher
+    from devparrot.core import documentManager
     index = int(t[0])
-    document = commandLauncher.currentSession.get_documentManager().get_nthFile(index)
+    document = documentManager.documentManager.get_nthFile(index)
     if document is None:
         raise pyparsing.ParseException(s, l, "Wrong number")
     return [document]
 
 def path2Doc(s, l, t):
     """ transform a path to a doc"""
-    from devparrot.core import commandLauncher
+    from devparrot.core import documentManager
     tok = os.path.abspath(t[0])
-    if not commandLauncher.currentSession.get_documentManager().has_file(tok):
+    if not documentManager.documentManager.has_file(tok):
         raise pyparsing.ParseException(s, l, "Wrong name")
-    return [commandLauncher.currentSession.get_documentManager().get_file(tok)]
+    return [documentManager.documentManager.get_file(tok)]
 
 def checkIndex(s, l, t):
-    from devparrot.core import commandLauncher, utils
+    from devparrot.core import session, utils
     doc, indexstr = t
     if doc is None:
-        doc = commandLauncher.currentSession.get_currentDocument()
+        doc = session.get_currentDocument()
         if not doc:
             raise pyparsing.ParseException(s, l, "No doc given and no currentDoc")
     try:
@@ -67,10 +67,10 @@ def checkIndex(s, l, t):
     return [index]
 
 def checkRange(s, l, t):
-    from devparrot.core import commandLauncher, utils
+    from devparrot.core import session, utils
     doc, start, end = t
     if doc is None:
-        doc = commandLauncher.currentSession.get_currentDocument()
+        doc = sessionget_currentDocument()
         if not doc:
             raise pyparsing.ParseException(s, l, "No doc given and no currentDoc")
     try:

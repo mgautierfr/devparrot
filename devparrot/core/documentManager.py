@@ -21,9 +21,8 @@
 import utils.event
 
 class DocumentManager(utils.event.EventSource):
-    def __init__(self, session):
+    def __init__(self):
         utils.event.EventSource.__init__(self)
-        self.session = session
         self.documents = {}
         self.signalConnections = {}
     
@@ -47,13 +46,6 @@ class DocumentManager(utils.event.EventSource):
         del self.documents[document.get_path()]
         self.event('documentDeleted')(document)
         return True
-    
-    def switch_to_document(self, document):
-        import commandLauncher
-        if document.documentView.is_displayed():
-            document.documentView.focus()
-        else:
-            commandLauncher.currentSession.get_workspace().set_currentDocument(document)
 
     def add_file(self, document):
         self.documents[document.get_path()] = document
@@ -64,3 +56,4 @@ class DocumentManager(utils.event.EventSource):
             'openfiles' : "\n".join([str(doc) for (doc) in self])
         }
 
+documentManager = DocumentManager()

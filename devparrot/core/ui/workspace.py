@@ -20,8 +20,6 @@
 
 from viewContainer import TopContainer,NotebookContainer
 
-import mainWindow
-
 class Workspace(TopContainer):
     def __init__(self):
         TopContainer.__init__(self)

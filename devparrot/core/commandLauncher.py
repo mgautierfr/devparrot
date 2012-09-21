@@ -25,7 +25,6 @@ import utils.event
 from command.splitter import Splitter, Token
 from completion import Completion
 
-currentSession = None
 alias = {}
 lineExpenders = []
 eventSystem = utils.event.EventSource()
@@ -59,8 +58,30 @@ class ListGenerator:
         return self.index >= len(self.l)
         return self.bend
 
+class History(object):
+    def __init__(self):
+        self.history = list()
+        self.currentIndex = 0
+
+    def push(self, line):
+        self.history.append(line)
+        self.currentIndex = 0
+
+    def get_previous(self):
+        if self.currentIndex < len(self.history):
+            self.currentIndex += 1
+        if self.currentIndex==0 : return ""
+        return self.history[-self.currentIndex]
+
+    def get_next(self):
+        if self.currentIndex != 0:
+            self.currentIndex -= 1
+        if self.currentIndex == 0 : return ""
+        return self.history[-self.currentIndex]
+
 class Controler:
     def __init__(self):
+        self.history = History()
         pass
         
     def tokenize(self, text, faultTolerent=False):
@@ -147,7 +168,7 @@ class Controler:
         ret = None
 
         ret = self.launch_command(command, tokens)
-        currentSession.get_history().push(text)
+        self.history.push(text)
         return ret
         
     def get_completions(self, text):
@@ -168,11 +189,6 @@ controler = Controler()
 
 def init():
     pass
-
-def set_session(session):
-    global currentSession
-    currentSession = session
-    eventSystem.event('newSession')(session)
     
 def run_command(text):
     if isinstance(text, basestring):
@@ -185,11 +201,11 @@ def run_command(text):
         ret = controler.run_command(cmd)
         if not ret:
             return ret
-    import ui.mainWindow
-    ui.mainWindow.entry.insert("1.0", commands[-1])
+    import ui
+    ui.window.entry.insert("1.0", commands[-1])
     if commands[-1]:
-        ui.mainWindow.entry.focus()
-        ui.mainWindow.entry.mark_set("index", "end")
+        ui.window.entry.focus()
+        ui.window.entry.mark_set("index", "end")
     return ret
 
 def get_completions(text):

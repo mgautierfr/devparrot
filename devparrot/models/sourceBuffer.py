@@ -21,7 +21,7 @@
 import ttk
 from ttk import Tkinter
 
-from devparrot.core import config, ui, utils
+from devparrot.core import session, utils
 from devparrot.core.utils.variable import mcb
 from time import time
 
@@ -33,7 +33,7 @@ def insert_char(event):
 
 class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
     def __init__(self):
-        ttk.Tkinter.Text.__init__(self, ui.mainWindow.workspaceContainer,
+        ttk.Tkinter.Text.__init__(self, session.get_globalContainer(),
                                   undo=True,
                                   autoseparators=False,
                                   tabstyle="wordprocessor")
@@ -44,23 +44,23 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
         bindtags = " ".join(bindtags)
         self.bindtags(bindtags)
 
-        config.controller.install( self )
+        session.config.controller.install( self )
         
-        self.tag_configure('currentLine_tag', background=config.color.currentLine_tag_color)
+        self.tag_configure('currentLine_tag', background=session.config.color.currentLine_tag_color)
         self.tag_raise("currentLine_tag")
         self.tag_raise("sel", "currentLine_tag")
         
         self.on_font_changed(None, None)
-        config.textView.font_register(mcb(self.on_font_changed))
-        config.textView.tab_width_register(mcb(self.on_tab_width_changed))
+        session.config.textView.font_register(mcb(self.on_font_changed))
+        session.config.textView.tab_width_register(mcb(self.on_tab_width_changed))
     
     def on_font_changed(self, var, old):
-        self.config(font = config.textView.font)
+        self.config(font = session.config.textView.font)
         self.on_tab_width_changed(None, None)
     
     def on_tab_width_changed(self, var, old):
         import tkFont
-        self.config(tabs = config.textView.tab_width*tkFont.Font(font=config.textView.font).measure(" "))
+        self.config(tabs = session.config.textView.tab_width*tkFont.Font(font=session.config.textView.font).measure(" "))
     
     # Selection Operations
     def sel_clear( self ):
@@ -114,7 +114,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
     
     def set_currentLineTag(self):
         self.tag_remove('currentLine_tag', '1.0', 'end')
-        if config.textView.highlight_current_line:
+        if session.config.textView.highlight_current_line:
             self.tag_add( 'currentLine_tag', 'insert linestart', 'insert + 1l linestart')
 
     # Overloads
@@ -179,8 +179,8 @@ class SourceBuffer(CodeText):
     def __init__(self):
         CodeText.__init__(self)
         self.highlight_tag_protected = False
-        self.tag_configure("highlight_tag", background=config.color.highlight_tag_color)
-        self.tag_configure("search_tag", background=config.color.search_tag_color)
+        self.tag_configure("highlight_tag", background=session.config.color.highlight_tag_color)
+        self.tag_configure("search_tag", background=session.config.color.search_tag_color)
         self.bind("<<Selection>>", self.on_selection_changed)
         self.hl_callId = None
         self.tag_lower("highlight_tag", "sel")

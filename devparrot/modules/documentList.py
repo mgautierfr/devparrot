@@ -20,20 +20,16 @@
 
 import Tkinter,ttk
 
-from devparrot.core import commandLauncher, ui
+from devparrot.core import documentManager, ui
 
 documentListView = None
 
 def activate():
-    commandLauncher.eventSystem.connect('newSession', on_new_session)
-
-def on_new_session(session):
     global documentListView
-    documentManager = commandLauncher.currentSession.get_documentManager()
-    documentListView = DocumentListView(ui.mainWindow.window)
-    documentManager.connect('documentDeleted', documentListView.on_documentDeleted)
-    documentManager.connect('documentAdded', documentListView.on_documentAdded)
-    ui.mainWindow.add_helper(documentListView, 'left')
+    documentListView = DocumentListView(ui.window)
+    documentManager.documentManager.connect('documentDeleted', documentListView.on_documentDeleted)
+    documentManager.documentManager.connect('documentAdded', documentListView.on_documentAdded)
+    ui.add_helper(documentListView, 'left')
     pass
 
 def deactivate():
@@ -93,10 +89,15 @@ class DocumentListView(ttk.Treeview):
         self.sort()
 
     def on_double_click(self, event):
+        import session
         selection = self.selection()
         if selection:
-            document = commandLauncher.currentSession.get_documentManager().get_file(selection[0])
-            commandLauncher.currentSession.get_documentManager().switch_to_document(document)
+            document = documentManager.documentManager.get_file(selection[0])
+            if document.documentView.is_displayed():
+                document.documentView.parentContainer.select(document.documentView)
+            else:
+                session.get_currentContainer().set_documentView(document.documentView)
+            document.documentView.focus()
 
     def sort(self):
         DocumentListView.PseudoList(self).sort()

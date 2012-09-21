@@ -44,14 +44,15 @@ class ControlerEntry(Tkinter.Text):
         self.bindtags(bindtags)
     
     def on_entry_event(self, event):
+        from devparrot.core import session
         if event.keysym == 'Up':
             self.delete("1.0", "end")
-            self.insert("end", commandLauncher.currentSession.get_history().get_previous())
+            self.insert("end", commandLauncher.history.get_previous())
         if event.keysym == "Down":
-            next = commandLauncher.currentSession.get_history().get_next()
+            next = commandLauncher.history.get_next()
             if next:
                 self.delete("1.0", "end")
-                self.insert("end", commandLauncher.currentSession.get_history().get_next())
+                self.insert("end", commandLauncher.history.get_next())
             else:
                 self.completionSystem.start_completion()
             return
@@ -60,24 +61,24 @@ class ControlerEntry(Tkinter.Text):
             self.completionSystem.start_completion()
             return "break"
         if event.keysym == 'Return':
-            from devparrot.core import config
+            from devparrot.core import session
             self.completionSystem.stop_completion()
             text = self.get("1.0", "end")
             ret = commandLauncher.run_command(text)
             if ret is None:
-                self.configure(background=config.color.notFoundColor)
+                self.configure(background=session.config.color.notFoundColor)
             elif ret:
-                self.configure(background=config.color.okColor)
+                self.configure(background=session.config.color.okColor)
                 self.toClean = True
             else:
-                self.configure(background=config.color.errorColor)
-            if commandLauncher.currentSession.get_workspace().get_currentDocument():
-                commandLauncher.currentSession.get_workspace().get_currentDocument().get_currentView().focus()
+                self.configure(background=session.config.color.errorColor)
+            if session.get_currentDocument():
+                session.get_currentDocument().get_currentView().focus()
             return "break"
         if event.keysym == 'Escape':
             self.completionSystem.stop_completion()
-            if commandLauncher.currentSession.get_workspace().get_currentDocument():
-                commandLauncher.currentSession.get_workspace().get_currentDocument().get_currentView().focus()
+            if session.get_currentDocument():
+                session.get_currentDocument().get_currentView().focus()
             return
 
     def on_textChanged(self, *args):
