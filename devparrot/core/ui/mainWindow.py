@@ -18,15 +18,13 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-
-import os
 import ttk
 
 from devparrot.core import popupMenu as popupMenuModule
 import controlerEntry
 
 def quit(event):
-    from actions.controlerActions import quit
+    from devparrot.actions.controlerActions import quit
     quit.run()
 
 class MainWindow(ttk.Tkinter.Tk):
@@ -54,19 +52,19 @@ class MainWindow(ttk.Tkinter.Tk):
             y = session.config.window.posy
         except AttributeError:
             pass
-        self.wm_geometry("%dx%d+%s+%s"%(w,h,x,y))
+        self.wm_geometry("%dx%d+%s+%s"%(w, h, x, y))
         self.wm_title("devparrot")
 
         self._vbox = ttk.Tkinter.Frame(self)
-        self._vbox.pack(expand=True,fill=ttk.Tkinter.BOTH)
+        self._vbox.pack(expand=True, fill=ttk.Tkinter.BOTH)
         
         self.entry = controlerEntry.ControlerEntry(self._vbox)
 
-        self.hpaned = ttk.PanedWindow(self._vbox,orient=ttk.Tkinter.HORIZONTAL)
-        self.hpaned.pack(expand=True,fill=ttk.Tkinter.BOTH)
+        self.hpaned = ttk.PanedWindow(self._vbox, orient=ttk.Tkinter.HORIZONTAL)
+        self.hpaned.pack(expand=True, fill=ttk.Tkinter.BOTH)
 
-        self.vpaned = ttk.PanedWindow(self.hpaned,orient=ttk.Tkinter.VERTICAL)
-        self.vpaned.pack(expand=True,fill=ttk.Tkinter.BOTH)
+        self.vpaned = ttk.PanedWindow(self.hpaned, orient=ttk.Tkinter.VERTICAL)
+        self.vpaned.pack(expand=True, fill=ttk.Tkinter.BOTH)
 
         self.globalContainer = ttk.Frame(self.vpaned, borderwidth=1, padding=0, relief="ridge")
         self.vpaned.add(self.globalContainer)

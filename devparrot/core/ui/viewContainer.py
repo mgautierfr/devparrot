@@ -18,7 +18,7 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import Tkinter,ttk,Tkdnd
+import Tkinter, ttk, Tkdnd
 from devparrot.core import session
 from devparrot.core.utils.variable import fcb, proxy, ref
 
@@ -26,14 +26,15 @@ class ContainerChild():
     def __init__(self):
         self.parentContainer = None
     
-    def get_parentContainer(self) : return self.parentContainer
+    def get_parentContainer(self):
+        return self.parentContainer
     def set_parentContainer(self, parent):
-            self.parentContainer = parent
+        self.parentContainer = parent
 
-class TopContainer(ContainerChild,Tkinter.Frame):
+class TopContainer(ContainerChild, Tkinter.Frame):
     def __init__(self):
         ContainerChild.__init__(self)
-        Tkinter.Frame.__init__(self,session.get_globalContainer()) 
+        Tkinter.Frame.__init__(self, session.get_globalContainer()) 
         self.pack(expand=True, fill=ttk.Tkinter.BOTH)
         session.get_globalContainer().dnd_accept = self.dnd_accept
         self.init_default()
@@ -63,21 +64,25 @@ class TopContainer(ContainerChild,Tkinter.Frame):
         self.container = container
         self.container.set_parentContainer(self)
         self.container.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)
-        try : container.register()
-        except : pass
+        try:
+            container.register()
+        except AttributeError:
+            pass
     
     def detach_child(self, childToDetach): 
         childToDetach.pack_forget()
         childToDetach.set_parentContainer(None)
-        self.childContainer = None
-        try : childToDetach.unregister()
-        except : pass
+        self.container = None
+        try:
+            childToDetach.unregister()
+        except AttributeError:
+            pass
     
     def set_as_current(self):
         self.container.set_as_current()
 
 
-class SplittedContainer(ContainerChild,Tkinter.PanedWindow):
+class SplittedContainer(ContainerChild, Tkinter.PanedWindow):
     def __init__(self, isVertical):
         ContainerChild.__init__(self)
         Tkinter.PanedWindow.__init__(self, session.get_globalContainer(),
@@ -102,16 +107,18 @@ class SplittedContainer(ContainerChild,Tkinter.PanedWindow):
         height = self.winfo_height()
         self.sash_place(0, 0, int(height*pos))
     def set_hPanedPos(self, pos):
-            width = self.winfo_width()
-            self.sash_place(0, int(width*pos),0)
+        width = self.winfo_width()
+        self.sash_place(0, int(width*pos), 0)
         
     def init(self, container1, container2):
         self.attach_child(container1)
         self.attach_child(container2)
     
     def attach_child(self, child):
-        try : child.register()
-        except : pass
+        try:
+            child.register()
+        except AttributeError:
+            pass
         if self.container1 == None:
             self.container1 = child
             child.pack(in_=self.uiSubContainer1, expand=True, fill=ttk.Tkinter.BOTH)
@@ -124,8 +131,10 @@ class SplittedContainer(ContainerChild,Tkinter.PanedWindow):
     def detach_child(self, childToDetach):
         childToDetach.set_parentContainer(None)
         childToDetach.pack_forget()
-        try : childToDetach.unregister()
-        except : pass
+        try:
+            childToDetach.unregister()
+        except AttributeError:
+            pass
         if self.container1 == childToDetach:
             self.container1 = None
         elif self.container2 == childToDetach:
@@ -168,7 +177,7 @@ class SplittedContainer(ContainerChild,Tkinter.PanedWindow):
 def on_drag_begin_notebook(event):
     event.num = 1
     notebook = event.widget
-    documentViewIndex = notebook.index("@%d,%d"%(event.x,event.y))
+    documentViewIndex = notebook.index("@%d,%d" % (event.x, event.y))
     if documentViewIndex != "":
         documentView = notebook._children[documentViewIndex]
         Tkdnd.dnd_start(documentView, event)		
@@ -178,7 +187,7 @@ def on_button_pressed(event):
 
 def on_button_released(event):
     try:
-        event.widget.select("@%d,%d"%(event.x,event.y))
+        event.widget.select("@%d,%d" % (event.x, event.y))
     except Tkinter.TclError:
         pass
 
@@ -196,9 +205,9 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
             self.bind_class("Drag", "<Button-1><Button1-Motion>", on_drag_begin_notebook)
             self.bind_class("Drag", "<Button-1>", on_button_pressed)
             self.bind_class("Drag", "<ButtonRelease-1>", on_button_released)
-            NotebookContainer.initialized=True
+            NotebookContainer.initialized = True
         self.bindtags(" ".join(["Drag"]+[t for t in self.bindtags()]))
-        self.bind("<<NotebookTabChanged>>",self.on_tabChanged)
+        self.bind("<<NotebookTabChanged>>", self.on_tabChanged)
     
     def register(self):
         NotebookContainer.notebookList.add(self)
@@ -222,7 +231,7 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
         child.set_parentContainer(self)
         self._children.append(child)
         self.add(child, text=child.document.title)
-        child.document.title_register(fcb(lambda v,o, s=proxy(self), child=proxy(child): s.change_title(child), ref(self)))
+        child.document.title_register(fcb(lambda v, o, s=proxy(self), child=proxy(child): s.change_title(child), ref(self)))
     
     def change_title(self, child):
         self.tab(child, text=child.document.title)
@@ -287,7 +296,7 @@ def split(documentView, direction, first=True):
     splitted.lift()
     
     splitted.update()
-    splitted.after_idle(splitted.set_panedPos,0.5)
+    splitted.after_idle(splitted.set_panedPos, 0.5)
     
     newNotebook.set_as_current()
     return True
@@ -341,7 +350,7 @@ class DragHandler(ttk.Tkinter.Toplevel):
     def init(self):
         self.wm_overrideredirect(True)
         self.pos = 'center'
-        r = "%(width)dx%(height)d+%(X)d+%(Y)d"%{
+        r = "%(width)dx%(height)d+%(X)d+%(Y)d" % {
             "width"  : self.container.winfo_width(),
             "height" : self.container.winfo_height(),
             "X"      : self.container.winfo_rootx(),
@@ -349,7 +358,7 @@ class DragHandler(ttk.Tkinter.Toplevel):
             }
         self.wm_geometry(r)
         
-    def calculate_pos(self,x,y):
+    def calculate_pos(self, x, y):
         geom = {
          'width' : self.container.winfo_width(),
          'height': self.container.winfo_height(),
@@ -380,7 +389,6 @@ class DragHandler(ttk.Tkinter.Toplevel):
     
     def dnd_leave(self, source, event):
         self.container.destroy_dnd()
-        pass
     
     def dnd_motion(self, source, event):
         x, y = event.x_root, event.y_root
@@ -390,7 +398,7 @@ class DragHandler(ttk.Tkinter.Toplevel):
             "X"      : self.container.winfo_rootx(),
             "Y"      : self.container.winfo_rooty()
         }		
-        self.pos = self.calculate_pos(x,y)
+        self.pos = self.calculate_pos(x, y)
         if self.pos == 'left':
             new['width'] /= 2
         if self.pos == 'right':
@@ -402,12 +410,12 @@ class DragHandler(ttk.Tkinter.Toplevel):
             new['height'] /= 2
             new['Y'] += new['height']
 
-        self.wm_geometry("%(width)dx%(height)d+%(X)d+%(Y)d"%new)
+        self.wm_geometry("%(width)dx%(height)d+%(X)d+%(Y)d" % new)
         return True
     
     def dnd_commit(self, source, event):
         x, y = event.x_root, event.y_root
-        pos = self.calculate_pos(x,y)
+        pos = self.calculate_pos(x, y)
         self.container.destroy_dnd()
         
         document = source.document
@@ -454,6 +462,6 @@ class DragHandler(ttk.Tkinter.Toplevel):
             splitted.lift()
     
             splitted.update()
-            splitted.after_idle(splitted.set_panedPos,0.5)
+            splitted.after_idle(splitted.set_panedPos, 0.5)
     
             newNotebook.set_as_current()

@@ -18,8 +18,8 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import Tkinter,ttk,Tkdnd
-from viewContainer import NotebookContainer,ContainerChild
+import ttk
+from viewContainer import NotebookContainer, ContainerChild
 from devparrot.core.utils.variable import mcb
 
 from devparrot.core import session
@@ -27,9 +27,9 @@ from devparrot.core import session
 class DocumentView(ContainerChild, ttk.Frame):
     def __init__(self, document):
         ContainerChild.__init__(self)
-        ttk.Frame.__init__(self,session.get_globalContainer(), padding=0, relief="flat", borderwidth=0)
+        ttk.Frame.__init__(self, session.get_globalContainer(), padding=0, relief="flat", borderwidth=0)
         self.document = document
-        self.currentView= None
+        self.currentView = None
         
         import tkFont
         self.label = ttk.Label(self)

@@ -18,7 +18,7 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from viewContainer import TopContainer,NotebookContainer
+from viewContainer import TopContainer, NotebookContainer
 
 class Workspace(TopContainer):
     def __init__(self):

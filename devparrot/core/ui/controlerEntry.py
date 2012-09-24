@@ -61,7 +61,6 @@ class ControlerEntry(Tkinter.Text):
             self.completionSystem.start_completion()
             return "break"
         if event.keysym == 'Return':
-            from devparrot.core import session
             self.completionSystem.stop_completion()
             text = self.get("1.0", "end")
             ret = commandLauncher.run_command(text)

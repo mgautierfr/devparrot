@@ -4,7 +4,7 @@ class InvalidToken(Exception):
         self.token = token	
     
     def __str__(self):
-        return "token %s is invalid"%self.token
+        return "token %s is invalid" % self.token
 
 
 class MissingToken(Exception):
@@ -13,7 +13,7 @@ class MissingToken(Exception):
         self.constraint = constraint
     
     def __str__(self):
-        return "missing a token for constraint %s"%self.constraint
+        return "missing a token for constraint %s" % self.constraint
 
 class TokenParser(object):
     def __init__(self, constraints, askUser=False):

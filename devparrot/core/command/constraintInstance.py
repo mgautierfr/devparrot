@@ -19,4 +19,4 @@ class ConstraintInstance(object):
         return attr
 
     def __str__(self):
-        return '"%s" (of type %s)'%(self.name, self.constraint.__class__.__name__)
+        return '"%s" (of type %s)' % (self.name, self.constraint.__class__.__name__)

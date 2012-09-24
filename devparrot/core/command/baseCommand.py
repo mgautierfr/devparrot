@@ -63,7 +63,7 @@ class Command:
 
     @classmethod
     def get_tokenParser(cls):
-        return tokenParser.TokenParser(cls.get_allConstraints(),askUser=True)
+        return tokenParser.TokenParser(cls.get_allConstraints(), askUser=True)
 
     @classmethod
     def get_argNumber(cls):

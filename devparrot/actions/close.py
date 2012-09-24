@@ -19,13 +19,13 @@ class close(Command):
 
     def run(cls, documents, *args):
         for document in documents:
-            close.close_a_document(document)
+            close_a_document(document)
         return True
 
 class closeall(Command):
     def run(cls, *args):
         ret = True
         while len(capi.documents):
-            ret = ret and close.close_document(capi.get_nth_file(0))
+            ret = ret and close_a_document(capi.get_nth_file(0))
         return ret
 

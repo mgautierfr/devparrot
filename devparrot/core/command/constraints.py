@@ -23,8 +23,6 @@ import os
 import pyparsing
 import grammar
 
-import Tkinter
-
 from tokenParser import MissingToken, InvalidToken
 
 from devparrot.core.completion import Completion
@@ -37,7 +35,7 @@ class _Constraint:
         self.optional = optional
         self.askUser = askUser
         if default is None:
-            self.has_default= False
+            self.has_default = False
             self.default = self._no_default
         else:
             self.has_default = True
@@ -139,10 +137,10 @@ class Keyword(_Constraint):
         self.set_grammar(pyparsing.oneOf(" ".join(keywords)))
     
     def __str__(self):
-        return "Keyword <%s>"%self.keywords
+        return "Keyword <%s>" % self.keywords
     
     def __repr__(self):
-        return "<Constraint.Keyword %s>"%self.keywords
+        return "<Constraint.Keyword %s>" % self.keywords
 
     def complete(self, token):
         return [Completion(keyword, True)
@@ -166,7 +164,7 @@ class Boolean(_Constraint):
         gram.setParseAction(check)
         self.set_grammar(gram)
 
-    def complete(self,token):
+    def complete(self, token):
         return [Completion(keyword, True)
                    for keyword in self.true+self.false
                    if keyword.startswith(token)]
@@ -235,7 +233,7 @@ class File(_Constraint):
             directory, file_ = os.path.split(currentFile)
             prefix, tail = os.path.split(token)
             if tail == "":
-                """token ends with a '/'."""
+                #token ends with a '/'.
                 prefix, tail = os.path.split(prefix)
         else:
             directory = os.getcwd()

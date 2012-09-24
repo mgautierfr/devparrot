@@ -35,7 +35,7 @@ class Modifiers(object):
             
 
 class Controller(object):
-    def __init__(self, master=None):
+    def __init__(self):
         self.tag = PREFIX + str(id(self))
     
     def configure(self, master):

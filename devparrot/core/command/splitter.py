@@ -23,7 +23,6 @@ class Splitter(object):
         self.state = Splitter.SPACE
         self.token = None
         self.forCompletion = forCompletion
-        pass
 
     def _get_next(self):
         self.currentChar += 1
