@@ -6,7 +6,6 @@ class Ctags_file:
     def __init__(self, filename):
         self.filename = filename
         self.file = file(self.filename, "r")
-        pass
     
     def get_tag(self, tag):
         self.file.seek(0, os.SEEK_END)
@@ -42,14 +41,14 @@ class Ctags_file:
             line = self.file.readline()
             line_elem = line.split('\t')
             found_tag = line_elem[0]
-        while(found_tag!=tag):
-            line =self.file.readline()
+        while(found_tag != tag):
+            line = self.file.readline()
             line_elem = line.split('\t')
             found_tag = line_elem[0]
         tag_obj = Tag(tag)
-        while(found_tag==tag):
+        while(found_tag == tag):
             tag_obj.add_location(line[:-1])
-            line =self.file.readline()
+            line = self.file.readline()
             line_elem = line.split('\t')
             found_tag = line_elem[0]
         return tag_obj
@@ -84,14 +83,14 @@ class Tag:
                 self.extras[name] = value
 
         def __str__(self):
-            return "%(file)s [ %(founders)s ] { %(extras)s }"%{
+            return "%(file)s [ %(founders)s ] { %(extras)s }" % {
                     'file': self.file,
                     'founders': ",".join(self.founders),
-                    'extras' : ",".join(["%s:%s"%(name,value) for (name,value) in self.extras.items()])
+                    'extras' : ",".join(["%s:%s" % (name, value) for (name, value) in self.extras.items()])
                 }
         
         def pprint(self):
-            print "%(file)s:%(founders)s"%{'file': self.file,'founders': ",".join(self.founders)}
+            print "%(file)s:%(founders)s" % {'file': self.file, 'founders': ",".join(self.founders)}
         
     
 
@@ -106,7 +105,7 @@ class Tag:
         self.locations.append(Tag.Location(elems[1:]))
 
     def __str__(self):
-        return "Tag %(name)s : \n%(locations)s"%{
+        return "Tag %(name)s : \n%(locations)s" % {
             'name':self.name,
             'locations': "["+"\n".join([str(l) for l in self.locations])+"]"
         }
@@ -122,10 +121,8 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         print "No arguments"
         sys.exit(0)
-    print "Looking for element", sys.argv[1]
     ctagf = Ctags_file("tags")
     tag = ctagf.get_tag(sys.argv[1])
-    print tag
     if tag:
         tag.pprint()
     else:

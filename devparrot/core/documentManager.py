@@ -32,7 +32,7 @@ class DocumentManager(utils.event.EventSource):
     def get_nthFile(self, index):
         index = int(index)
         for i, doc in enumerate(sorted(self.documents)):
-            if i==index:
+            if i == index:
                 return self.documents[doc]
         return None
 
@@ -52,7 +52,7 @@ class DocumentManager(utils.event.EventSource):
         self.event('documentAdded')(document)
     
     def __str__(self):
-        return "Open Files\n[\n%(openfiles)s\n]"%{
+        return "Open Files\n[\n%(openfiles)s\n]" % {
             'openfiles' : "\n".join([str(doc) for (doc) in self])
         }
 

@@ -23,7 +23,6 @@ from ttk import Tkinter
 
 from devparrot.core import session, utils
 from devparrot.core.utils.variable import mcb
-from time import time
 
 
 def insert_char(event):
@@ -38,7 +37,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
                                   autoseparators=False,
                                   tabstyle="wordprocessor")
         utils.event.EventSource.__init__(self)
-        self.bind_class("Text","<Key>",insert_char)
+        self.bind_class("Text", "<Key>", insert_char)
         bindtags = list(self.bindtags())
         bindtags.insert(1,"Command")
         bindtags = " ".join(bindtags)
@@ -66,12 +65,12 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
     def sel_clear( self ):
         try:
             self.tag_remove( 'sel', '1.0', 'end' )
-        except:
+        except Tkinter.TclError:
             pass
       
         try:
             self.mark_unset( 'sel.anchor', 'sel.first', 'sel.last' )
-        except:
+        except Tkinter.TclError:
             pass
    
     def sel_setAnchor( self, index ):
@@ -81,14 +80,14 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
         try:
             self.index( 'sel.anchor' )
             return True
-        except:
+        except Tkinter.TclError:
             return False
 
     def sel_isSelection( self ):
         try:
             self.index( 'sel.first' )
             return True
-        except:
+        except Tkinter.TclError:
             return False
 
     def sel_update( self ):
@@ -107,7 +106,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
     def sel_delete( self ):
         try:
             self.delete('sel.first', 'sel.last' )
-        except:
+        except Tkinter.TclError:
             pass
         
         self.sel_clear( )
@@ -134,7 +133,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
             	
                 self.tag_remove( 'sel', '1.0', 'end' )
                 self.tag_add( 'sel', 'sel.first', 'sel.last' )
-            except:
+            except Tkinter.TclError:
                 pass 
         
     def insert(self, index, *args, **kword):
@@ -145,7 +144,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
         if kword.get('forceUpdate', False):
             self.update()
         self.event('insert')(self, insertPos, args[0])
-        if index=='insert':
+        if index == 'insert':
             self.see('insert')
         
     
@@ -162,14 +161,14 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
     def undo(self):
         try:
             self.edit_undo()
-        except:
+        except Tkinter.TclError:
             pass
         self.sel_clear()
 
     def redo(self):
         try:
             self.edit_redo()
-        except:
+        except Tkinter.TclError:
             pass
         self.sel_clear()
 
@@ -198,7 +197,8 @@ class SourceBuffer(CodeText):
         return self.get("0.1", "end")
 
     def on_selection_changed(self, event):
-        if self.highlight_tag_protected : return
+        if self.highlight_tag_protected:
+            return
         select = self.tag_ranges("sel")
         if select:
             start_select , stop_select = select 
@@ -219,14 +219,15 @@ class SourceBuffer(CodeText):
 
         if text:
             count = ttk.Tkinter.IntVar()
-            match_start = ttk.Tkinter.Text.search(self,text, "0.1", stopindex="end", forwards=True, exact=True, count=count)
+            match_start = ttk.Tkinter.Text.search(self, text, "0.1", stopindex="end", forwards=True, exact=True, count=count)
             while match_start:
-                match_end = "%s+%ic"%(match_start,count.get())
+                match_end = "%s+%ic" % (match_start,count.get())
                 self.tag_add(tag, match_start, match_end)
-                match_start = ttk.Tkinter.Text.search(self,text, match_end, stopindex="end", forwards=True, exact=True, count=count)
+                match_start = ttk.Tkinter.Text.search(self, text, match_end, stopindex="end", forwards=True, exact=True, count=count)
 
     def search(self, backward, text):
-        if not text : return
+        if not text:
+            return
         self.apply_tag_on_text("search_tag",text)
 
         start_search = "insert"
@@ -238,9 +239,9 @@ class SourceBuffer(CodeText):
                 start_search = select[1]
 
         count = ttk.Tkinter.IntVar()
-        match_start = ttk.Tkinter.Text.search(self,text, start_search, forwards=(not backward), backwards=backward, exact=True, count=count) 
+        match_start = ttk.Tkinter.Text.search(self, text, start_search, forwards=(not backward), backwards=backward, exact=True, count=count) 
         if match_start:
-            match_end = "%s+%ic"%(match_start,count.get())
+            match_end = "%s+%ic" % (match_start, count.get())
             self.highlight_tag_protected = True
             self.sel_clear()
             self.tag_add("sel", match_start, match_end)

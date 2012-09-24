@@ -13,11 +13,12 @@ class Completion(object):
 
     def __str__(self):
         template = "%s " if self.final else "%s"
-        return template%escape_token(self.value.encode("utf8"))
+        return template % escape_token(self.value.encode("utf8"))
 
 
 def getcommonstart(seq):
-    if not seq:return ""
+    if not seq:
+        return ""
     s1, s2 = min(seq), max(seq)
     l = min(len(s1), len(s2))
     if l == 0 :

@@ -22,8 +22,6 @@ from ui.documentView import DocumentView
 from devparrot.views.textView import TextView
 import commandLauncher
 
-from datetime import datetime
-import ttk
 import utils.event
 from utils.variable import Property, Variable
 from devparrot.models.sourceBuffer import SourceBuffer
@@ -52,7 +50,8 @@ class Document(utils.event.EventSource):
         commandLauncher.eventSystem.event("newDocument")(self)
     
     def __eq__(self, other):
-        if other == None : return False
+        if other == None:
+            return False
         return self.documentSource == other.documentSource
         
     def set_view(self, view):
@@ -118,7 +117,7 @@ class Document(utils.event.EventSource):
         return False
         
     def search(self, backward, text):
-        if self.model.search(backward,text):
+        if self.model.search(backward, text):
             self.currentView.view.see("insert")
             return True
         return False

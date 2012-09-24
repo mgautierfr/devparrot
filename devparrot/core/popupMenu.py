@@ -29,7 +29,6 @@ class Menu(ttk.Tkinter.Menu):
         self.config(postcommand=self.postCommand)
         self.add_section(EditSection(self))
         self.createMenu()
-        pass
     
     def add_section(self, section):
         self.sections.append(section)
@@ -58,7 +57,7 @@ class EditSection:
         try:
             self.menu.clipboard_get()
             self.menu.entryconfigure('Paste', state="normal")
-        except:
+        except ttk.Tkinter.TclError:
             self.menu.entryconfigure('Paste', state="disable")
 
         import capi

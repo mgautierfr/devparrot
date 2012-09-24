@@ -34,14 +34,14 @@ class BasicTextController(Controller):
     
     @bind('<KeyPress>')
     def on_key_pressed(self, event, modifiers):
-        if event.keysym in ( 'Return','Enter','KP_Enter','BackSpace','Delete','Insert' ):
+        if event.keysym in ( 'Return', 'Enter', 'KP_Enter', 'BackSpace', 'Delete', 'Insert' ):
             event.widget.sel_clear()
             return "break"
         char = event.char.decode('utf8')
         if char in validChars:
             try:
                 event.widget.sel_delete( )
-            except:
+            except ttk.Tkinter.TclError:
                 pass
           
             event.widget.insert( 'insert', char )
@@ -64,7 +64,7 @@ class BasicTextController(Controller):
             if session.config.textView.auto_indent:
                 match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*" , '%s.0'%l, stopindex=event.widget.index('insert'), regexp=True, count=count)
                 if match_start:
-                    match_end = "%s.%i"%(l,min(count.get(),int(c)))
+                    match_end = "%s.%i" % (l, min(count.get(), int(c)))
                     text += event.widget.get(match_start, match_end)
             event.widget.insert( 'insert', text )
     
@@ -108,17 +108,17 @@ class BasicTextController(Controller):
         try:
             event.widget.delete( 'sel.first', 'sel.last' )
             event.widget.sel_clear()
-        except:
+        except ttk.Tkinter.TclError:
             event.widget.delete( 'insert -1 chars', 'insert' )
     
     @bind('<Delete>', '<KP_Delete>')
     def on_delete(self, event, modifiers):
-        if event.keysym=="KP_Delete" and len(event.char) > 0 :
+        if event.keysym == "KP_Delete" and len(event.char) > 0 :
             return self.on_key_pressed(event, modifiers)
         try:
             event.widget.delete( 'sel.first', 'sel.last' )
             event.widget.sel_clear()
-        except:
+        except ttk.Tkinter.TclError:
             event.widget.delete( 'insert', 'insert +1 chars' )
             
     
@@ -138,8 +138,9 @@ class CarretController( Controller ):
     @bind( "<Home>", "<KP_Home>")
     def home(self, event, modifiers):
         from devparrot.core import session
-        if len(event.char) > 0 : return
-        self._handle_shift(modifiers.shift,event)
+        if len(event.char) > 0:
+            return
+        self._handle_shift(modifiers.shift, event)
         newPos = 'insert linestart'
         if modifiers.ctrl:
             newPos = '1.0'
@@ -156,7 +157,8 @@ class CarretController( Controller ):
     
     @bind("<End>", "<KP_End>",)
     def end(self, event, modifiers):
-        if len(event.char) > 0 : return
+        if len(event.char) > 0:
+            return
         self._handle_shift(modifiers.shift, event)
         if modifiers.ctrl:
             event.widget.mark_set( 'insert', 'end' )
@@ -167,7 +169,8 @@ class CarretController( Controller ):
     
     @bind("<Right>", "<KP_Right>")
     def right(self, event, modifiers):
-        if len(event.char) > 0 : return
+        if len(event.char) > 0:
+            return
         self._handle_shift(modifiers.shift, event)
         if modifiers.ctrl:
             currentPos = event.widget.index( 'insert' )
@@ -189,7 +192,8 @@ class CarretController( Controller ):
     
     @bind("<Left>", "<KP_Left>")
     def left(self, event, modifiers):
-        if len(event.char) > 0 : return
+        if len(event.char) > 0:
+            return
         self._handle_shift(modifiers.shift, event)
         if modifiers.ctrl:
             currentPos = event.widget.index( 'insert' )
@@ -212,8 +216,10 @@ class CarretController( Controller ):
     
     @bind("<Down>", "<KP_Down>")
     def down(self, event, modifiers):
-        if modifiers.ctrl: return
-        if len(event.char) > 0 : return
+        if modifiers.ctrl:
+            return
+        if len(event.char) > 0:
+            return
         self._handle_shift(modifiers.shift, event)
         event.widget.mark_set( 'insert', 'insert +1 lines' )
         event.widget.see( 'insert' )
@@ -221,8 +227,10 @@ class CarretController( Controller ):
     
     @bind("<Up>", "<KP_Up>")
     def up(self, event, modifiers):
-        if modifiers.ctrl: return
-        if len(event.char) > 0 : return
+        if modifiers.ctrl:
+            return
+        if len(event.char) > 0:
+            return
         self._handle_shift(modifiers.shift, event)
         event.widget.mark_set( 'insert', 'insert -1 lines' )
         event.widget.see( 'insert' )
@@ -230,26 +238,30 @@ class CarretController( Controller ):
 
     @staticmethod
     def find_nbLine(widget):
-        nbLine = widget.tk.call(widget._w, "count", "-displaylines", "@0,0", "@%d,%d"%(widget.winfo_width(),widget.winfo_height()))
+        nbLine = widget.tk.call(widget._w, "count", "-displaylines", "@0,0", "@%d,%d" % (widget.winfo_width(), widget.winfo_height()))
         return nbLine
 
     @bind("<Prior>", "<KP_Prior>")
     def prior(self, event, modifiers):
-        if len(event.char) > 0 : return
+        if len(event.char) > 0:
+            return
         event.widget.yview_scroll( -1, 'pages' )
-        if modifiers.ctrl : return
+        if modifiers.ctrl:
+            return
         self._handle_shift(modifiers.shift, event)
-        event.widget.mark_set('insert', 'insert -%d lines'%CarretController.find_nbLine(event.widget))
+        event.widget.mark_set('insert', 'insert -%d lines' % CarretController.find_nbLine(event.widget))
         event.widget.see( 'insert' )
         event.widget.update_idletasks()
     
     @bind("<Next>", "<KP_Next>")
     def next(self, event, modifiers):
-        if len(event.char) > 0 : return
+        if len(event.char) > 0:
+            return
         event.widget.yview_scroll( 1, 'pages' )
-        if modifiers.ctrl : return
+        if modifiers.ctrl:
+            return
         self._handle_shift(modifiers.shift, event)
-        event.widget.mark_set('insert', 'insert +%d lines'%CarretController.find_nbLine(event.widget))
+        event.widget.mark_set('insert', 'insert +%d lines' % CarretController.find_nbLine(event.widget))
         event.widget.see( 'insert' )
         event.widget.update_idletasks()
 
@@ -270,7 +282,7 @@ class AdvancedTextController(Controller):
     
     @bind('<Control-a>')
     def on_ctrl_a(self, event, modifiers):
-        self._selectionAnchor = '1.0'
+        event.widget.sel_setAnchor('1.0')
         event.widget.mark_set( 'insert', 'end' )
         return "break"
     
@@ -292,7 +304,7 @@ class MouseController(Controller):
     def set_current(event):
         try:
             pos1 = '@%d,%d' % (event.x, event.y)
-            pos2 = '%s +1c'%pos1
+            pos2 = '%s +1c' % pos1
             coord1 = event.widget.bbox(pos1)[0]
             coord2 = event.widget.bbox(pos2)[0]
             halfx = (coord1 + coord2)/2
@@ -319,7 +331,7 @@ class MouseController(Controller):
 
     @bind( '<ButtonPress-2>' )
     def middle_click( self, event, modifiers):
-        import Tkinter.TclError
+        import Tkinter
         MouseController.set_current(event)
         try:
             event.widget.insert( 'current', event.widget.selection_get() )
@@ -370,7 +382,8 @@ class MouseController(Controller):
         event.widget.mark_set( 'insert', 'current lineend' )
 
     @bind( '<Double-ButtonRelease-1>', '<Triple-ButtonRelease-1>' )
-    def bypass_deselect(self, event, modifiers): return "break"
+    def bypass_deselect(self, event, modifiers):
+        return "break"
    
     @bind( '<Button1-Leave>' )
     def scrollView( self, event, modifiers):

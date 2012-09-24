@@ -20,23 +20,23 @@
 
 from devparrot.core import session
 from devparrot.core.utils.variable import mcb
-import ttk
+import ttk, Tkinter
 
 class TextView():
     def __init__(self, document):
         self.uiContainer = ttk.Frame(session.get_globalContainer())
-        self.HScrollbar = ttk.Scrollbar(session.get_globalContainer(),
+        self.hScrollbar = ttk.Scrollbar(session.get_globalContainer(),
                                         orient=ttk.Tkinter.HORIZONTAL)
-        self.HScrollbar.grid(column=0,
+        self.hScrollbar.grid(column=0,
                              row=1,
                              columnspan=10,
                              in_=self.uiContainer,
                              sticky="nsew"
                             )
 
-        self.VScrollbar = ttk.Scrollbar(session.get_globalContainer(),
+        self.vScrollbar = ttk.Scrollbar(session.get_globalContainer(),
                                         orient=ttk.Tkinter.VERTICAL)
-        self.VScrollbar.grid(column=10,
+        self.vScrollbar.grid(column=10,
                              row=0,
                              in_=self.uiContainer,
                              sticky="nsew")
@@ -58,9 +58,10 @@ class TextView():
         self.uiContainer.rowconfigure(0, weight=1)
         self.uiContainer.rowconfigure(1, weight=0)
         
-        self.VScrollbar['command'] = self.proxy_yview
+        self.vScrollbar['command'] = self.proxy_yview
 
         self.document = document
+        self.view = None
         
         self.firstLine = 1
         self.lastLine = 1
@@ -76,7 +77,7 @@ class TextView():
             self.set_lineNumbers()
 
     def proxy_yscrollcommand(self, *args, **kwords):
-        self.VScrollbar.set(*args, **kwords)
+        self.vScrollbar.set(*args, **kwords)
         self.set_lineNumbers()
 
     def _create_textLine(self, name):
@@ -92,7 +93,7 @@ class TextView():
 
         nbLine = int(self.view.index('end').split('.')[0])
         if self.lastLineCreated < nbLine:
-            [self._create_textLine('%d'%(i+1)) for i in range(self.lastLineCreated, nbLine)]
+            map(self._create_textLine, ['%d'%(i+1) for i in range(self.lastLineCreated, nbLine)])
             self.lastLineCreated = nbLine
         
         firstLine = int(self.view.index('@0,0').split('.')[0])-1
@@ -101,8 +102,8 @@ class TextView():
         firstLine = max(firstLine, 1)
         lastLine = min(lastLine, nbLine)
 
-        for i in range( min(firstLine,self.firstLine) , max(lastLine, self.lastLine)+1 ):
-            name = "%d"%i
+        for i in range( min(firstLine, self.firstLine) , max(lastLine, self.lastLine)+1 ):
+            name = "%d" % i
             pos = self.view.bbox("%d.0"%i)
             if pos:
                 self.lineNumbers.coords(name, "0", "%d"%pos[1])
@@ -129,8 +130,8 @@ class TextView():
     def set_model(self, model):
         self.view = model
         self.view['yscrollcommand'] = self.proxy_yscrollcommand
-        self.view['xscrollcommand'] = self.HScrollbar.set
-        self.HScrollbar['command'] = self.view.xview
+        self.view['xscrollcommand'] = self.hScrollbar.set
+        self.hScrollbar['command'] = self.view.xview
         self.view.grid(column=1, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
         self.view.lift(self.uiContainer)
         self.view.connect('insert', mcb(self.on_event_lineChanged))
@@ -141,7 +142,7 @@ class TextView():
             try:
                 self.view.clipboard_clear()
                 self.view.clipboard_append(self.view.get('sel.first','sel.last'))
-            except:
+            except Tkinter.TclError:
                 # there is no selection, can't copy
                 return False
             return True
@@ -153,7 +154,7 @@ class TextView():
                 self.view.clipboard_append( self.view.get( 'sel.first', 'sel.last' ) )
                 self.view.delete( 'sel.first', 'sel.last' )
                 self.view.sel_clear( )
-            except:
+            except Tkinter.TclError:
                 # there is no selection, can't cut
                 return False
             return True
@@ -163,7 +164,7 @@ class TextView():
             try:
                 self.view.mark_set( 'insert', 'sel.first' )
                 self.view.delete( 'sel.first', 'sel.last' )
-            except:
+            except Tkinter.TclError:
                 # not a pb if there is no selection
                 pass
             self.view.insert( 'insert', self.view.clipboard_get( ) )
@@ -172,8 +173,8 @@ class TextView():
 
     def lift(self, above):
         self.uiContainer.lift(above)
-        self.VScrollbar.lift(self.uiContainer)
-        self.HScrollbar.lift(self.uiContainer)
+        self.vScrollbar.lift(self.uiContainer)
+        self.hScrollbar.lift(self.uiContainer)
         ttk.Tkinter.Misc.lift(self.lineNumbers, aboveThis=self.uiContainer)
         self.view.lift(self.uiContainer)
     
@@ -182,7 +183,7 @@ class TextView():
         vad = self.view.get_vadjustment()
         hadjustment = (had.value-had.lower)/(had.upper-had.lower)
         vadjustment = (vad.value-vad.lower)/(vad.upper-vad.lower)
-        return (hadjustment,vadjustment)
+        return (hadjustment, vadjustment)
 
     def set_context(self, ctx):
         had = self.view.get_hadjustment()

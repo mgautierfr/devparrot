@@ -21,7 +21,7 @@
 import os, sys
 
 class FileDocSource(object):
-    """ This class is used for document comming from a file (most of document)"""
+    """This class is used for document comming from a file (most of document)"""
     def __init__(self, path):
         self.path = os.path.abspath(path)
         self.timestamp = None
@@ -58,13 +58,12 @@ class FileDocSource(object):
 
         text = ""
         try:
-            fileIn = open(self.path, 'r')
-            text = fileIn.read()
+            with open(self.path, 'r') as fileIn:
+                text = fileIn.read()
             if text and text[-1] == '\n':
                 text = text[:-1]
-            fileIn.close()
             self.init_timestamp()
-        except:
+        except IOError:
             sys.stderr.write("Error while loading file %s\n"%self.path)
         return text
     
@@ -75,17 +74,16 @@ class FileDocSource(object):
     def set_content(self, content):
         """ set the content of the file (save it) """
         try :
-            fileOut = open(self.path, 'w')
-            fileOut.write(content.encode('utf8'))
-            fileOut.close()
+            with open(self.path, 'w') as fileOut:
+                fileOut.write(content.encode('utf8'))
             self.init_timestamp()
             return True
-        except:
+        except IOError:
             sys.stderr.write("Error while writing file %s\n"%self.path)
             return False
     
     def need_reload(self):
-        """ return True if the file has been modified since last init_timestamp """
+        """return True if the file has been modified since last init_timestamp"""
         if not self.timestamp:
             return False
         modif = os.stat(self.path).st_mtime

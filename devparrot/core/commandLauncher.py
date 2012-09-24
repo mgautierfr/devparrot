@@ -18,8 +18,6 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import os,sys
-
 import utils.event
 
 from command.splitter import Splitter, Token
@@ -56,7 +54,6 @@ class ListGenerator:
     
     def end(self):
         return self.index >= len(self.l)
-        return self.bend
 
 class History(object):
     def __init__(self):
@@ -70,19 +67,20 @@ class History(object):
     def get_previous(self):
         if self.currentIndex < len(self.history):
             self.currentIndex += 1
-        if self.currentIndex==0 : return ""
+        if self.currentIndex == 0:
+            return ""
         return self.history[-self.currentIndex]
 
     def get_next(self):
         if self.currentIndex != 0:
             self.currentIndex -= 1
-        if self.currentIndex == 0 : return ""
+        if self.currentIndex == 0:
+            return ""
         return self.history[-self.currentIndex]
 
 class Controler:
     def __init__(self):
         self.history = History()
-        pass
         
     def tokenize(self, text, faultTolerent=False):
         commandName = None
@@ -102,7 +100,7 @@ class Controler:
         if not commandName:
             return None
         for prio in sorted(alias, reverse=True):
-            for aliasName,command in alias[prio]:
+            for aliasName, command in alias[prio]:
                 if aliasName == commandName:
                     if isinstance(command, basestring):
                         args = command.split(' ')
@@ -125,7 +123,6 @@ class Controler:
         return tokens
 
     def expand_and_complete(self, command, rawTokens):
-        import command.grammar as grammarModule
         tokenParser = command.get_tokenParser()
         completions = tokenParser.complete(rawTokens)
         return completions
@@ -139,7 +136,7 @@ class Controler:
     def get_commandCompletions(self, commandName):
         ret = []
         for prio in sorted(alias, reverse=True):
-            for aliasName,command in alias[prio]:
+            for aliasName, command in alias[prio]:
                 if aliasName.startswith(commandName):
                     token = Completion(value=aliasName, final=True)
                     ret.append(token)
@@ -160,7 +157,7 @@ class Controler:
         try:
             tokens = self.expand_tokens(command, rawTokens)
         except MissingToken, e:
-            print "Input missing for argument %s"%e.constraint
+            print "Input missing for argument %s" % e.constraint
             return False
         if tokens == False:
             print "refused"

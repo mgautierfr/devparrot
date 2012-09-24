@@ -20,7 +20,7 @@
 
 import new
 
-from weakref import proxy, ref
+from weakref import ref
 
 class MethodeCb(object):
     def __init__(self, mtd):
@@ -68,7 +68,7 @@ class MethodeCb(object):
         '''
         try:
             return self.func == other.func and self.inst() == other.inst()
-        except Exception:
+        except AttributeError:
             return False
 
     def __ne__(self, other):
@@ -149,7 +149,7 @@ class Variable(CbCaller):
         return str(self.get())
     
     def __repr__(self):
-        return "< Variatic : [%s] >"%str(self)
+        return "< Variatic : [%s] >" % str(self)
 
 class ProxyVar(Variable):
     def __init__(self, var, getcall):
@@ -158,7 +158,7 @@ class ProxyVar(Variable):
         var.register(self.on_change)
     
     def on_change(self, var, old):
-        map(lambda cb : cb(var, old), self._callbacks.itervalues())
+        CbCaller.notify(self, var, old)
     
     def set(self, value):
         pass
@@ -168,7 +168,7 @@ class ProxyVar(Variable):
 
 def Property(name, fget=None, fset=None, fdel=None, doc=None):
     if doc is None:
-        doc = "Property %s"%name
+        doc = "Property %s" % name
     name = "_"+name
 
     def var(self):

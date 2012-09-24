@@ -18,10 +18,6 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from collections import MutableMapping
-
-import sys
-
 from devparrot.core.utils.variable import CbCaller
 
 class ModuleWrapper(object):
@@ -37,18 +33,19 @@ class ModuleWrapper(object):
 class Section(CbCaller):
     def __init__(self):
         from devparrot.core.utils.variable import CbList
+        # do not call parent __init__
         object.__setattr__(self, "_callbacks", CbList())
 
     def __setattr__(self, name, value):
         raise RuntimeError("You can't add a attribute to a section before adding it to the config (or a subSection)")
     
     def __str__(self):
-        return "Section named %s"%type(self)
+        return "Section named %s" % type(self)
     
     @property
     def variables(self):
-	from devparrot.core.utils.variable import Variable
-        return (getattr(self,name) for name in dir(self)
+        from devparrot.core.utils.variable import Variable
+        return (getattr(self, name) for name in dir(self)
                            if name.startswith("_")
                            and isinstance(getattr(self, name), Variable))
     
