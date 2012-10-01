@@ -88,8 +88,15 @@ def get_nth_file(index):
     from devparrot.core import documentManager
     return documentManager.documentManager.get_nthFile(index)
 
-def del_file(document):
+def close_document(document):
     from devparrot.core import documentManager
+    if document.check_for_save():
+        save_document(document, document.get_path())
+    if document.documentView.is_displayed():
+        parentContainer = document.documentView.get_parentContainer()
+        parentContainer.detach_child(document.documentView)
+        if parentContainer.get_nbChildren() == 0:
+            unsplit(parentContainer)
     return documentManager.documentManager.del_file(document)
 
 def open_file(filePath):
@@ -101,6 +108,20 @@ def open_file(filePath):
     add_file(doc)
     doc.load()
     return doc
+
+def save_document(document, fileToSave):
+    if document.has_a_path() and document.get_path() == fileToSave:
+        return document.write()
+
+    # we've ask to change the path
+    if capi.file_is_opened(fileToSave):
+        #The document is already opened.
+        #do nothing (should warn or save/close/reopen)
+        return False
+
+    from devparrot.documents.fileDocSource import FileDocSource
+    document.set_path(FileDocSource(fileToSave))
+    return document.write()
 
 def quit():
     from devparrot.core import ui

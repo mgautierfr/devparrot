@@ -1,5 +1,4 @@
 from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import constraints
 from devparrot.core import capi
 
 class new(Command):

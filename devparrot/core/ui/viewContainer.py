@@ -20,7 +20,8 @@
 
 import Tkinter, ttk, Tkdnd
 from devparrot.core import session
-from devparrot.core.utils.variable import fcb, proxy, ref
+from devparrot.core.utils.variable import fcb, ref
+from weakref import proxy
 
 class ContainerChild():
     def __init__(self):

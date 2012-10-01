@@ -14,8 +14,9 @@ class open(Command):
             if len(parts) == 2:
                 fileToOpen = parts[0]
                 try :
-                    lineToGo= int(parts[1])
-                except: pass
+                    lineToGo = int(parts[1])
+                except ValueError:
+                    pass
         if capi.file_is_opened(fileToOpen):
             doc = capi.get_file(fileToOpen)
         else:
