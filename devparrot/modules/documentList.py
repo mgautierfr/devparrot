@@ -74,7 +74,7 @@ class DocumentListView(ttk.Treeview):
 
 
     def on_documentAdded(self, document):
-        ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=(document.title))
+        ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=('"%s"'%document.title))
         document.connect('pathChanged', self.on_path_changed)
         self.sort()
 
@@ -85,7 +85,7 @@ class DocumentListView(ttk.Treeview):
     def on_path_changed(self, document, oldPath):
         if oldPath:
             self.delete(oldPath)
-        ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=(document.title))
+        ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=('"%s"'%document.title))
         self.sort()
 
     def on_double_click(self, event):
