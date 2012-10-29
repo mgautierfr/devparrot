@@ -81,6 +81,11 @@ class MainWindow(ttk.Tkinter.Tk):
         bindtags.insert(1,"Command")
         bindtags = " ".join(bindtags)
         self.bindtags(bindtags)
+
+    def report_callback_exception(self, *args):
+        import traceback, tkMessageBox
+        err = ''.join(traceback.format_exception(*args))
+        tkMessageBox.showerror('Exception', "An exception occurs\nPlease report to devparrot team", detail=err)
     
     def get_globalContainer(self):
         return self.globalContainer
