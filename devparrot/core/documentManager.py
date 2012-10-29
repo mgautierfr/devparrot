@@ -23,7 +23,7 @@ import utils.event
 class DocumentManager(utils.event.EventSource):
     def __init__(self):
         utils.event.EventSource.__init__(self)
-        self.documents = {}
+        self.documents = set()
         self.signalConnections = {}
     
     def get_nbDocuments(self):
@@ -31,29 +31,36 @@ class DocumentManager(utils.event.EventSource):
     
     def get_nthFile(self, index):
         index = int(index)
-        for i, doc in enumerate(sorted(self.documents)):
-            if i == index:
-                return self.documents[doc]
-        return None
+        try:
+            return next(doc for (i, doc) in enumerate(sorted(self.documents)) if i==index)
+        except StopIteration:
+            return None
 
     def has_file(self, path):
-        return (path in self.documents)
+        try :
+            self.get_file(path)
+            return True
+        except KeyError:
+            return False
 
     def get_file(self, path):
-        return self.documents[path]
+        try:
+            return next(doc for doc in self.documents if doc.get_path()==path)
+        except StopIteration:
+            raise KeyError
 
     def del_file(self, document):
-        del self.documents[document.get_path()]
+        self.documents.remove(document)
         self.event('documentDeleted')(document)
         return True
 
     def add_file(self, document):
-        self.documents[document.get_path()] = document
+        self.documents.add(document)
         self.event('documentAdded')(document)
     
     def __str__(self):
         return "Open Files\n[\n%(openfiles)s\n]" % {
-            'openfiles' : "\n".join([str(doc) for (doc) in self])
+            'openfiles' : "\n".join([str(doc) for doc in self.documents])
         }
 
 documentManager = DocumentManager()
