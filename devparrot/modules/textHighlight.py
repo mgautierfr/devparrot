@@ -128,28 +128,22 @@ def on_new_document(document):
     document.model.connect('delete', on_delete)
     Tkinter.Text.mark_set(document.model, "DP::SH::_synctx_START", "1.0")
     Tkinter.Text.mark_gravity(document.model, "DP::SH::_synctx_START", "left")
-    pass
 
 def on_text_set(document):
     def find_lexer(filename):
-        from pygments.lexers import guess_lexer,get_lexer_for_filename,guess_lexer_for_filename
-
+        from pygments.lexers import get_lexer_for_filename
+        from pygments.util import ClassNotFound
         try:
-            return get_lexer_for_filename(filename)
-        except:
-            pass
-        try:
-            return guess_lexer_for_filename(filename)
-        except:
-            pass
-        return guess_lexer(document.model.get("1.0", "end"))
+            return get_lexer_for_filename(filename, noSyncPoint=False)
+        except ClassNotFound:
+            return None
 
     if not document.has_a_path():
         return
 
     filename = os.path.basename(document.get_path())
     document.model._highlight.lexer = find_lexer(filename)
-    document.model._highlight.lexer.noSyncPoint = False
+    on_insert(document.model, "1.0", "end")
 
 def on_insert(model, insertMark, text):
     if model._highlight.lexer :
