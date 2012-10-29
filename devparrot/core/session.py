@@ -19,15 +19,20 @@
 #    Copyright 2011 Matthieu Gautier
 
 import documentManager
+import commandLauncher
 
 _documentManager = documentManager.DocumentManager()
 _workspace = None
 _globalContainer = None
 config = None
 
-def set_config(_config):
+def init(_config):
     global config
+    global _documentManager
+    global commandLauncher
     config = _config
+    _documentManager = documentManager.DocumentManager()
+    commandLauncher = commandLauncher.CommandLauncher()
 
 def get_documentManager():
     return _documentManager

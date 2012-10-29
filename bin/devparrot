@@ -32,7 +32,7 @@ except ImportError:
 if __name__ == "__main__":
 	import devparrot
 	config = devparrot.core.configLoader.load()
-	devparrot.core.session.set_config(config)
+	devparrot.core.session.init(config)
 	devparrot.core.ui.init()
 	devparrot.core.command.load()
 	devparrot.core.modules.load()
