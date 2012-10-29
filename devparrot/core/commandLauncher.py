@@ -78,7 +78,7 @@ class History(object):
             return ""
         return self.history[-self.currentIndex]
 
-class Controler:
+class CommandLauncher:
     def __init__(self):
         self.history = History()
         
@@ -144,6 +144,7 @@ class Controler:
     
     def run_command(self, text):
         from command.tokenParser import MissingToken
+        print text
         commandName, rawTokens = self.tokenize(text)
         try:
             command, extraArgs  = self.get_command(commandName.value)
@@ -180,30 +181,6 @@ class Controler:
         if not command.pre_check():
             return (0, [])
         return self.expand_and_complete(command, rawTokens)
-        
-        
-controler = Controler()
 
-def init():
-    pass
-    
-def run_command(text):
-    if isinstance(text, basestring):
-        commands = text.split('\n')
-    else:
-        commands = []
-        map(commands.extend, [s.split('\n') for s in text])
-    ret = None
-    for cmd in commands[:-1]:
-        ret = controler.run_command(cmd)
-        if not ret:
-            return ret
-    import ui
-    ui.window.entry.insert("1.0", commands[-1])
-    if commands[-1]:
-        ui.window.entry.focus()
-        ui.window.entry.mark_set("index", "end")
-    return ret
 
-def get_completions(text):
-    return controler.get_completions(text)
+

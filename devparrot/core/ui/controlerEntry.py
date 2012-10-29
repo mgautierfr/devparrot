@@ -19,7 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 import Tkinter
-from devparrot.core import commandLauncher, completion
+from devparrot.core import session, completion
 
 class ControlerEntry(Tkinter.Text):
     def __init__(self, parent):
@@ -47,12 +47,12 @@ class ControlerEntry(Tkinter.Text):
         from devparrot.core import session
         if event.keysym == 'Up':
             self.delete("1.0", "end")
-            self.insert("end", commandLauncher.controler.history.get_previous())
+            self.insert("end", session.commandLauncher.controler.history.get_previous())
         if event.keysym == "Down":
-            next = commandLauncher.controler.history.get_next()
+            next = session.commandLauncher.controler.history.get_next()
             if next:
                 self.delete("1.0", "end")
-                self.insert("end", commandLauncher.controler.history.get_next())
+                self.insert("end", session.commandLauncher.controler.history.get_next())
             else:
                 self.completionSystem.start_completion()
             return
@@ -63,7 +63,8 @@ class ControlerEntry(Tkinter.Text):
         if event.keysym == 'Return':
             self.completionSystem.stop_completion()
             text = self.get("1.0", "end")
-            ret = commandLauncher.run_command(text)
+            print text
+            ret = session.commandLauncher.run_command(text)
             if ret is None:
                 self.configure(background=session.config.color.notFoundColor)
             elif ret:
@@ -81,7 +82,7 @@ class ControlerEntry(Tkinter.Text):
             return
 
     def on_textChanged(self, *args):
-        startIndex, completions = commandLauncher.get_completions(self.get("1.0", "insert"))
+        startIndex, completions = session.commandLauncher.get_completions(self.get("1.0", "insert"))
         self.completionSystem.update_completion("1.%d"%startIndex, completions)
         self.edit_modified(False)
         
