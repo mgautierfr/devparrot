@@ -66,7 +66,7 @@ class TopContainer(ContainerChild, Tkinter.Frame):
         self.container.set_parentContainer(self)
         self.container.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)
         try:
-            container.register()
+            container.dnd_register()
         except AttributeError:
             pass
     
@@ -75,7 +75,7 @@ class TopContainer(ContainerChild, Tkinter.Frame):
         childToDetach.set_parentContainer(None)
         self.container = None
         try:
-            childToDetach.unregister()
+            childToDetach.dnd_unregister()
         except AttributeError:
             pass
     
@@ -117,7 +117,7 @@ class SplittedContainer(ContainerChild, Tkinter.PanedWindow):
     
     def attach_child(self, child):
         try:
-            child.register()
+            child.dnd_register()
         except AttributeError:
             pass
         if self.container1 == None:
@@ -133,7 +133,7 @@ class SplittedContainer(ContainerChild, Tkinter.PanedWindow):
         childToDetach.set_parentContainer(None)
         childToDetach.pack_forget()
         try:
-            childToDetach.unregister()
+            childToDetach.dnd_unregister()
         except AttributeError:
             pass
         if self.container1 == childToDetach:
@@ -210,10 +210,10 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
         self.bindtags(" ".join(["Drag"]+[t for t in self.bindtags()]))
         self.bind("<<NotebookTabChanged>>", self.on_tabChanged)
     
-    def register(self):
+    def dnd_register(self):
         NotebookContainer.notebookList.add(self)
     
-    def unregister(self):
+    def dnd_unregister(self):
         NotebookContainer.notebookList.remove(self)
     
     def dnd_accept(self, source, event):
