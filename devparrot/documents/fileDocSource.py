@@ -69,7 +69,10 @@ class FileDocSource(object):
     
     def init_timestamp(self):
         """ reinit the timestamp saved from the file """
-        self.timestamp = os.stat(self.path).st_mtime
+        try:
+            self.timestamp = os.stat(self.path).st_mtime
+        except OSError:
+            pass
 
     def set_content(self, content):
         """ set the content of the file (save it) """
@@ -86,7 +89,10 @@ class FileDocSource(object):
         """return True if the file has been modified since last init_timestamp"""
         if not self.timestamp:
             return False
-        modif = os.stat(self.path).st_mtime
-        return  modif > self.timestamp
+        try:
+            modif = os.stat(self.path).st_mtime
+            return  modif > self.timestamp
+        except OSError:
+            return False
 
 
