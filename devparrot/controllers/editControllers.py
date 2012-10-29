@@ -304,14 +304,16 @@ class MouseController(Controller):
     def set_current(event):
         try:
             pos1 = '@%d,%d' % (event.x, event.y)
-            pos2 = '%s +1c' % pos1
             coord1 = event.widget.bbox(pos1)[0]
-            coord2 = event.widget.bbox(pos2)[0]
-            halfx = (coord1 + coord2)/2
-            if event.x < halfx:
-                event.widget.mark_set( 'current' , pos1)
-            else:
-                event.widget.mark_set( 'current' , '%s + 1c'%pos1)
+            lineend = event.widget.bbox("%s lineend"%pos1)[0]
+            newcurrent = pos1
+            if event.x < lineend:
+                pos2 = '%s +1c' % pos1
+                coord2 = event.widget.bbox(pos2)[0]
+                halfx = (coord1 + coord2)/2
+                if event.x > halfx:
+                    newcurrent = pos2
+            event.widget.mark_set( 'current' , newcurrent)
         except TypeError:
             pass
 
