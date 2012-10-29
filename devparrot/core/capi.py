@@ -110,17 +110,20 @@ def open_file(filePath):
     return doc
 
 def save_document(document, fileToSave):
+    from devparrot.core import documentManager
     if document.has_a_path() and document.get_path() == fileToSave:
         return document.write()
 
     # we've ask to change the path
-    if capi.file_is_opened(fileToSave):
+    if file_is_opened(fileToSave):
         #The document is already opened.
         #do nothing (should warn or save/close/reopen)
         return False
 
     from devparrot.documents.fileDocSource import FileDocSource
     document.set_path(FileDocSource(fileToSave))
+    documentManager.documentManager.del_file(document)
+    documentManager.documentManager.add_file(document)
     return document.write()
 
 def quit():

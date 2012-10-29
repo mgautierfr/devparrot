@@ -85,7 +85,10 @@ class CompletionSystem(object):
         self.textWidget.mark_set("insert", startIndex + " + %dc"%len(toInsert))
 
     def get_selected(self):
-        return self.completions[int(self.listbox.curselection()[0])]
+        try:
+            return self.completions[int(self.listbox.curselection()[0])]
+        except IndexError:
+            return Completion("",False)
 
     def get_common(self):
         return self.commonString

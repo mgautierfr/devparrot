@@ -89,7 +89,7 @@ class DocumentListView(ttk.Treeview):
         self.sort()
 
     def on_double_click(self, event):
-        import session
+        from devparrot.core import session
         selection = self.selection()
         if selection:
             document = documentManager.documentManager.get_file(selection[0])

@@ -82,12 +82,12 @@ class Document(utils.event.EventSource):
             self.documentSource = documentSource
             self.title_notify()
             self.longTitle_notify()
-            self.event('textSet')(self)
             self.event('pathChanged')(self, oldPath)
         
     def load(self):
         self.model.set_text(self.documentSource.get_content())
         self.currentView.set_lineNumbers()
+        self.event('textSet')(self)
     
     def write(self):
         if self.documentSource.set_content(self.model.get_text()):
