@@ -24,16 +24,12 @@ from command.splitter import Splitter, Token
 from completion import Completion
 
 alias = {}
-lineExpenders = []
 eventSystem = utils.event.EventSource()
 
 def add_alias(aliasName, command, prio=2):
     if prio not in alias:
         alias[prio] = []
     alias[prio].append((aliasName, command)) 
-
-def add_expender(expender):
-    lineExpenders.append(expender)
 
 
 class ListGenerator:
@@ -83,12 +79,6 @@ class CommandLauncher:
         self.history = History()
         
     def tokenize(self, text, faultTolerent=False):
-        commandName = None
-        for expender in lineExpenders:
-            tokens = expender(text)
-            if tokens:
-                return tokens
-
         splitted = list(Splitter(text, faultTolerent))
         if splitted:
             commandName = splitted[0]

@@ -23,25 +23,6 @@ from devparrot.core.command import constraints
 from devparrot.core import capi
 
 class goto(Command):
-    @staticmethod
-    def regChecker(line):
-        import pyparsing
-        if not line:
-            return None
-
-        if line[0] != "g":
-            return None
-        
-        line = line[1:]
-        
-        try:
-            goto.index.grammar.parseString(line)
-        except pyparsing.ParseException:
-            return None
-        
-        return ("goto", line)
-
-    Command.add_expender(lambda line : goto.regChecker(line))
     index = constraints.Index()
     def run(cls, index):
         try:

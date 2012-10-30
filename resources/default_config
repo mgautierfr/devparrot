@@ -15,7 +15,7 @@ binds["<<Cut>>"] = "cut\n"
 binds["<<Copy>>"] = "copy\n"
 binds["<<Paste>>"] = "paste\n"
 binds["<Control-w>"] = "close\n"
-binds["<Control-f>"] = "/"
+binds["<Control-f>"] = "search "
 
 textView = Section()
 textView.auto_indent = True

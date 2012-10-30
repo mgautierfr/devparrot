@@ -53,11 +53,6 @@ class Command:
             commandLauncher.add_alias(newName, oldName, prio)
 
     @classmethod
-    def add_expender(cls, expender):
-        from devparrot.core import commandLauncher
-        commandLauncher.add_expender(expender)
-
-    @classmethod
     def pre_check(cls):
         return True
 
