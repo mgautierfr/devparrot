@@ -63,8 +63,7 @@ class ControlerEntry(Tkinter.Text):
         if event.keysym == 'Return':
             self.completionSystem.stop_completion()
             text = self.get("1.0", "end")
-            print text
-            ret = session.commandLauncher.run_command(text)
+            ret = session.commandLauncher.run_command(text[:-1])
             if ret is None:
                 self.configure(background=session.config.color.notFoundColor)
             elif ret:
