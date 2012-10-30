@@ -85,6 +85,7 @@ class MainWindow(ttk.Tkinter.Tk):
     def report_callback_exception(self, *args):
         import traceback, tkMessageBox
         err = ''.join(traceback.format_exception(*args))
+        print err
         tkMessageBox.showerror('Exception', "An exception occurs\nPlease report to devparrot team", detail=err)
     
     def get_globalContainer(self):

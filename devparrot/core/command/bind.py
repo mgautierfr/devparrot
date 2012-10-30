@@ -4,17 +4,18 @@ TkEventMatcher = re.compile(r"<.*>")
 
 class BindLauncher(object):
     def __init__(self, command):
-        self.command = command
+        commands = command.split('\n')
+        self.commands = commands[:-1]
+        self.leftText = commands[-1]
 
     def __call__(self, event):
         from devparrot.core import session, ui
-        commands = text.split('\n')
-        for cmd in commands[:-1]:
+        for cmd in self.commands:
             ret = session.commandLauncher.run_command(cmd)
             if not ret:
                 return "break"
-        ui.window.entry.insert("1.0", commands[-1])
-        if commands[-1]:
+        ui.window.entry.insert("1.0", self.leftText)
+        if self.leftText:
             ui.window.entry.focus()
             ui.window.entry.mark_set("index", "end")
         return "break"
