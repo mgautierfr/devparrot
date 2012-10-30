@@ -19,7 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 import ttk
-import commandLauncher
+import session
 
 
 class Menu(ttk.Tkinter.Menu):
@@ -46,12 +46,12 @@ class EditSection:
         self.menu = menu
     
     def createMenu(self):
-        self.menu.add_command(label='Undo', command=lambda:commandLauncher.run_command('undo\n'))
-        self.menu.add_command(label='Redo', command=lambda:commandLauncher.run_command('redo\n'))
+        self.menu.add_command(label='Undo', command=lambda:session.commandLauncher.run_command('undo\n'))
+        self.menu.add_command(label='Redo', command=lambda:session.commandLauncher.run_command('redo\n'))
         self.menu.add_separator()
-        self.menu.add_command(label='Copy',  command=lambda:commandLauncher.run_command('copy\n'))
-        self.menu.add_command(label='Cut',   command=lambda:commandLauncher.run_command('cut\n'))
-        self.menu.add_command(label='Paste', command=lambda:commandLauncher.run_command('paste\n'))
+        self.menu.add_command(label='Copy',  command=lambda:session.commandLauncher.run_command('copy\n'))
+        self.menu.add_command(label='Cut',   command=lambda:session.commandLauncher.run_command('cut\n'))
+        self.menu.add_command(label='Paste', command=lambda:session.commandLauncher.run_command('paste\n'))
     
     def postCommand(self):
         try:
