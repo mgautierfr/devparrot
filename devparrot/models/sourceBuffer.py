@@ -43,23 +43,23 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
         bindtags = " ".join(bindtags)
         self.bindtags(bindtags)
 
-        session.config.controller.install( self )
+        session.config.get("controller").install( self )
         
-        self.tag_configure('currentLine_tag', background=session.config.color.currentLine_tag_color)
+        self.tag_configure('currentLine_tag', background=session.config.get("color.currentLine_tag_color"))
         self.tag_raise("currentLine_tag")
         self.tag_raise("sel", "currentLine_tag")
         
         self.on_font_changed(None, None)
-        session.config.textView.font_register(mcb(self.on_font_changed))
-        session.config.textView.tab_width_register(mcb(self.on_tab_width_changed))
+        session.config.textView.font.register(mcb(self.on_font_changed))
+        session.config.textView.tab_width.register(mcb(self.on_tab_width_changed))
     
     def on_font_changed(self, var, old):
-        self.config(font = session.config.textView.font)
+        self.config(font = session.config.get("textView.font"))
         self.on_tab_width_changed(None, None)
     
     def on_tab_width_changed(self, var, old):
         import tkFont
-        self.config(tabs = session.config.textView.tab_width*tkFont.Font(font=session.config.textView.font).measure(" "))
+        self.config(tabs = session.config.get("textView.tab_width")*tkFont.Font(font=session.config.get("textView.font")).measure(" "))
     
     # Selection Operations
     def sel_clear( self ):
@@ -113,7 +113,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
     
     def set_currentLineTag(self):
         self.tag_remove('currentLine_tag', '1.0', 'end')
-        if session.config.textView.highlight_current_line:
+        if session.config.get("textView.highlight_current_line"):
             self.tag_add( 'currentLine_tag', 'insert linestart', 'insert + 1l linestart')
 
     # Overloads
@@ -178,8 +178,8 @@ class SourceBuffer(CodeText):
     def __init__(self):
         CodeText.__init__(self)
         self.highlight_tag_protected = False
-        self.tag_configure("highlight_tag", background=session.config.color.highlight_tag_color)
-        self.tag_configure("search_tag", background=session.config.color.search_tag_color)
+        self.tag_configure("highlight_tag", background=session.config.get("color.highlight_tag_color"))
+        self.tag_configure("search_tag", background=session.config.get("color.search_tag_color"))
         self.bind("<<Selection>>", self.on_selection_changed)
         self.hl_callId = None
         self.tag_lower("highlight_tag", "sel")

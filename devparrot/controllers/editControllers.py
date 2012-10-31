@@ -57,11 +57,11 @@ class BasicTextController(Controller):
             count = ttk.Tkinter.IntVar()
             text = "\n"
             l, c = event.widget.index('insert').split('.')
-            if session.config.textView.remove_tail_space:
+            if session.config.get("textView.remove_tail_space"):
                 match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*$", '%s.0'%l, regexp=True)
                 if match_start:
                     event.widget.delete(match_start, '%s.0 lineend'%l)
-            if session.config.textView.auto_indent:
+            if session.config.get("textView.auto_indent"):
                 match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*" , '%s.0'%l, stopindex=event.widget.index('insert'), regexp=True, count=count)
                 if match_start:
                     match_end = "%s.%i" % (l, min(count.get(), int(c)))
@@ -73,8 +73,8 @@ class BasicTextController(Controller):
         from devparrot.core import session
         from devparrot.core.utils.posrange import Index, BadArgument
         tabs = ['\t']
-        if session.config.textView.space_indent:
-            tabs += [' '*i for i in xrange(session.config.textView.tab_width, 0, -1)]
+        if session.config.get("textView.space_indent"):
+            tabs += [' '*i for i in xrange(session.config.get("textView.tab_width"), 0, -1)]
         try:
             start = Index(event.widget, 'sel.first').line
             stop = Index(event.widget, 'sel.last').line
@@ -91,7 +91,7 @@ class BasicTextController(Controller):
     def on_tab(self, event, modifier):
         from devparrot.core.utils.posrange import Index, BadArgument
         from devparrot.core import session
-        tab = ' '*session.config.textView.tab_width if session.config.textView.space_indent else '\t'
+        tab = ' '*session.config.get("textView.tab_width") if session.config.get("textView.space_indent") else '\t'
         try:
             start = Index(event.widget, 'sel.first')
             stop = Index(event.widget, 'sel.last')
@@ -144,7 +144,7 @@ class CarretController( Controller ):
         newPos = 'insert linestart'
         if modifiers.ctrl:
             newPos = '1.0'
-        elif session.config.textView.smart_home_end:
+        elif session.config.get("textView.smart_home_end"):
             l, c = event.widget.index('insert').split('.')
             match_start = ttk.Tkinter.Text.search(event.widget, "[^ \t]" , 'insert linestart', stopindex='insert lineend', regexp=True)
             if match_start:

@@ -34,22 +34,22 @@ class MainWindow(ttk.Tkinter.Tk):
         geom = self.wm_geometry()
         w = geom.split('+')[0].split('x')[0]
         try:
-            w = session.config.window.width
+            w = session.config.get("window.width")
         except AttributeError:
             pass
         h = geom.split('+')[0].split('x')[1]
         try:
-            h = session.config.window.height
+            h = session.config.get("window.height")
         except AttributeError:
             pass
         x = geom.split('+')[1]
         try:
-            x = session.config.window.posx
+            x = session.config.get("window.posx")
         except AttributeError:
             pass
         y = geom.split('+')[2]
         try:
-            y = session.config.window.posy
+            y = session.config.get("window.posy")
         except AttributeError:
             pass
         self.wm_geometry("%dx%d+%s+%s"%(w, h, x, y))

@@ -41,8 +41,8 @@ def activate():
     from devparrot.core import commandLauncher
     create_fonts()
     create_styles()
-    session.config.textView.font_register(on_font_changed)
-    session.config.textView.hlstyle_register(on_style_changed)
+    session.config.textView.font.register(on_font_changed)
+    session.config.textView.hlstyle.register(on_style_changed)
     commandLauncher.eventSystem.connect("newDocument",on_new_document)
     pass
 
@@ -62,7 +62,7 @@ def on_style_changed(var, old):
 
 def create_fonts():
     global _fonts
-    _fonts[(False,False)] = tkFont.Font(font=session.config.textView.font)
+    _fonts[(False,False)] = tkFont.Font(font=session.config.get("textView.font"))
     _fonts[(True,False)] = _fonts[(False,False)].copy()
     _fonts[(True,False)].configure(weight='bold')
     _fonts[(False,True)] = _fonts[(False,False)].copy()
@@ -77,7 +77,7 @@ def create_styles():
     global _style
     global _tokens_name
     
-    _style = get_style_by_name(session.config.textView.hlstyle)
+    _style = get_style_by_name(session.config.get("textView.hlstyle"))
     
     tkStyles = dict(_style)
     for token in sorted(tkStyles):
@@ -119,8 +119,8 @@ class HighlightContext(object):
 
 def on_new_document(document):
     create_style_table(document.model)
-    session.config.textView.font_register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
-    session.config.textView.hlstyle_register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
+    session.config.textView.font.register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
+    session.config.textView.hlstyle.register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
     document.connect('textSet', on_text_set)
     document.model._highlight = HighlightContext()
     on_text_set(document)

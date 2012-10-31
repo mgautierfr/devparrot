@@ -65,12 +65,12 @@ class ControlerEntry(Tkinter.Text):
             text = self.get("1.0", "end")
             ret = session.commandLauncher.run_command(text[:-1])
             if ret is None:
-                self.configure(background=session.config.color.notFoundColor)
+                self.configure(background=session.config.get("color.notFoundColor"))
             elif ret:
-                self.configure(background=session.config.color.okColor)
+                self.configure(background=session.config.get("color.okColor"))
                 self.toClean = True
             else:
-                self.configure(background=session.config.color.errorColor)
+                self.configure(background=session.config.get("color.errorColor"))
             if session.get_currentDocument():
                 session.get_currentDocument().get_currentView().focus()
             return "break"
