@@ -52,6 +52,13 @@ class _Section(CbCaller):
             section = section.sections[arg]
         return section._get(args[-1]).get()
 
+    def set(self, name, value):
+        args = name.split('.')
+        section = self
+        for arg in args[:-1]:
+            section = section.sections[arg]
+        section._get(args[-1]).set(value)
+
     def add_section(self, name, section):
         self.sections[name] = section
 

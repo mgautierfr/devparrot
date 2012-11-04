@@ -52,6 +52,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
         self.on_font_changed(None, None)
         session.config.textView.font.register(mcb(self.on_font_changed))
         session.config.textView.tab_width.register(mcb(self.on_tab_width_changed))
+        session.config.color.currentLine_tag_color.register(mcb(self.on_currentLine_color_changed))
     
     def on_font_changed(self, var, old):
         self.config(font = session.config.get("textView.font"))
@@ -60,6 +61,9 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
     def on_tab_width_changed(self, var, old):
         import tkFont
         self.config(tabs = session.config.get("textView.tab_width")*tkFont.Font(font=session.config.get("textView.font")).measure(" "))
+
+    def on_currentLine_color_changed(self, var, old):
+        self.tag_configure('currentLine_tag', background=var.get())
     
     # Selection Operations
     def sel_clear( self ):

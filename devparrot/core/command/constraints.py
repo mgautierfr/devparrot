@@ -264,3 +264,45 @@ class OpenDocument(_Constraint):
         _Constraint.__init__(self, *args, **kwords)
         self.set_grammar(grammar.doc)
 
+class ConfigEntry(_Constraint):
+    def __init__(self):
+        _Constraint.__init__(self)
+        def check(s, l, t):
+            from devparrot.core import session
+            sections = t[0].split('.')
+            currentSection = session.config
+            for section in sections:
+                try:
+                    currentSection = currentSection[section]
+                except KeyError:
+                    raise pyparsing.ParseException(s, l, "%s not in section %s"%(section, currentSection))
+            return t
+
+        gram = grammar.pyparsing.delimitedList(grammar.any, delim=".", combine=True)
+        gram.setParseAction( check )
+        self.set_grammar(gram)
+
+    def complete(self, token):
+        from devparrot.core import session
+        completions = []
+
+        sections = token.split('.')
+        currentSection = session.config
+
+        for section in sections[:-1]:
+            try:
+                currentSection = currentSection[section]
+            except KeyError:
+                return []
+
+        prefix = ".".join(sections[:-1])
+        token = sections[-1]
+
+        prefix = ""
+        if len(sections) > 1:
+            prefix = ".".join(sections[:-1]+[""])
+
+        completions.extend([Completion("%s%s."%(prefix, section), False) for section in currentSection.sections if section.startswith(token)])
+        completions.extend([Completion("%s%s"%(prefix, var), True) for var in currentSection.variables if var.startswith(token)])
+        return completions
+
