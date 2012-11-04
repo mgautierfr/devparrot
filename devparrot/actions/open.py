@@ -1,6 +1,6 @@
 import os
 from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import constraints
+from devparrot.core.command import constraints, binder
 from devparrot.core import capi
 
 class open(Command):
@@ -36,3 +36,4 @@ class open(Command):
             ret = ret and cls.open_a_file(fileToOpen)
         return ret
 
+binder["<Control-o>"] = "open\n"

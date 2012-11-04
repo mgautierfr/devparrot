@@ -1,4 +1,5 @@
 from devparrot.core.command.baseCommand import Command
+from devparrot.core.command import binder
 from devparrot.core import capi
 
 class new(Command):
@@ -10,3 +11,4 @@ class new(Command):
         capi.currentDocument = document
         return True
 
+binder["<Control-n>"] = "new\n"

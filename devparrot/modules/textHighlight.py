@@ -36,18 +36,24 @@ import weakref
 _fonts = {}
 _styles = {}
 _tokens_name = {}
+_moduleName = None
 
-def activate():
-    from devparrot.core import commandLauncher
-    create_fonts()
-    create_styles()
-    session.config.textView.font.register(on_font_changed)
-    session.config.textView.hlstyle.register(on_style_changed)
-    commandLauncher.eventSystem.connect("newDocument",on_new_document)
-    pass
+def init(configSection, name):
+    global _moduleName
+    _moduleName=name
+    configSection.add_variable("hlstyle", "default")
+    configSection.active.register(activate)
 
-def deactivate():
-    pass
+def activate(var, old):
+    if var.get():
+        from devparrot.core import commandLauncher
+        create_fonts()
+        create_styles()
+        session.config.textView.font.register(on_font_changed)
+        session.config.modules[_moduleName].hlstyle.register(on_style_changed)
+        commandLauncher.eventSystem.connect("newDocument",on_new_document)
+    else:
+        pass
 
 def on_font_changed(var, old):
     if var.get() == old:
@@ -77,7 +83,7 @@ def create_styles():
     global _style
     global _tokens_name
     
-    _style = get_style_by_name(session.config.get("textView.hlstyle"))
+    _style = get_style_by_name(session.config.get("modules.%s.hlstyle"%_moduleName))
     
     tkStyles = dict(_style)
     for token in sorted(tkStyles):
@@ -120,7 +126,7 @@ class HighlightContext(object):
 def on_new_document(document):
     create_style_table(document.model)
     session.config.textView.font.register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
-    session.config.textView.hlstyle.register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
+    session.config.modules[_moduleName].hlstyle.register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
     document.connect('textSet', on_text_set)
     document.model._highlight = HighlightContext()
     on_text_set(document)

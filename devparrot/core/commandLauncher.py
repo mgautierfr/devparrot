@@ -134,7 +134,6 @@ class CommandLauncher:
     
     def run_command(self, text):
         from command.tokenParser import MissingToken
-        print text
         commandName, rawTokens = self.tokenize(text)
         try:
             command, extraArgs  = self.get_command(commandName.value)
@@ -171,6 +170,4 @@ class CommandLauncher:
         if not command.pre_check():
             return (0, [])
         return self.expand_and_complete(command, rawTokens)
-
-
 

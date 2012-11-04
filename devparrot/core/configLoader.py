@@ -22,16 +22,6 @@ from devparrot.core.utils.variable import CbCaller
 
 _config = None
 
-class ModuleWrapper(object):
-    def __init__(self, config):
-        object.__setattr__(self, 'config', config)
-
-    def __getattr__(self, name):
-        return getattr(self.config, name)
-
-    def __setattr__(self, name, value):
-        return self.config.__setattr__(name, value)
-
 class _Section(CbCaller):
     def __init__(self):
         from devparrot.core.utils.variable import CbList
@@ -40,34 +30,34 @@ class _Section(CbCaller):
         object.__setattr__(self, "sections", {})
         object.__setattr__(self, "variables", {})
 
-    def __getattr__(self, name):
+    def _get(self,name):
         try:
             return self.variables[name]
         except KeyError:
-            try:
-                return self.sections[name]
-            except KeyError:
-                raise AttributeError
+            return self.sections[name]
+
+    def __getattr__(self, name):
+        try:
+            return self._get(name)
+        except KeyError:
+            raise AttributeError
+
+    def __getitem__(self, name):
+        return self._get(name)
 
     def get(self, name):
         args = name.split('.')
-        return self._get(args)
-
-    def _get(self, nameList):
-        first = getattr(self, nameList[0])
-        if len(nameList) == 1:
-            return first.get()
-        return first._get(nameList[1:])
+        section = self
+        for arg in args[:-1]:
+            section = section.sections[arg]
+        return section._get(args[-1]).get()
 
     def add_section(self, name, section):
         self.sections[name] = section
 
     def add_variable(self, name, value):
         from devparrot.core.utils.variable import Variable
-        if isinstance(value, Variable):
-            self.variables[name] = value
-        else:
-            self.variables[name] = Variable(value)
+        self.variables[name] = Variable(value)
 
     def __str__(self):
         return "Section named %s" % type(self)
@@ -89,71 +79,31 @@ class Section(_Section):
             return
 
         if name not in self.variables:
-            print "WARNING: %s is not a valid (known) variables name in section %s"%(name, context)
+            print "WARNING: %s is not a valid (known) variables name in section %s"%(name, self)
             return
 
         variable = self.variables[name].set(value)
 
-    def __enter__(self):
-        self.config.set_currentContext(self)
-        return self
-
-    def __exit__(self, *args):
-        self.config.unset_currentContext()
-        
-
 class Config(_Section):
     def __init__(self):
         _Section.__init__(self)
-        object.__setattr__(self, "contexts", [])
-
-    def __getitem__(self, name):
-        try:
-            return getattr(self, name)
-        except AttributeError:
-            raise KeyError
 
     def __setitem__(self, name, value):
         setattr(self, name, value)
-    
-    def __delitem__(self, name):
-        delattr(self, name)
-
-    def __iter__(self, *args, **kwords):
-        return self.__dict__.__iter__(*args, **kwords)
-
-    def __len__(self):
-        return self.__dict__.__len__()
-
-    def __setattr__(self, name, value):
-        try:
-            context = self.contexts[-1]
-        except IndexError:
-            context = self
-        if name in context.sections:
-            print "WARNING: can't redifine section name %s"%name
-            return
-
-        if name not in context.variables:
-            print "WARNING: %s is not a valid (known) variables name in section %s"%(name, context)
-            return
-
-        variable = context.variables[name].set(value)
-
-    def set_currentContext(self, section):
-        self.contexts.append(section)
-
-    def unset_currentContext(self):
-        self.contexts.pop()
 
 def init():
     from devparrot.controllers.defaultControllerMode import DefaultControllerMode
+    import os
     global _config
+    devparrotPath = os.path.dirname(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
     _config = Config()
     _config.add_variable("controller", DefaultControllerMode())
+    _config.add_variable("devparrotPath", devparrotPath)
     section = createSection("window")
     section.add_variable("height", 600)
     section.add_variable("width", 800)
+    section.add_variable("posx", 10)
+    section.add_variable("posy", 10)
     section = createSection("textView")
     section.add_variable("auto_indent", True)
     section.add_variable("remove_tail_space", True)
@@ -163,7 +113,6 @@ def init():
     section.add_variable("show_line_numbers", True)
     section.add_variable("smart_home_end", True)
     section.add_variable("font", "monospace")
-    section.add_variable("hlstyle", "default")
     section = createSection("color")
     section.add_variable("notFoundColor", "red")
     section.add_variable("okColor", "#BBFFBB")
@@ -171,6 +120,8 @@ def init():
     section.add_variable("highlight_tag_color", "#FFFFBB")
     section.add_variable("search_tag_color", "#FFAAAA")
     section.add_variable("currentLine_tag_color", "#EEEEEE")
+    section = createSection("modules")
+    return _config
 
 def createSection(name, parent=None):
     if not parent:
@@ -184,15 +135,11 @@ def load():
     import os
     from devparrot.core import command, capi
     _homedir = getpwuid(os.getuid())[5]
-    _user_config_path = os.path.join(_homedir,'.devparrot')
+    _user_config_path = os.path.join(_homedir,'.devparrotrc')
 
-    _global = {'binds':command.binder,
-               'Command':command.baseCommand.Command,
-               'constraints':command.constraints,
-               'capi':capi,
-               'config': _config
-              }
+    _global = {'binds':command.binder}
 
     execfile(_user_config_path, _global, _config)
-    return _config
+
+
 

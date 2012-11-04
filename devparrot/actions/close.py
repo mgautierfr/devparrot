@@ -1,5 +1,5 @@
 from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import constraints
+from devparrot.core.command import constraints, binder
 from devparrot.core import capi
 
 class close(Command):
@@ -19,3 +19,4 @@ class closeall(Command):
             ret = ret and capi.close_document(capi.get_nth_file(0))
         return ret
 
+binder["<Control-w>"] = "close\n"

@@ -19,6 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 from devparrot.core.command.baseCommand import Command
+from devparrot.core.command import binder
 from devparrot.core import capi
 
 class cut(Command):
@@ -41,3 +42,6 @@ class redo(Command):
     def run(cls):
         return capi.currentDocument.get_model().redo()
 
+binder["<<Cut>>"] = "cut\n"
+binder["<<Copy>>"] = "copy\n"
+binder["<<Paste>>"] = "paste\n"

@@ -24,16 +24,18 @@ from devparrot.core import documentManager, ui
 
 documentListView = None
 
-def activate():
-    global documentListView
-    documentListView = DocumentListView(ui.window)
-    documentManager.documentManager.connect('documentDeleted', documentListView.on_documentDeleted)
-    documentManager.documentManager.connect('documentAdded', documentListView.on_documentAdded)
-    ui.add_helper(documentListView, 'left')
-    pass
+def init(configSection, name):
+    configSection.active.register(activate)
 
-def deactivate():
-    pass
+def activate(var, old):
+    if var.get():
+        global documentListView
+        documentListView = DocumentListView(ui.window)
+        documentManager.documentManager.connect('documentDeleted', documentListView.on_documentDeleted)
+        documentManager.documentManager.connect('documentAdded', documentListView.on_documentAdded)
+        ui.add_helper(documentListView, 'left')
+    else:
+        pass
 
 
 class DocumentListView(ttk.Treeview):

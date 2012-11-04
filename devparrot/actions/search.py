@@ -1,5 +1,5 @@
 from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import constraints
+from devparrot.core.command import constraints, binder
 from devparrot.core import capi
 
 class search(Command):
@@ -12,4 +12,6 @@ class search(Command):
         if searchText:
             return capi.currentDocument.search(backward, searchText)
 
-
+binder["<F3>"] = "search\n"
+binder["<Alt-F3>"] = "bsearch\n"
+binder["<Control-f>"] = "search"

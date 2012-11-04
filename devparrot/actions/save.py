@@ -1,5 +1,5 @@
 from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import constraints
+from devparrot.core.command import constraints, binder
 from devparrot.core import capi
 
 class save(Command):
@@ -19,3 +19,4 @@ class save(Command):
     def run(cls, fileName, *args):
         return capi.save_document(capi.currentDocument, fileName)
 
+binder["<Control-s>"] = "save\n"

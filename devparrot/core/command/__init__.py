@@ -1,37 +1,38 @@
 import bind
-import os
-
 import baseCommand
 
 
 binder = bind.Binder()
 
 def load():
-    path = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
-    path = os.path.join(os.path.dirname(path), "..")
-    path = os.path.join(path, 'actions')
+    from pwd import getpwuid
+    import os
+    from devparrot.core import session
+    path = os.path.join(session.config.get('devparrotPath'), "actions")
     moduleList = os.listdir(path)
     for module in moduleList:
-        m = load_module(path, module)
-    pass
+        load_module(path, module)
+
+    _homedir = getpwuid(os.getuid())[5]
+    path = os.path.join(_homedir,'.devparrot', 'actions')
+    if os.path.exists(path):
+        moduleList = os.listdir(path)
+        for module in moduleList:
+            load_module(path, module)
 
 def load_module(path, name):
-    import imp
-    if name.endswith('.pyc'):
-        return
+    import imp, os
     if name.endswith('.py'):
         name = name[:-3]
+    elif not os.path.isdir(os.path.join(path,name)):
+        return
 
     try:
         fp, pathname, description = imp.find_module(name, [path])
-    except ImportError, m:
-        print m
+    except ImportError, err:
+        print err
         return
 
-    try:
+    with fp:
         return imp.load_module(name, fp, pathname, description)
-    finally:
-        # Since we may exit via an exception, close fp explicitly.
-        if fp:
-            fp.close()
 
