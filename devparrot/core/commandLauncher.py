@@ -113,9 +113,13 @@ class CommandLauncher:
         return tokens
 
     def expand_and_complete(self, command, rawTokens):
+        from command.tokenParser import MissingToken
         tokenParser = command.get_tokenParser()
-        completions = tokenParser.complete(rawTokens)
-        return completions
+        try:
+            completions = tokenParser.complete(rawTokens)
+            return completions
+        except MissingToken:
+            return (0, [])
     
     def launch_command(self, command, args):
         eventSystem.event("%s-"%command.__name__)(args)
