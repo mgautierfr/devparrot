@@ -127,15 +127,15 @@ def on_new_document(document):
     create_style_table(document.model)
     session.config.textView.font.register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
     session.config.modules[_moduleName].hlstyle.register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
-    document.connect('textSet', on_text_set)
+    document.connect('pathChanged', lambda document, oldPath: init_and_highlight(document))
     document.model._highlight = HighlightContext()
-    on_text_set(document)
+    init_and_highlight(document)
     document.model.connect('insert', on_insert)
     document.model.connect('delete', on_delete)
     Tkinter.Text.mark_set(document.model, "DP::SH::_synctx_START", "1.0")
     Tkinter.Text.mark_gravity(document.model, "DP::SH::_synctx_START", "left")
 
-def on_text_set(document):
+def init_and_highlight(document):
     def find_lexer(filename):
         from pygments.lexers import get_lexer_for_filename
         from pygments.util import ClassNotFound
