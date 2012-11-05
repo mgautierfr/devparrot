@@ -141,12 +141,13 @@ def load():
     from pwd import getpwuid
     import os
     from devparrot.core import command, capi
-    _homedir = getpwuid(os.getuid())[5]
-    _user_config_path = os.path.join(_homedir,'.devparrotrc')
+    homedir = getpwuid(os.getuid())[5]
+    user_config_path = os.path.join(homedir,'.devparrotrc')
 
     _global = {'binds':command.binder}
 
-    execfile(_user_config_path, _global, _config)
+    if os.path.exists(user_config_path):
+        execfile(user_config_path, _global, _config)
 
 
 
