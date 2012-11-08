@@ -8,13 +8,13 @@ def load():
     from pwd import getpwuid
     import os
     from devparrot.core import session
-    path = os.path.join(session.config.get('devparrotPath'), "actions")
+    path = os.path.join(session.config.get('devparrotPath'), "commands")
     moduleList = os.listdir(path)
     for module in moduleList:
         load_module(path, module)
 
     _homedir = getpwuid(os.getuid())[5]
-    path = os.path.join(_homedir,'.devparrot', 'actions')
+    path = os.path.join(_homedir,'.devparrot', 'commands')
     if os.path.exists(path):
         moduleList = os.listdir(path)
         for module in moduleList:
