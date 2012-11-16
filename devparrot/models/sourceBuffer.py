@@ -37,7 +37,6 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
                                   autoseparators=False,
                                   tabstyle="wordprocessor")
         utils.event.EventSource.__init__(self)
-        self.bind_class("Text", "<Key>", insert_char)
         bindtags = list(self.bindtags())
         bindtags.insert(1,"Command")
         bindtags = " ".join(bindtags)

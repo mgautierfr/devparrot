@@ -89,7 +89,7 @@ class Section(_Section):
             print "WARNING: %s is not a valid (known) variables name in section %s"%(name, self)
             return
 
-        variable = self.variables[name].set(value)
+        self.variables[name].set(value)
 
 class Config(_Section):
     def __init__(self):
