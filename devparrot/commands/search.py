@@ -14,4 +14,4 @@ class search(Command):
 
 binder["<F3>"] = "search\n"
 binder["<Alt-F3>"] = "bsearch\n"
-binder["<Control-f>"] = "search"
+binder["<Control-f>"] = "search "
