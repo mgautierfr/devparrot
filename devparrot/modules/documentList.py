@@ -33,7 +33,7 @@ def activate(var, old):
         documentListView = DocumentListView(ui.window)
         documentManager.documentManager.connect('documentDeleted', documentListView.on_documentDeleted)
         documentManager.documentManager.connect('documentAdded', documentListView.on_documentAdded)
-        ui.add_helper(documentListView, 'left')
+        ui.helperManager.add_helper(documentListView, "documentList", 'left')
     else:
         pass
 

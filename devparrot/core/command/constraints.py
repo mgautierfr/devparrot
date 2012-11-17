@@ -204,10 +204,10 @@ class File(_Constraint):
                 d['initialdir'] = os.path.dirname(path)
 
         if File.SAVE in self.mode:
-            token = ui.Helper().ask_filenameSave(**d)
+            token = ui.helper.ask_filenameSave(**d)
         else:
             d['multiple'] = self.multiple
-            token = ui.Helper().ask_filenameOpen(**d)
+            token = ui.helper.ask_filenameOpen(**d)
         return token if token else None
 
     def _complete(self, directory, filestart, prefix):

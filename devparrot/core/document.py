@@ -102,7 +102,7 @@ class Document(utils.event.EventSource):
         res = self.documentSource.need_reload()
         if res:
             import ui
-            answer = ui.Helper().ask_questionYesNo("File content changed",
+            answer = ui.helper.ask_questionYesNo("File content changed",
                  "The content of file %s has changed.\nDo you want to reload it?"%self.title)
             if answer:
                 #ctx = self.currentView.get_context()
@@ -113,7 +113,7 @@ class Document(utils.event.EventSource):
     def check_for_save(self):
         if self.model.edit_modified():
             import ui
-            return ui.Helper().ask_questionYesNo("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.title})
+            return ui.helper.ask_questionYesNo("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.title})
         return False
         
     def search(self, backward, text):

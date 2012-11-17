@@ -41,7 +41,7 @@ def activate(var, old):
     if var.get():
         global fileExplorerView
         fileExplorerView = FileExplorerView(ui.window)
-        ui.add_helper(fileExplorerView, 'left')
+        ui.helperManager.add_helper(fileExplorerView, "fileExplorer", 'left')
         configSection.iconTheme.register(on_iconTheme_changed)
         configSection.showIcon.register(on_iconTheme_changed)
     else:
