@@ -52,16 +52,16 @@ class HelperManager(object):
         helperContainer.add_helper(widget, name)                
                 
 
-def ask_questionYesNo(self, title, message):
+def ask_questionYesNo(title, message):
     import tkMessageBox
     return tkMessageBox.askyesno(title, message)
 
-def ask_filenameSave(self, *args, **kwords):
+def ask_filenameSave(*args, **kwords):
     import tkFileDialog
     response = tkFileDialog.asksaveasfilename(title="Save a file", *args, **kwords)
     return response
 
-def ask_filenameOpen(self, *args, **kwords):
+def ask_filenameOpen(*args, **kwords):
     import tkFileDialog
     response = tkFileDialog.askopenfilename(title="Open a file", *args, **kwords)
     return response
