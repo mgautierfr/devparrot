@@ -15,6 +15,30 @@ class Completion(object):
         template = "%s " if self.final else "%s"
         return template % escape_token(self.value.encode("utf8"))
 
+class CommandCompletion(Completion):
+    def __init__(self, *args, **kwords):
+        Completion.__init__(self,*args, **kwords)
+
+    def __str__(self):
+        return "%s "%self.value
+
+
+class DoubleStringCompletion(Completion):
+    def __init__(self, *args, **kwords):
+        Completion.__init__(self,*args, **kwords)
+
+    def __str__(self):
+        template = '"%s"' if self.final else '"%s'
+        return template % self.value.encode("utf8")
+
+
+class SimpleStringCompletion(Completion):
+    def __init__(self, *args, **kwords):
+        Completion.__init__(self,*args, **kwords)
+
+    def __str__(self):
+        template = "'%s'" if self.final else "'%s"
+        return template % self.value.encode("utf8")
 
 def getcommonstart(seq):
     if not seq:
@@ -80,9 +104,7 @@ class CompletionSystem(object):
     def complete(self, toInsert):
         startIndex = self.startIndex
         toInsert = str(toInsert)
-        self.textWidget.delete(startIndex, 'insert')
-        self.textWidget.insert(startIndex, toInsert)
-        self.textWidget.mark_set("insert", startIndex + " + %dc"%len(toInsert))
+        self.textWidget.replace(startIndex, 'insert', toInsert)
 
     def get_selected(self):
         try:
@@ -109,10 +131,12 @@ class CompletionSystem(object):
             return
         if event.keysym == 'BackSpace':
             self.textWidget.delete('insert - 1c')
+            self.textWidget.update_completion()
             return
         char = event.char.decode('utf8')
         if char and char in printables:
             self.textWidget.insert('insert', event.char)
+            self.textWidget.update_completion()
 
     def update_completion(self, startIndex, completions):
         self.startIndex = startIndex

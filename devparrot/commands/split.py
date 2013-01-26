@@ -2,14 +2,13 @@ from devparrot.core.command.baseCommand import Command
 from devparrot.core.command import constraints
 from devparrot.core import capi
 
+@Command(
+vertical = constraints.Boolean(default= lambda : False)
+)
+def split(vertical):
+    return capi.split(vertical)
 
-class split(Command):
-    Command.add_alias("vsplit", "split 1", 1)
-    vertical = constraints.Boolean(default= lambda : False)
-    def run(cls, vertical):
-        return capi.split(vertical)
-
-class unsplit(Command):
-    def run(cls):
-        return capi.unsplit()
+@Command()
+def unsplit():
+    return capi.unsplit()
 

@@ -20,8 +20,7 @@
 
 import utils.event
 
-from command.splitter import Splitter, Token
-from completion import Completion
+from completion import Completion, CommandCompletion
 
 alias = {}
 eventSystem = utils.event.EventSource()
@@ -78,100 +77,52 @@ class CommandLauncher:
     def __init__(self):
         self.history = History()
         
-    def tokenize(self, text, faultTolerent=False):
-        splitted = list(Splitter(text, faultTolerent))
-        if splitted:
-            commandName = splitted[0]
-
-        return (commandName, splitted[1:])
-        
     def get_command(self, commandName):
-        extraArgs = []
+        from devparrot.core import session
         if not commandName:
             return None
-        for prio in sorted(alias, reverse=True):
-            for aliasName, command in alias[prio]:
-                if aliasName == commandName:
-                    if isinstance(command, basestring):
-                        args = command.split(' ')
-                        commandName = args[0]
-                        for arg in args[1:]:
-                            token = Token(startIndex=len(commandName)+1, value=arg)
-                            extraArgs.append(token)
-                        break
-                    else:
-                        return (command, extraArgs)
-        return None
-    
-    def expand_tokens(self, command, rawTokens):
-        import command.grammar as grammarModule
-        rangeExpander = grammarModule.rangeExpander
-        for token in rawTokens:
-            token.value = rangeExpander.transformString(token.value)
-        tokenParser = command.get_tokenParser()
-        tokens = tokenParser.parse(rawTokens)
-        return tokens
+        return session.commands.get(commandName, None)
 
-    def expand_and_complete(self, command, rawTokens):
-        from command.tokenParser import MissingToken
-        tokenParser = command.get_tokenParser()
-        try:
-            completions = tokenParser.complete(rawTokens)
-            return completions
-        except MissingToken:
-            return (0, [])
-    
-    def launch_command(self, command, args):
-        eventSystem.event("%s-"%command.__name__)(args)
-        ret = command.run(*args)
-        eventSystem.event("%s+"%command.__name__)(args)
-        return ret
-    
-    def get_commandCompletions(self, commandName):
+    def get_tokenCompletions(self, tokenName):
+        from devparrot.core import session
         ret = []
-        for prio in sorted(alias, reverse=True):
-            for aliasName, command in alias[prio]:
-                if aliasName.startswith(commandName):
-                    token = Completion(value=aliasName, final=True)
-                    ret.append(token)
-        return (0, ret)
-    
-    def run_command(self, text):
-        from command.tokenParser import MissingToken
-        commandName, rawTokens = self.tokenize(text)
-        try:
-            command, extraArgs  = self.get_command(commandName.value)
-        except AttributeError:
-            return None
-        except TypeError:
-            return None
-        rawTokens = extraArgs + rawTokens
-        if not command.pre_check():
-            return False
-        try:
-            tokens = self.expand_tokens(command, rawTokens)
-        except MissingToken, e:
-            print "Input missing for argument %s" % e.constraint
-            return False
-        if tokens == False:
-            print "refused"
-            return False
-        ret = None
-
-        ret = self.launch_command(command, tokens)
-        self.history.push(text)
+        for command in session.commands:
+            if command.startswith(tokenName):
+                ret.append(CommandCompletion(value=command, final=True))
         return ret
-        
-    def get_completions(self, text):
-        commandName, rawTokens = self.tokenize(text, True)
-        if not rawTokens:
-            return self.get_commandCompletions(commandName.value if commandName else "")
-        command = self.get_command(commandName.value)
+
+    def get_commandCompletions(self, functionCall):
+        command = self.get_command(str(functionCall.name))
         if command is None:
             return (0, [])
-        (command, extraArgs) = command
-        rawTokens = extraArgs + rawTokens
-        if not command.pre_check():
+
+        try:
+            constraint = command.get_constraint(len(functionCall.values)-1)
+        except IndexError:
             return (0, [])
-        return self.expand_and_complete(command, rawTokens)
+        return constraint.complete_context(functionCall.values[-1])
+        
+    def get_completions(self, text):
+        from devparrot.core.command.parserGrammar import parse_input_text
+        context = parse_input_text(text)
+        if context is None:
+            return (None, [])
+
+        if context.get_type() == "Identifier":
+            return (context.index, self.get_tokenCompletions(context.name))
+        if context.get_type() == "New":
+            return (context.index, self.get_tokenCompletions(""))
+        if context.get_type() == 'CommandCall':
+            context = context.get_last_commandCall()
+            if context:
+                return self.get_commandCompletions(context)
+        return (None, [])
+
+    def run_command(self, text):
+        from devparrot.core import session
+        from devparrot.core.command.parserGrammar import rewrite_command
+        rewrited = rewrite_command(text)
+        if rewrited is not None:
+            exec(rewrited,dict(session.commands), {})
+            self.history.push(text)
 

@@ -25,6 +25,7 @@ _documentManager = documentManager.DocumentManager()
 _workspace = None
 _globalContainer = None
 config = None
+commands = {}
 
 def init(_config):
     global config
@@ -56,3 +57,8 @@ def get_globalContainer():
 
 def get_currentContainer():
     return _workspace.get_currentContainer()
+
+
+def add_command(name, command):
+    global commands
+    commands[name] = command

@@ -20,63 +20,59 @@
 
 import types
 import constraints
-import tokenParser
-import pyparsing
 from constraintInstance import ConstraintInstance
 
-class MetaCommand(type):
-    def __new__(cls, name, bases, dct):
-        #dct['accelerators'] = list()
-        for (key, value) in dct.items():
-            if isinstance(value, types.FunctionType):
-                cm = classmethod(value)
-                dct[key] = cm
-        return type.__new__(cls, name, bases, dct)
 
-    def __init__(cls, name, bases, dct):
-        super(MetaCommand, cls).__init__(name, bases, dct)
-        if name != "Command":
-            from devparrot.core import commandLauncher
-            commandLauncher.add_alias(name, cls, 0)
-        
+class CommandWrapper(object):
+    def __init__(self, **constraints):
+        self.constraints = constraints
 
-class Command:
-    __metaclass__ = MetaCommand
+    def _set_function(self, function):
+        self.function = function
 
-    @classmethod
-    def add_alias(cls, newName, oldName = None, prio=None):
-        from devparrot.core import commandLauncher
-        oldName = oldName or cls.__name__
-        if prio is None:
-            commandLauncher.add_alias(newName, oldName)
-        else:
-            commandLauncher.add_alias(newName, oldName, prio)
+    def _get_constraint(self, name):
+        return self.constraints.get(name, constraints.Default())
 
-    @classmethod
-    def pre_check(cls):
-        return True
+    def _get_all_constraints(self, func_code):
+        for name in func_code.co_varnames[:func_code.co_argcount]:
+            yield ConstraintInstance(self._get_constraint(name), name)
 
-    @classmethod
-    def get_tokenParser(cls):
-        return tokenParser.TokenParser(cls.get_allConstraints(), askUser=True)
+    def get_constraint(self, index):
+        return list(self._get_all_constraints(self.function.func_code))[index]
 
-    @classmethod
-    def get_argNumber(cls):
-        return cls.run.func_code.co_argcount-1
+    def __call__(self, *args, **kwords):
+        current_index = 0
+        call_kwords = {}
+        for constraint in self._get_all_constraints(self.function.func_code):
+            if constraint.name in kwords:
+                if not constraint.check_arg(kwords[constraint.name]):
+                    return
+                call_kwords[constraint.name] = kwords[constraint.name]
+            else:
+                try:
+                    if not constraint.check_arg(args[current_index]):
+                        return
+                    call_kwords[constraint.name] = args[current_index]
+                    current_index += 1
+                except IndexError:
+                    if constraint.has_default:
+                        call_kwords[constraint.name] = constraint.default()
+                    elif constraint.askUser:
+                        call_kwords[constraint.name] = constraint.ask_user()
+                    else:
+                        return
+#TODO reactive the event stuff
+#        eventSystem.event("%s-"%command.__name__)(args)
+        self.function(**call_kwords)
+#        eventSystem.event("%s+"%command.__name__)(args)
 
-    @classmethod
-    def get_argName(cls, index):
-        return cls.run.func_code.co_varnames[index+1]
 
-    @classmethod
-    def get_argNames(cls):
-        return cls.run.func_code.co_varnames[1:cls.run.func_code.co_argcount]
+class Command(object):
+    def __init__(self, **kwords):
+        self.wrapper = CommandWrapper(**kwords)
 
-    @classmethod
-    def get_constraint(cls, name):
-        return cls.__dict__.get(name, constraints.Default())
-
-    @classmethod
-    def get_allConstraints(cls):
-        for name in cls.run.func_code.co_varnames[1:cls.run.func_code.co_argcount]:
-            yield ConstraintInstance(cls.get_constraint(name), name)
+    def __call__(self, function):
+        self.wrapper._set_function(function)
+        from devparrot.core import session
+        session.add_command(function.__name__, self.wrapper)
+        return function

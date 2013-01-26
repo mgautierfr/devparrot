@@ -1,4 +1,4 @@
-from tokenParser import MissingToken, InvalidToken
+
 
 class ConstraintInstance(object):
     def __init__(self, constraint, name):
@@ -9,12 +9,7 @@ class ConstraintInstance(object):
         attr = getattr(self.constraint, name)
         if callable(attr):
             def f(*args, **kwords):
-                try:
-                    return attr(*args, **kwords)
-                except MissingToken:
-                    raise MissingToken(self)
-                except InvalidToken:
-                    raise InvalidToken(self)
+                return attr(*args, **kwords)
             return f
         return attr
 

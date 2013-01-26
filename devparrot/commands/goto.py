@@ -22,12 +22,13 @@ from devparrot.core.command.baseCommand import Command
 from devparrot.core.command import constraints
 from devparrot.core import capi
 
-class goto(Command):
-    index = constraints.Index()
-    def run(cls, index):
-        try:
-            capi.currentDocument.goto_index(index)
-        except Exception:
-            return False
-        return True
+@Command(
+index = constraints.Index()
+)
+def goto(index):
+    try:
+        capi.currentDocument.goto_index(index)
+    except Exception:
+        return False
+    return True
 

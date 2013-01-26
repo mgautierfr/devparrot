@@ -21,6 +21,9 @@
 import Tkinter
 from devparrot.core import session, completion
 
+from pyparsing import printables, punc8bit, alphas8bit
+validChars = set(printables+alphas8bit+punc8bit+" \t"+u'\u20ac')
+
 class ControlerEntry(Tkinter.Text):
     def __init__(self, parent):
         Tkinter.Text.__init__(self, parent, height=1)
@@ -36,23 +39,26 @@ class ControlerEntry(Tkinter.Text):
 
         self.bind('<Control-Return>', lambda e: "continue")
         
-        self.bind("<<Modified>>", self.on_textChanged)
-
         bindtags = list(self.bindtags())
         bindtags.insert(1,"Command")
         bindtags = " ".join(bindtags)
         self.bindtags(bindtags)
+
+        self.completionProtected = False
     
     def on_entry_event(self, event):
         from devparrot.core import session
         if event.keysym == 'Up':
             self.delete("1.0", "end")
-            self.insert("end", session.commandLauncher.controler.history.get_previous())
+            self.insert("end", session.commandLauncher.history.get_previous())
+            self.update_completion()
+            return
         if event.keysym == "Down":
-            next = session.commandLauncher.controler.history.get_next()
+            next = session.commandLauncher.history.get_next()
             if next:
                 self.delete("1.0", "end")
-                self.insert("end", session.commandLauncher.controler.history.get_next())
+                self.insert("end", session.commandLauncher.history.get_next())
+                self.update_completion()
             else:
                 self.completionSystem.start_completion()
             return
@@ -63,14 +69,13 @@ class ControlerEntry(Tkinter.Text):
         if event.keysym == 'Return':
             self.completionSystem.stop_completion()
             text = self.get("1.0", "end")
-            ret = session.commandLauncher.run_command(text[:-1])
-            if ret is None:
-                self.configure(background=session.config.get("color.notFoundColor"))
-            elif ret:
+            try:
+                ret = session.commandLauncher.run_command(text[:-1])
+            except Exception:
+                self.configure(background=session.config.get("color.errorColor"))
+            else:
                 self.configure(background=session.config.get("color.okColor"))
                 self.toClean = True
-            else:
-                self.configure(background=session.config.get("color.errorColor"))
             if session.get_currentDocument():
                 session.get_currentDocument().get_currentView().focus()
             return "break"
@@ -79,11 +84,27 @@ class ControlerEntry(Tkinter.Text):
             if session.get_currentDocument():
                 session.get_currentDocument().get_currentView().focus()
             return
+        char = event.char.decode('utf8')
+        if char in validChars:
+            self.insert( 'insert', char)
+            self.update_completion(True)
+            return "break"
 
-    def on_textChanged(self, *args):
-        startIndex, completions = session.commandLauncher.get_completions(self.get("1.0", "insert"))
+    def update_completion(self, autoCommon = False):
+        text = self.get('1.0', 'insert')
+        startIndex, completions = session.commandLauncher.get_completions(text)
+        if startIndex is None:
+            startIndex = len(text)
         self.completionSystem.update_completion("1.%d"%startIndex, completions)
-        self.edit_modified(False)
+        common = self.completionSystem.get_common()
+        if autoCommon and not text.endswith(common):
+            self.completionSystem.complete(common)
+            
+
+    def replace(self, startIndex, endIndex, text, *args):
+        self.tk.call((self._w, 'replace', startIndex, endIndex, text) + args)
+        self.mark_set("insert", startIndex +"+%dc"%len(text))
+        self.update_completion(True)
         
     def on_get_focus(self, event):
         if self.toClean:
