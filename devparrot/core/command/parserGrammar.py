@@ -268,7 +268,7 @@ def userCommand():
 
 def parse_input_text(text):
     if not text:
-        return New(0), ""
+        return New(index=0)
     try:
         ret, _ = run_parser(userCommand, text)
         return ret

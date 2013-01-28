@@ -47,6 +47,7 @@ class _Constraint:
             self.has_default = True
             self.default = default
         self.multiple = multiple
+        self.isVararg = False
 
     def check_arg(self, args):
         if self.multiple:
@@ -86,6 +87,8 @@ class _Constraint:
         return True, token
     
     def ask_user(self):
+        if self.multiple or self.isVararg:
+            return []
         return None
 
     def complete(self, token):
@@ -149,9 +152,11 @@ class File(_Constraint):
         if File.SAVE in self.mode:
             token = ui.helper.ask_filenameSave(**d)
         else:
-            d['multiple'] = self.multiple
+            d['multiple'] = self.multiple or self.isVararg
             token = ui.helper.ask_filenameOpen(**d)
-        return token if token else None
+        if token:
+            return token
+        return [] if (self.multiple or self.isVararg) else None
 
     def _complete(self, directory, filestart, prefix, completionClass):
         completions = []

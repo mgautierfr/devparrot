@@ -31,6 +31,9 @@ class CommandWrapper(object):
         from inspect import getargspec
         self.function = function
         self.argSpec = getargspec(function)
+        varargConstraint = self.constraints.get(self.argSpec.varargs, None)
+        if varargConstraint:
+            varargConstraint.isVararg = True
 
     def _get_constraint(self, name):
         return self.constraints.get(name, constraints.Default())
@@ -40,7 +43,12 @@ class CommandWrapper(object):
             yield ConstraintInstance(self._get_constraint(name), name)
 
     def get_constraint(self, index):
-        return list(self._get_all_constraints())[index]
+        try:
+            return list(self._get_all_constraints())[index]
+        except IndexError:
+            if self.argSpec.varargs:
+                return ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
+            raise
 
     def __call__(self, *args, **kwords):
         call_list = []
@@ -70,13 +78,21 @@ class CommandWrapper(object):
                         raise TypeError
 
         # bind left positional arguments
-        if self.argSpec.varargs:
+        if self.argSpec.varargs and self.argSpec.varargs in self.constraints:
             constraint = ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
-            for arg in args:
-                valid, newVal = constraint.check_arg(arg)
-                if not valid:
+            if not args:
+                if constraint.has_default:
+                    call_list.append(constraint.default())
+                elif constraint.askUser:
+                    call_list.extend(constraint.ask_user())
+                else:
                     raise TypeError
-                call_list.append(newVal)
+            else:
+                for arg in args:
+                    valid, newVal = constraint.check_arg(arg)
+                    if not valid:
+                        raise TypeError
+                    call_list.append(newVal)
         else:
             # this will make the call fail, but user will have some info
             call_list.extend(args)
