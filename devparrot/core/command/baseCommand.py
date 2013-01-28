@@ -28,42 +28,64 @@ class CommandWrapper(object):
         self.constraints = constraints
 
     def _set_function(self, function):
+        from inspect import getargspec
         self.function = function
+        self.argSpec = getargspec(function)
 
     def _get_constraint(self, name):
         return self.constraints.get(name, constraints.Default())
 
-    def _get_all_constraints(self, func_code):
-        for name in func_code.co_varnames[:func_code.co_argcount]:
+    def _get_all_constraints(self):
+        for name in  self.argSpec.args:
             yield ConstraintInstance(self._get_constraint(name), name)
 
     def get_constraint(self, index):
-        return list(self._get_all_constraints(self.function.func_code))[index]
+        return list(self._get_all_constraints())[index]
 
     def __call__(self, *args, **kwords):
-        current_index = 0
+        call_list = []
         call_kwords = {}
-        for constraint in self._get_all_constraints(self.function.func_code):
+        # bind positional constraints
+        for constraint in self._get_all_constraints():
             if constraint.name in kwords:
-                if not constraint.check_arg(kwords[constraint.name]):
-                    return
-                call_kwords[constraint.name] = kwords[constraint.name]
+                valid, newVal = constraint.check_arg(kwords[constraint.name])
+                if not valid:
+                    raise TypeError
+                call_list.append(newVal)
+                del kwords[constraint.name]
             else:
                 try:
-                    if not constraint.check_arg(args[current_index]):
-                        return
-                    call_kwords[constraint.name] = args[current_index]
-                    current_index += 1
+                    valid, newVal = constraint.check_arg(args[0])
+                    if not valid:
+                        raise TypeError
+                    call_list.append(newVal)
+                    args = args[1:]
                 except IndexError:
+                    # no positional argument
                     if constraint.has_default:
-                        call_kwords[constraint.name] = constraint.default()
+                        call_list.append(constraint.default())
                     elif constraint.askUser:
-                        call_kwords[constraint.name] = constraint.ask_user()
+                        call_list.append(constraint.ask_user())
                     else:
-                        return
+                        raise TypeError
+
+        # bind left positional arguments
+        if self.argSpec.varargs:
+            constraint = ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
+            for arg in args:
+                valid, newVal = constraint.check_arg(arg)
+                if not valid:
+                    raise TypeError
+                call_list.append(newVal)
+        else:
+            # this will make the call fail, but user will have some info
+            call_list.extend(args)
+
+        # bind left keyword arguments
+        call_kwords.update(kwords)
 #TODO reactive the event stuff
 #        eventSystem.event("%s-"%command.__name__)(args)
-        self.function(**call_kwords)
+        self.function(*call_list, **call_kwords)
 #        eventSystem.event("%s+"%command.__name__)(args)
 
 

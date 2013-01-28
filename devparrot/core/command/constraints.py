@@ -50,10 +50,11 @@ class _Constraint:
 
     def check_arg(self, args):
         if self.multiple:
-            for arg in args:
-                if not self.check(arg):
-                    return False
-            return True
+            valids, args = zip(*[self.check(arg) for arg in args])
+            valid = reduce(lambda x, y: x and y, valids)
+            if not valid:
+                return False, None
+            return True, args
         else:
             return self.check(args)
 
@@ -82,7 +83,7 @@ class _Constraint:
         return (context.index, self.complete(context))
 
     def check(self, token):
-        return True
+        return True, token
     
     def ask_user(self):
         return None
@@ -112,6 +113,9 @@ class Keyword(_Constraint):
 class Boolean(_Constraint):
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
+
+    def check(self, token):
+        return True, bool(token)
             
 class File(_Constraint):
     OPEN, SAVE, NEW = xrange(3)
@@ -126,11 +130,11 @@ class File(_Constraint):
 
     def check(self, _file):
         if os.path.exists(_file):
-            return True
+            return True, _file
         d = os.path.dirname(_file)
         if not os.path.exists(d):
-            return False
-        return (File.SAVE in self.mode or File.NEW in self.mode)
+            return False, None
+        return (File.SAVE in self.mode or File.NEW in self.mode), _file
 
     def ask_user(self):
         from devparrot.core import session, ui
@@ -205,7 +209,11 @@ class Integer(_Constraint):
         _Constraint.__init__(self, *args, **kwords)
 
     def check(self, arg):
-        return int(arg) == arg
+        try:
+            arg = int(arg)
+            return True, arg
+        except ValueError:
+            return False, None
 
 class OpenDocument(_Constraint):
     def __init__(self, *args, **kwords):
@@ -223,8 +231,8 @@ class ConfigEntry(_Constraint):
             try:
                 currentSection = currentSection[section]
             except KeyError:
-                return False
-        return True
+                return False, None
+        return True, currentSection
 
     def complete(self, token):
         from devparrot.core import session
@@ -253,7 +261,7 @@ class ConfigEntry(_Constraint):
         if len(sections) > 1:
             prefix = ".".join(sections[:-1]+[""])
 
-        completions.extend([StringCompletion("%s%s."%(prefix, section), False) for section in currentSection.sections if section.startswith(token)])
-        completions.extend([StringCompletion("%s%s"%(prefix, var), True) for var in currentSection.variables if var.startswith(token)])
+        completions.extend([Completion("%s%s."%(prefix, section), False) for section in currentSection.sections if section.startswith(token)])
+        completions.extend([Completion("%s%s"%(prefix, var), True) for var in currentSection.variables if var.startswith(token)])
         return completions
 
