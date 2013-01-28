@@ -3,9 +3,9 @@ from devparrot.core.command import constraints, binder
 from devparrot.core import capi
 
 @Command(
-    documents = constraints.OpenDocument(multiple=True, default=lambda:(capi.currentDocument,))
+    documents = constraints.OpenDocument(default=lambda:capi.currentDocument)
 )
-def close(documents):
+def close(*documents):
     for document in documents:
         capi.close_document(document)
     return True
