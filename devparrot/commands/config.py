@@ -7,5 +7,5 @@ from devparrot.core.command import constraints
 def set(configEntry, value):
     from devparrot.core import session
     from ast import literal_eval
-    configEntry.set(literal_eval(value))
+    configEntry.set(value)
     return True
