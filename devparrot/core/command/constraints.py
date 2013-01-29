@@ -93,7 +93,7 @@ class _Constraint:
 
     def complete(self, token):
         if token.get_type().endswith('String'):
-            return [type_to_completion[token.get_type()](token.values, False)]
+            return [type_to_completion[token.get_type()](token.values, token.closed)]
         if token.get_type() == 'Identifier':
             return [Completion(token.name, False)]
         return []

@@ -141,7 +141,6 @@ class DoubleString(String):
 class UnquotedString(String):
     opener, closer = '""'
     def __init__(self, **kw):
-        kw['closed'] = False
         super(UnquotedString, self).__init__(**kw)
 
     def pprint(self, ident):

@@ -112,7 +112,8 @@ def unquoted_string(nokeyword):
     if nokeyword:
         not_followed_by(partial(one_of, "="))
     st = ''.join([first] + rest)
-    return UnquotedString(index=idx, len=index()-idx, values=st)
+    closed = optional(whitespace1, None)
+    return UnquotedString(index=idx, len=index()-idx, values=st, closed=(closed is not None))
     
 @tri
 def string_literal():
