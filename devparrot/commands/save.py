@@ -15,4 +15,11 @@ fileName = constraints.File(mode=constraints.File.SAVE, default=lambda:_get_defa
 def save(fileName):
     return capi.save_document(capi.currentDocument, fileName)
 
+@Command(
+fileName = constraints.File(mode=constraints.File.SAVE)
+)
+def saveas(fileName):
+    return capi.save_document(capi.currentDocument, fileName)
+
 binder["<Control-s>"] = "save\n"
+binder["<Control-Shift-S>"] = "saveas\n"
