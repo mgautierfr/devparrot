@@ -70,23 +70,31 @@ class CommandWrapper(object):
                     args = args[1:]
                 except IndexError:
                     # no positional argument
-                    if constraint.has_default:
+                    try:
                         call_list.append(constraint.default())
-                    elif constraint.askUser:
-                        call_list.append(constraint.ask_user())
-                    else:
-                        raise TypeError
+                    except constraints.noDefault:
+                        if constraint.askUser:
+                            try:
+                                call_list.append(constraint.ask_user())
+                            except constraints.userCancel:
+                                return
+                        else:
+                            raise TypeError
 
         # bind left positional arguments
         if self.argSpec.varargs and self.argSpec.varargs in self.constraints:
             constraint = ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
             if not args:
-                if constraint.has_default:
+                try:
                     call_list.append(constraint.default())
-                elif constraint.askUser:
-                    call_list.extend(constraint.ask_user())
-                else:
-                    raise TypeError
+                except constraints.noDefault:
+                    if constraint.askUser:
+                        try:
+                            call_list.extend(constraint.ask_user())
+                        except constraints.userCancel:
+                            return
+                    else:
+                        raise TypeError
             else:
                 for arg in args:
                     valid, newVal = constraint.check_arg(arg)

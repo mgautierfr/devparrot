@@ -36,15 +36,16 @@ type_to_completion = {
 class noDefault(Exception):
     pass
 
+class userCancel(Exception):
+    pass
+
 class _Constraint:
     def __init__(self, optional=False, multiple=False, default=None, askUser=False):
         self.optional = optional
         self.askUser = askUser
         if default is None:
-            self.has_default = False
             self.default = self._no_default
         else:
-            self.has_default = True
             self.default = default
         self.multiple = multiple
         self.isVararg = False
@@ -87,9 +88,7 @@ class _Constraint:
         return True, token
     
     def ask_user(self):
-        if self.multiple or self.isVararg:
-            return []
-        return None
+        raise userCancel()
 
     def complete(self, token):
         if token.get_type().endswith('String'):
@@ -154,9 +153,9 @@ class File(_Constraint):
         else:
             d['multiple'] = self.multiple or self.isVararg
             token = ui.helper.ask_filenameOpen(**d)
-        if token:
-            return token
-        return [] if (self.multiple or self.isVararg) else None
+        if not token:
+            raise userCancel()
+        return token
 
     def _complete(self, directory, filestart, prefix, completionClass):
         completions = []
