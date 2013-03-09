@@ -20,8 +20,6 @@
 
 import utils.event
 
-from completion import Completion, CommandCompletion
-
 alias = {}
 eventSystem = utils.event.EventSource()
 
@@ -75,48 +73,7 @@ class History(object):
 
 class CommandLauncher:
     def __init__(self):
-        self.history = History()
-        
-    def get_command(self, commandName):
-        from devparrot.core import session
-        if not commandName:
-            return None
-        return session.commands.get(commandName, None)
-
-    def get_tokenCompletions(self, tokenName):
-        from devparrot.core import session
-        ret = []
-        for command in session.commands:
-            if command.startswith(tokenName):
-                ret.append(CommandCompletion(value=command, final=True))
-        return ret
-
-    def get_commandCompletions(self, functionCall):
-        command = self.get_command(str(functionCall.name))
-        if command is None:
-            return (0, [])
-
-        try:
-            constraint = command.get_constraint(len(functionCall.values)-1)
-        except IndexError:
-            return (0, [])
-        return constraint.complete_context(functionCall.values[-1])
-        
-    def get_completions(self, text):
-        from devparrot.core.command.parserGrammar import parse_input_text
-        context = parse_input_text(text)
-        if context is None:
-            return (None, [])
-
-        if context.get_type() == "Identifier":
-            return (context.index, self.get_tokenCompletions(context.name))
-        if context.get_type() == "New":
-            return (context.index, self.get_tokenCompletions(""))
-        if context.get_type() == 'CommandCall':
-            context = context.get_last_commandCall()
-            if context:
-                return self.get_commandCompletions(context)
-        return (None, [])
+        self.history = History()    
 
     def run_command(self, text):
         from devparrot.core import session

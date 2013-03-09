@@ -21,7 +21,8 @@
 
 import os
 
-from devparrot.core.completion import Completion, DoubleStringCompletion, SimpleStringCompletion
+from devparrot.core.completion import Completion
+from devparrot.core.command.commandCompleter import DoubleStringCompletion, SimpleStringCompletion
 from devparrot.core.command.tokens import New
 
 
@@ -29,7 +30,7 @@ type_to_completion = {
     'DoubleString'   : DoubleStringCompletion,
     'SimpleString'   : SimpleStringCompletion,
     'UnquotedString' : Completion,
-    'Identifier'    : Completion,
+    'Identifier'     : Completion,
     'New'            : Completion
 }
 
