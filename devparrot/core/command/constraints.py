@@ -133,11 +133,11 @@ class File(_Constraint):
 
     def check(self, _file):
         if os.path.exists(_file):
-            return True, _file
+            return True, os.path.abspath(_file)
         d = os.path.dirname(_file)
         if not os.path.exists(d):
             return False, None
-        return (File.SAVE in self.mode or File.NEW in self.mode), _file
+        return (File.SAVE in self.mode or File.NEW in self.mode), os.path.abspath(_file)
 
     def ask_user(self):
         from devparrot.core import session, ui
