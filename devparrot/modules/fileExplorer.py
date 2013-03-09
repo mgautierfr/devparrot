@@ -135,7 +135,7 @@ class FileExplorerView(ttk.Treeview):
                 self.currentPath = fullPath
                 self.filltree()
             else:
-                session.commandLauncher.run_command('open(["%s"])'%fullPath)
+                session.commandLauncher.run_command('open("%s")'%fullPath)
 
     def insert_child(self, iid, text, image):
         args = {'iid':iid, 'text':text}
