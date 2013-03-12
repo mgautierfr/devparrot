@@ -39,6 +39,12 @@ def comma_sep():
     return ","
 
 @tri
+def pipe_sep():
+    whitespace()
+    string('|')
+    return '|'
+
+@tri
 def identifier_char1():
     def test(l):
         if not l:
@@ -51,7 +57,7 @@ def identifier_char():
     def test(l):
         if not l:
             return False
-        return l.isalpha() or l.isdigit() or l in "_."
+        return l.isalpha() or l.isdigit() or l in "_.|"
     return satisfies(test)
 
 @tri
@@ -89,7 +95,7 @@ def string_char(quote):
 
 @tri
 def unquoted_string_char1():
-    char = not_one_of(" ,()[]{}")
+    char = not_one_of(" ,()[]{}|")
     if char == '\\':
         char = optional(any_token, '\\')
     return char
@@ -97,9 +103,9 @@ def unquoted_string_char1():
 @tri
 def unquoted_string_char(nokeyword):
     if nokeyword:
-        char = not_one_of(" ()[]{}=")
+        char = not_one_of(" ()[]{}|=")
     else:
-        char = not_one_of(" ()[]{}")
+        char = not_one_of(" ()[]{}|")
     if char == '\\':
         char = optional(any_token, '\\')
     return char
@@ -146,7 +152,7 @@ def identifier():
 @tri
 def sep_parameter_list():
     whitespace()
-    l = sep( partial(parameter, True), comma_sep )
+    l = sep( parameter, comma_sep )
     def inner():
         comma_sep()
         return [New(index=index())]
@@ -172,99 +178,77 @@ def keywordparameter():
     whitespace()
     special("=")
     whitespace()
-    value = optional( partial (choice, partial(parameter, True), partial( unquoted_string, False) ), "")
+    value = optional( partial (choice, parameter, partial( unquoted_string, False) ), "")
     return KeywordArg(index=idx, len=index()-idx, name=name, value=value)
 
 @tri
-def argument_sep(simple):
-    if simple:
-        return whitespace1()
-    else:
-        return comma_sep()
+def argument_sep():
+    return whitespace1()
 
 @tri
-def parameter(simple):
-    if simple:
-        return choice(fullCommandCall, identifier, number, list_, string_literal)
-    else:   
-        return choice(commandCall, identifier, number, list_, string_literal)
+def parameter():
+    return choice(identifier, number, list_, string_literal)
 
 @tri
-def keywordparameter_list(simple):
+def keywordparameter_list():
     whitespace()
-    l = sep( keywordparameter, partial( argument_sep, simple) )
+    l = sep( keywordparameter, argument_sep )
     return l
 
 @tri
-def keywordparameter_list1(simple):
-    partial (argument_sep, simple)()
-    l = partial(keywordparameter_list, simple)()
+def keywordparameter_list1():
+    argument_sep()
+    l = keywordparameter_list()
     return l
 
 @tri
-def argument_list_nokw(simple):
+def argument_list_nokw():
     whitespace()
-    l1 = sep1( partial(parameter, simple), partial( argument_sep, simple) )
-    sep = optional(partial( argument_sep, simple), None)
+    l1 = sep1( parameter, argument_sep )
+    sep = optional(argument_sep, None)
     if sep is None:
         fail()
     not_followed_by(keywordparameter)
     return l1 + [New(index=index())]
 
 @tri
-def argument_list1(simple):
+def argument_list1():
     whitespace()
-    l1 = sep1( partial(parameter, simple), partial( argument_sep, simple) )
-    l2 = optional( partial(keywordparameter_list1, simple) , [])
+    l1 = sep1( parameter, argument_sep )
+    l2 = optional( keywordparameter_list1, [])
     return l1+l2
 
 @tri
-def argument_list(simple):
-    return optional( partial( choice, partial(argument_list_nokw, simple),
-                                      partial(argument_list1, simple),
-                                      partial(keywordparameter_list, simple)), [])
+def argument_list():
+    return optional( partial( choice, argument_list_nokw,
+                                      argument_list1,
+                                      keywordparameter_list), [])
 
 @tri
-def identifier_to_commandCall(simple, identifier):
-    if simple:
-        wp = choice(whitespace1, eof)
-        if not wp:
-            return identifier
-    else:
-        whitespace()
-        special('(')
+def identifier_to_commandCall(identifier):
+    wp = choice(whitespace1, eof)
+    if not wp:
+        return identifier
 
-    parameter = partial(argument_list, simple)()
+    parameter = argument_list()
 
-    closed = optspecial(')')
-    if not parameter and not closed:
+    if not parameter:
         parameter = [New(index=index())]
-    return CommandCall(index=identifier.index, len=index()-identifier.index, name=identifier.name, values=parameter, closed=closed)
-
-identifier_to_fullCommandCall = partial(identifier_to_commandCall, False)
-identifier_to_simplifiedCommandCall = partial(identifier_to_commandCall, True)
+    return CommandCall(index=identifier.index, len=index()-identifier.index, name=identifier.name, values=parameter, closed=True)
 
 @tri
 def commandCall():
-    return choice(fullCommandCall, simpleCommandCall)
-
-@tri
-def fullCommandCall():
     whitespace()
     v = identifier()
-    return identifier_to_fullCommandCall(v)
-
-@tri
-def simpleCommandCall():
-    whitespace()
-    v = identifier()
-    return identifier_to_simplifiedCommandCall(v)
+    return identifier_to_commandCall(v)
 
 @tri
 def userCommand():
-    c = commandCall()
+    c = sep1( commandCall, pipe_sep )
+    
+    pipe = Pipe(index=c[0].index, len=index()-c[0].index, values=c)
     eof()
-    return c
+    return pipe
 
 
 def parse_input_text(text):
@@ -282,5 +266,10 @@ def rewrite_command(text):
     if not token:
         return None
     if token.get_type() == 'Identifier':
-        token = CommandCall(index=token.index, len=len(text), name=token.name, values=[New(index=len(text))], closed=False)
+        token = CommandCall(index=token.index, len=len(text), name=token.name, values=[New(index=len(text))], closed=True)
+    if token.get_type() == 'Pipe':
+        last = token.values[-1]
+        if last.get_type() == 'Identifier':
+            last = CommandCall(index=last.index, len=len(text), name=last.name, values=[New(index=len(text))], closed=True)
+            token.values[-1] = last
     return token.rewrited()

@@ -22,14 +22,58 @@ import types
 import constraints
 from constraintInstance import ConstraintInstance
 
+def DefaultStreamEater(stream):
+    try:
+        for _ in stream:
+            print "o"
+            pass
+    except TypeError:
+        pass
+        
+
+class Stream(object):
+    def __init__(self, stream):
+        print "stream init"
+        self.stream = stream
+
+    def __iter__(self):
+        print "__iter__"
+        return self
+
+    def next(self):
+        print "stream", self.stream
+        if not self.stream:
+            raise StopIteration
+        return self.stream.next()
+
+    def __or__(self, streamEater):
+        return streamEater(self)
+
+class PseudoStream(Stream):
+    def __init__(self):
+        Stream.__init__(self, None)
+
+class StreamEater(object):
+    def __init__(self, function, streamName, args, kwords):
+        self.function = function
+        self.streamName = streamName
+        self.args = args
+        self.kwords = kwords
+
+    def __call__(self, stream):
+        if self.streamName:
+            self.kwords[self.streamName] = stream
+        print "running", self.function, self.args, self.kwords
+        return Stream(self.function(*self.args, **self.kwords))
 
 class CommandWrapper(object):
-    def __init__(self, **constraints):
+    def __init__(self, constraints, streamName=None):
         self.constraints = constraints
+        self.streamName = streamName
 
     def _set_function(self, function):
         from inspect import getargspec
-        self.function = function
+        self.functionToCall = function
         self.argSpec = getargspec(function)
         varargConstraint = self.constraints.get(self.argSpec.varargs, None)
         if varargConstraint:
@@ -40,7 +84,8 @@ class CommandWrapper(object):
 
     def _get_all_constraints(self):
         for name in  self.argSpec.args:
-            yield ConstraintInstance(self._get_constraint(name), name)
+            if name != self.streamName:
+                yield ConstraintInstance(self._get_constraint(name), name)
 
     def get_constraint(self, index):
         try:
@@ -59,23 +104,23 @@ class CommandWrapper(object):
                 valid, newVal = constraint.check_arg(kwords[constraint.name])
                 if not valid:
                     raise TypeError
-                call_list.append(newVal)
+                call_kwords[constraint.name] = newVal
                 del kwords[constraint.name]
             else:
                 try:
                     valid, newVal = constraint.check_arg(args[0])
                     if not valid:
                         raise TypeError
-                    call_list.append(newVal)
+                    call_kwords[constraint.name] = newVal
                     args = args[1:]
                 except IndexError:
                     # no positional argument
                     try:
-                        call_list.append(constraint.default())
+                        call_kwords[constraint.name] = constraint.default()
                     except constraints.noDefault:
                         if constraint.askUser:
                             try:
-                                call_list.append(constraint.ask_user())
+                                call_kwords[constraint.name] = constraint.ask_user()
                             except constraints.userCancel:
                                 return
                         else:
@@ -109,16 +154,23 @@ class CommandWrapper(object):
         call_kwords.update(kwords)
 #TODO reactive the event stuff
 #        eventSystem.event("%s-"%command.__name__)(args)
-        self.function(*call_list, **call_kwords)
+        return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords)
 #        eventSystem.event("%s+"%command.__name__)(args)
 
 
 class Command(object):
     def __init__(self, **kwords):
-        self.wrapper = CommandWrapper(**kwords)
+        streamName = None
+        for name, constraint in kwords.items():
+            if isinstance(constraint, constraints.Stream):
+                if streamName is None:
+                    streamName = name
+                else:
+                    raise Exception("Function can have only on stream")
+        self.wrapper = CommandWrapper(kwords, streamName)
 
     def __call__(self, function):
         self.wrapper._set_function(function)
         from devparrot.core import session
         session.add_command(function.__name__, self.wrapper)
-        return function
+        return self.wrapper

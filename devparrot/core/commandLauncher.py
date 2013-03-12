@@ -78,8 +78,10 @@ class CommandLauncher:
     def run_command(self, text):
         from devparrot.core import session
         from devparrot.core.command.parserGrammar import rewrite_command
+        from devparrot.core.command.baseCommand import PseudoStream, DefaultStreamEater
         rewrited = rewrite_command(text)
         if rewrited is not None:
-            exec(rewrited,dict(session.commands), {})
+            command = "defaultStreamEater(pseudoStream | %s)"%rewrited
+            exec(command,dict(session.commands), {'pseudoStream':PseudoStream(), 'defaultStreamEater':DefaultStreamEater})
             self.history.push(text)
 

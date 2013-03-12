@@ -98,6 +98,10 @@ class _Constraint:
             return [Completion(token.name, False)]
         return []
 
+class Stream(object):
+    pass
+    
+
 class Default(_Constraint):
     def __init__(self, optional=False, multiple=False, default=None):
         _Constraint.__init__(self, optional, multiple, default)

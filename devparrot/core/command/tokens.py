@@ -104,6 +104,32 @@ class CommandCall(Section, Identifier):
             return self
         return ret
 
+class Pipe(Token):
+    def __init__(self, **kw):
+        super(Pipe, self).__init__(**kw)
+        self.values = kw['values']
+
+    def pprint(self, ident):
+        super(Section, self).pprint(ident)
+        print ident, " - values:"
+        if isinstance(self.values, list):
+            for v in self.values:
+                v.pprint(ident+"    ")
+        else:
+            print ident+"    ", self.values
+
+    def __str__(self):
+        text = " | ".join((str(v) for v in self.values))
+        return text
+
+    def rewrited(self):
+        text = " | ".join((v.rewrited() for v in self.values))
+        return text
+
+    def get_last_commandCall(self):
+        if not self.values:
+            return None
+        return self.values[-1].get_last_commandCall()
 
 class String(Section):
     def __init__(self, **kw):
