@@ -9,9 +9,6 @@ class Token(object):
     def pprint(self, ident):
         print ident, "%s : %s(%s)"%(self.__class__.__name__, self.index, self.len)
 
-    def get_last_commandCall(self):
-        return None
-
 class Identifier(Token):
     def __init__(self, **kw):
         super(Identifier, self).__init__(**kw)
@@ -73,11 +70,6 @@ class Section(Token):
         text = ", ".join((v.rewrited() for v in self.values))
         return self.rewrited_enclose(text)
 
-    def get_last_commandCall(self):
-        if self.closed or not self.values:
-            return None
-        return self.values[-1].get_last_commandCall()
-
 class CommandCall(Section, Identifier):
     opener, closer = "()"
     def __init__(self, **kw):
@@ -98,19 +90,13 @@ class CommandCall(Section, Identifier):
     def pprint(self, ident):
         super(CommandCall, self).pprint(ident)
 
-    def get_last_commandCall(self):
-        ret = Section.get_last_commandCall(self)
-        if not ret and not self.closed:
-            return self
-        return ret
-
 class Pipe(Token):
     def __init__(self, **kw):
         super(Pipe, self).__init__(**kw)
         self.values = kw['values']
 
     def pprint(self, ident):
-        super(Section, self).pprint(ident)
+        super(Pipe, self).pprint(ident)
         print ident, " - values:"
         if isinstance(self.values, list):
             for v in self.values:
@@ -126,11 +112,6 @@ class Pipe(Token):
         text = " | ".join((v.rewrited() for v in self.values))
         return text
 
-    def get_last_commandCall(self):
-        if not self.values:
-            return None
-        return self.values[-1].get_last_commandCall()
-
 class String(Section):
     def __init__(self, **kw):
         super(String, self).__init__(**kw)
@@ -143,9 +124,6 @@ class String(Section):
 
     def pprint(self, ident):
         super(String, self).pprint(ident)
-
-    def get_last_commandCall(self):
-        return None
 
 class SimpleString(String):
     opener, closer = "''"

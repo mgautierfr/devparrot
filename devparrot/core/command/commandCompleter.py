@@ -72,18 +72,19 @@ def get_commandCompletions(functionCall):
     
 def get_completions(text):
     from devparrot.core.command.parserGrammar import parse_input_text
-    context = parse_input_text(text)
-    if context is None:
+    pipe = parse_input_text(text)
+    if pipe is None:
         return (None, [])
 
-    if context.get_type() == "Identifier":
-        return (context.index, get_tokenCompletions(context.name))
-    if context.get_type() == "New":
-        return (context.index, get_tokenCompletions(""))
-    if context.get_type() == 'CommandCall':
-        context = context.get_last_commandCall()
-        if context:
-            return get_commandCompletions(context)
+    if pipe.get_type() == "New":
+        return (pipe.index, get_tokenCompletions(""))
+
+    last = pipe.values[-1]
+    if last.get_type() == "Identifier":
+        return (last.index, get_tokenCompletions(last.name))
+    
+    if last.get_type() == 'CommandCall':
+        return get_commandCompletions(last)
     return (None, [])
 
 class ControlerEntryCompletion(CompletionSystem):

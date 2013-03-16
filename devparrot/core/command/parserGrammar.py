@@ -33,12 +33,6 @@ def index():
     return picoparse.local_ps.value.index
 
 @tri
-def comma_sep():
-    whitespace()
-    string(",")
-    return ","
-
-@tri
 def pipe_sep():
     whitespace()
     string('|')
@@ -57,7 +51,7 @@ def identifier_char():
     def test(l):
         if not l:
             return False
-        return l.isalpha() or l.isdigit() or l in "_.|"
+        return l.isalpha() or l.isdigit() or l in "_."
     return satisfies(test)
 
 @tri
@@ -148,27 +142,15 @@ def identifier():
     idt = identifier1()
     not_followed_by(partial(one_of, "/\\="))
     return idt
-
-@tri
-def sep_parameter_list():
-    whitespace()
-    l = sep( parameter, comma_sep )
-    def inner():
-        comma_sep()
-        return [New(index=index())]
-    return l + optional(inner, [])
     
 @tri
 def list_():
     whitespace()
     idx = index()
-    special('[')
-    l = sep_parameter_list()
-    whitespace()
-    closed=optspecial(']')
-    if not l and not closed:
-        l = [New(index=index())]
-    return List(index=idx, len=index()-idx, values=l, closed=closed )
+    special('(')
+    st = ''.join(many(partial(string_char, ')')))
+    closed=optspecial(')')
+    return List(index=idx, len=index()-idx, values=st, closed=closed )
     
 @tri
 def keywordparameter():
@@ -225,22 +207,18 @@ def argument_list():
                                       keywordparameter_list), [])
 
 @tri
-def identifier_to_commandCall(identifier):
+def commandCall():
+    whitespace()
+    ident = identifier()
     wp = choice(whitespace1, eof)
     if not wp:
-        return identifier
+        return ident
 
     parameter = argument_list()
 
     if not parameter:
         parameter = [New(index=index())]
-    return CommandCall(index=identifier.index, len=index()-identifier.index, name=identifier.name, values=parameter, closed=True)
-
-@tri
-def commandCall():
-    whitespace()
-    v = identifier()
-    return identifier_to_commandCall(v)
+    return CommandCall(index=ident.index, len=index()-ident.index, name=ident.name, values=parameter, closed=True)
 
 @tri
 def userCommand():
@@ -265,11 +243,8 @@ def rewrite_command(text):
     token = parse_input_text(text)
     if not token:
         return None
-    if token.get_type() == 'Identifier':
-        token = CommandCall(index=token.index, len=len(text), name=token.name, values=[New(index=len(text))], closed=True)
-    if token.get_type() == 'Pipe':
-        last = token.values[-1]
-        if last.get_type() == 'Identifier':
-            last = CommandCall(index=last.index, len=len(text), name=last.name, values=[New(index=len(text))], closed=True)
-            token.values[-1] = last
+    last = token.values[-1]
+    if last.get_type() == 'Identifier':
+        last = CommandCall(index=last.index, len=len(text), name=last.name, values=[New(index=len(text))], closed=True)
+        token.values[-1] = last
     return token.rewrited()
