@@ -55,10 +55,6 @@ def identifier_char():
     return satisfies(test)
 
 @tri
-def digit():
-    return satisfies(lambda l: l and l.isdigit())
-
-@tri
 def optspecial(name):
     whitespace()
     ret = optional(partial(string,name), None)
@@ -68,17 +64,6 @@ def optspecial(name):
 def special(name):
     whitespace()
     return string(name)
-
-@tri
-def number():
-    whitespace()
-    idx = index()
-    lead = ''.join(many1(digit))
-    if optional(partial(one_of, '.'), None):
-        trail = ''.join(many1(digit))
-        return Number(index=idx, len=index()-idx, value=float(lead + '.' + trail))
-    else:
-        return Number(index=idx, len=index()-idx, value=int(lead))
 
 @tri
 def string_char(quote):
@@ -169,7 +154,7 @@ def argument_sep():
 
 @tri
 def parameter():
-    return choice(identifier, number, list_, string_literal)
+    return choice(list_, string_literal)
 
 @tri
 def keywordparameter_list():
