@@ -12,7 +12,7 @@ def search(searchText, backward):
     global lastSearch
     lastSearch = searchText
     if searchText:
-        return capi.currentDocument.search(backward, searchText)
+        capi.currentDocument.search(backward, searchText)
 
 binder["<F3>"] = "search\n"
 binder["<Alt-F3>"] = "search(backward=True)\n"

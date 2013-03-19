@@ -8,13 +8,10 @@ from devparrot.core import capi
 def close(*documents):
     for document in documents:
         capi.close_document(document)
-    return True
 
 @Command()
 def closeall():
-    ret = True
     while len(capi.documents):
-        ret = ret and capi.close_document(capi.get_nth_file(0))
-    return ret
+        capi.close_document(capi.get_nth_file(0))
 
 binder["<Control-w>"] = "close\n"

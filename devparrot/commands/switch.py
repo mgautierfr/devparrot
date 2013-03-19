@@ -7,5 +7,4 @@ document = constraints.OpenDocument()
 )
 def switch(document):
     capi.currentDocument = document
-    return True
 

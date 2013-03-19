@@ -24,23 +24,23 @@ from devparrot.core import capi
 
 @Command()
 def cut():
-    return capi.currentDocument.get_currentView().cut_clipboard()
+    capi.currentDocument.get_currentView().cut_clipboard()
 
 @Command()
 def copy():
-    return capi.currentDocument.get_currentView().copy_clipboard()
+    capi.currentDocument.get_currentView().copy_clipboard()
 
 @Command()
 def paste():
-    return capi.currentDocument.get_currentView().paste_clipboard()
+    capi.currentDocument.get_currentView().paste_clipboard()
 
 @Command()
 def undo():
-    return capi.currentDocument.get_model().undo()
+    capi.currentDocument.get_model().undo()
 
 @Command()
 def redo():
-    return capi.currentDocument.get_model().redo()
+    capi.currentDocument.get_model().redo()
 
 binder["<<Cut>>"] = "cut\n"
 binder["<<Copy>>"] = "copy\n"

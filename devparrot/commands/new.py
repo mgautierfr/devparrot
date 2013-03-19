@@ -9,6 +9,5 @@ def new():
     document = Document(NewDocSource())
     capi.add_file(document)
     capi.currentDocument = document
-    return True
 
 binder["<Control-n>"] = "new\n"

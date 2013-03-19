@@ -33,7 +33,6 @@ def open_a_file(fileToOpen):
     capi.currentDocument = doc
     if lineToGo:
         doc.goto_index("%s.0"%lineToGo-1)
-    return True
 
 
 binder["<Control-o>"] = "open\n"

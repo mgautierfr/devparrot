@@ -26,9 +26,5 @@ from devparrot.core import capi
 index = constraints.Index()
 )
 def goto(index):
-    try:
-        capi.currentDocument.goto_index(index)
-    except Exception:
-        return False
-    return True
+    capi.currentDocument.goto_index(index)
 

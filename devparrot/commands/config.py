@@ -8,4 +8,3 @@ def set(configEntry, value):
     from devparrot.core import session
     from ast import literal_eval
     configEntry.set(value)
-    return True

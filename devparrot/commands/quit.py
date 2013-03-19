@@ -5,4 +5,4 @@ from devparrot.core import capi
 def quit():
     while len(capi.documents):
         capi.close_document(capi.get_nth_file(0))
-    return capi.quit()
+    capi.quit()
