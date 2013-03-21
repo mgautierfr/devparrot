@@ -30,11 +30,11 @@ def section(startIndex, endIndex, content):
 
     def gen():
         if startIndex.line == endIndex.line:
-            yield model.get(startIndex, endIndex)
+            yield model.get(str(startIndex), str(endIndex))
         else:
-            yield model.get(startIndex, "%s lineend"%str(startIndex))
+            yield model.get(str(startIndex), "%s lineend"%str(startIndex))
             for i in range(startIndex.line+1, endIndex.line):
                 yield model.get("%d.0"%i, "%d.0 lineend"%i)
-            yield model.get("%s linestart"%str(endIndex), endIndex)
+            yield model.get("%s linestart"%str(endIndex), str(endIndex))
 
     return gen()
