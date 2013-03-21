@@ -149,30 +149,26 @@ def keywordparameter():
     return KeywordArg(index=idx, len=index()-idx, name=name, value=value)
 
 @tri
-def argument_sep():
-    return whitespace1()
-
-@tri
 def parameter():
     return choice(list_, string_literal)
 
 @tri
 def keywordparameter_list():
     whitespace()
-    l = sep( keywordparameter, argument_sep )
+    l = sep( keywordparameter, whitespace )
     return l
 
 @tri
 def keywordparameter_list1():
-    argument_sep()
+    whitespace()
     l = keywordparameter_list()
     return l
 
 @tri
 def argument_list_nokw():
     whitespace()
-    l1 = sep1( parameter, argument_sep )
-    sep = optional(argument_sep, None)
+    l1 = sep1( parameter, whitespace )
+    sep = optional(whitespace1, None)
     if sep is None:
         fail()
     not_followed_by(keywordparameter)
@@ -181,7 +177,7 @@ def argument_list_nokw():
 @tri
 def argument_list1():
     whitespace()
-    l1 = sep1( parameter, argument_sep )
+    l1 = sep1( parameter, whitespace )
     l2 = optional( keywordparameter_list1, [])
     return l1+l2
 
