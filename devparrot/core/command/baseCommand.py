@@ -54,17 +54,19 @@ class PseudoStream(Stream):
         Stream.__init__(self, None)
 
 class StreamEater(object):
-    def __init__(self, function, streamName, args, kwords):
+    def __init__(self, function, streamName, args, kwords, argsorder):
         self.function = function
         self.streamName = streamName
         self.args = args
         self.kwords = kwords
+        self.argsorder = argsorder
 
     def __call__(self, stream):
         if self.streamName:
             self.kwords[self.streamName] = stream
-        print "running", self.function, self.args, self.kwords
-        return Stream(self.function(*self.args, **self.kwords))
+        call_list = [self.kwords[name] for name in self.argsorder]
+        call_list.extend(self.args)
+        return Stream(self.function(*call_list))
 
 class CommandWrapper(object):
     def __init__(self, constraints, streamName=None):
@@ -154,7 +156,7 @@ class CommandWrapper(object):
         call_kwords.update(kwords)
 #TODO reactive the event stuff
 #        eventSystem.event("%s-"%command.__name__)(args)
-        return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords)
+        return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords, self.argSpec.args)
 #        eventSystem.event("%s+"%command.__name__)(args)
 
 
