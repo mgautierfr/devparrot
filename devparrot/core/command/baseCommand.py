@@ -25,7 +25,6 @@ from constraintInstance import ConstraintInstance
 def DefaultStreamEater(stream):
     try:
         for _ in stream:
-            print "o"
             pass
     except TypeError:
         pass
@@ -33,15 +32,12 @@ def DefaultStreamEater(stream):
 
 class Stream(object):
     def __init__(self, stream):
-        print "stream init"
         self.stream = stream
 
     def __iter__(self):
-        print "__iter__"
         return self
 
     def next(self):
-        print "stream", self.stream
         if not self.stream:
             raise StopIteration
         return self.stream.next()
