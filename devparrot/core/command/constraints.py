@@ -136,12 +136,13 @@ class File(_Constraint):
         self.mode = mode
 
     def check(self, _file):
+        _file = os.path.abspath(_file)
         if os.path.exists(_file):
-            return True, os.path.abspath(_file)
+            return True, _file
         d = os.path.dirname(_file)
         if not os.path.exists(d):
             return False, None
-        return (File.SAVE in self.mode or File.NEW in self.mode), os.path.abspath(_file)
+        return (File.SAVE in self.mode or File.NEW in self.mode), _file
 
     def ask_user(self):
         from devparrot.core import session, ui
