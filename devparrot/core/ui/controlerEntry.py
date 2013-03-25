@@ -20,6 +20,7 @@
 
 import Tkinter
 from devparrot.core import session
+from devparrot.core.commandLauncher import UserCommandError
 from devparrot.core.command.commandCompleter import ControlerEntryCompletion
 
 from pyparsing import printables, punc8bit, alphas8bit
@@ -63,17 +64,19 @@ class ControlerEntry(Tkinter.Text):
         if event.keysym == 'Return':
             self.completionSystem.stop_completion()
             text = self.get("1.0", "end")
-            if True:
-            #try:
-                ret = session.commandLauncher.run_command(text[:-1])
-            #except Exception:
-            #    self.configure(background=session.config.get("color.errorColor"))
-            else:
-                self.configure(background=session.config.get("color.okColor"))
-                self.toClean = True
-            if session.get_currentDocument():
-                session.get_currentDocument().get_currentView().focus()
-            return "break"
+            try:
+                try:
+                    session.commandLauncher.run_command(text[:-1])
+                    self.configure(background=session.config.get("color.okColor"))
+                except UserCommandError:
+                    self.configure(background=session.config.get("color.notFoundColor"))
+                    self.toClean = True
+                if session.get_currentDocument():
+                    session.get_currentDocument().get_currentView().focus()
+            except Exception:
+                self.configure(background=session.config.get("color.errorColor"))
+            finally:
+                return "break"
         if event.keysym == 'Escape':
             self.completionSystem.stop_completion()
             if session.get_currentDocument():

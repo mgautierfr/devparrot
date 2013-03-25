@@ -26,7 +26,10 @@ eventSystem = utils.event.EventSource()
 def add_alias(aliasName, command, prio=2):
     if prio not in alias:
         alias[prio] = []
-    alias[prio].append((aliasName, command)) 
+    alias[prio].append((aliasName, command))
+
+class UserCommandError(Exception):
+    pass
 
 
 class ListGenerator:
@@ -80,8 +83,10 @@ class CommandLauncher:
         from devparrot.core.command.parserGrammar import rewrite_command
         from devparrot.core.command.baseCommand import PseudoStream, DefaultStreamEater
         rewrited = rewrite_command(text)
-        if rewrited is not None:
-            command = "defaultStreamEater(pseudoStream | %s)"%rewrited
-            exec(command,dict(session.commands), {'pseudoStream':PseudoStream(), 'defaultStreamEater':DefaultStreamEater})
-            self.history.push(text)
+        if rewrited is None:
+            raise UserCommandError()
+
+        command = "defaultStreamEater(pseudoStream | %s)"%rewrited
+        exec(command,dict(session.commands), {'pseudoStream':PseudoStream(), 'defaultStreamEater':DefaultStreamEater})
+        self.history.push(text)
 
