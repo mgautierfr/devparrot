@@ -171,10 +171,10 @@ class Command(object):
                     raise Exception("Function can have only on stream")
         self.wrapper = CommandWrapper(kwords, streamName)
 
-    def __call__(self, function):
+    def __call__(self, function, section=None):
         from devparrot.core.commandLauncher import add_command
         self.wrapper._set_function(function)
-        add_command(function.__name__, self.wrapper)
+        add_command(function.__name__, self.wrapper, section)
         return function
 
 

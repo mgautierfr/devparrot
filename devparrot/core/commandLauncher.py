@@ -23,10 +23,25 @@ import utils.event
 eventSystem = utils.event.EventSource()
 
 
-def add_command(name, command):
+def add_command(name, command, parentSection=None):
     import session
-    session.commands[name] = command
+    if parentSection is None:
+        session.commands[name] = command
+    else:
+        parentSection[name] = command
 
+
+def create_section(name=None, parentSection=None):
+    from devparrot.core.command.section import Section
+    import session
+    if name is None:
+        session.commands = Section()
+        return session.commands
+    else:
+        if parentSection is None:
+            return session.commands.setdefault(name, Section())
+        else:
+            return parentSection.setdefault(name,Section())
 
 class UserCommandError(Exception):
     pass
@@ -79,8 +94,12 @@ def expand_alias(commands):
     from devparrot.core.command.parserGrammar import parse_input_text
     from devparrot.core.command.alias import AliasWrapper
     for command in commands:
-        commandName = command.name
-        aliases = dict([(key, alias) for key, alias in session.commands.items() if isinstance(alias, AliasWrapper)])
+        l = command.name.split('.')
+        sections, commandName = l[:-1], l[-1]
+        lastSection = session.commands
+        for section in sections:
+            lastSection = lastSection[section]
+        aliases = dict([(key, alias) for key, alias in lastSection.items() if isinstance(alias, AliasWrapper)])
         if commandName in aliases:
             #it is an alias, lets expand it
             #command with rewrite with all the section

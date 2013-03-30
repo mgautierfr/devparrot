@@ -25,7 +25,7 @@ _documentManager = documentManager.DocumentManager()
 _workspace = None
 _globalContainer = None
 config = None
-commands = {}
+commands = None
 
 def init(_config):
     global config
@@ -34,6 +34,7 @@ def init(_config):
     config = _config
     _documentManager = documentManager.DocumentManager()
     commandLauncher = _commandLauncher.CommandLauncher()
+    _commandLauncher.create_section()
 
 def get_documentManager():
     return _documentManager
