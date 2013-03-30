@@ -20,13 +20,13 @@
 
 import utils.event
 
-alias = {}
 eventSystem = utils.event.EventSource()
 
-def add_alias(aliasName, command, prio=2):
-    if prio not in alias:
-        alias[prio] = []
-    alias[prio].append((aliasName, command))
+
+def add_command(name, command):
+    import session
+    session.commands[name] = command
+
 
 class UserCommandError(Exception):
     pass
@@ -74,19 +74,39 @@ class History(object):
             return ""
         return self.history[-self.currentIndex]
 
+def expand_alias(commands):
+    from devparrot.core import session
+    from devparrot.core.command.parserGrammar import parse_input_text
+    from devparrot.core.command.alias import AliasWrapper
+    for command in commands:
+        commandName = command.name
+        aliases = dict([(key, alias) for key, alias in session.commands.items() if isinstance(alias, AliasWrapper)])
+        if commandName in aliases:
+            #it is an alias, lets expand it
+            #command with rewrite with all the section
+            alias_expansion = eval(command.rewrited(), session.commands, {})
+            #parse new text and redo the work for it
+            pipe = parse_input_text(alias_expansion, forCompletion=False)
+            for com in expand_alias(pipe.values):
+                yield com
+        else:
+            #it is a command, just yield it
+            yield command
+
 class CommandLauncher:
     def __init__(self):
         self.history = History()    
 
     def run_command(self, text):
         from devparrot.core import session
-        from devparrot.core.command.parserGrammar import rewrite_command
+        from devparrot.core.command.parserGrammar import parse_input_text
         from devparrot.core.command.baseCommand import PseudoStream, DefaultStreamEater
-        rewrited = rewrite_command(text)
-        if rewrited is None:
-            raise UserCommandError()
-
-        command = "defaultStreamEater(pseudoStream | %s)"%rewrited
-        exec(command,dict(session.commands), {'pseudoStream':PseudoStream(), 'defaultStreamEater':DefaultStreamEater})
+        pipe = parse_input_text(text, forCompletion=False)
+        commands = expand_alias(pipe.values)
+        stream = PseudoStream()
+        for command in commands:
+            print "try to eval with", command.get_type(), command.rewrited()
+            stream = eval("%s(stream)"%command.rewrited(), dict(session.commands), {"stream":stream})
+        DefaultStreamEater(stream)
         self.history.push(text)
 

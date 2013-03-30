@@ -210,22 +210,16 @@ def userCommand():
     return pipe
 
 
-def parse_input_text(text):
+def parse_input_text(text, forCompletion=True):
     if not text:
         return New(index=0)
     try:
         ret, _ = run_parser(userCommand, text)
+        if not forCompletion:
+            lastCommand = ret.values[-1]
+            if lastCommand.get_type() == "Identifier":
+                ret.values[-1] = CommandCall(index=lastCommand.index, len=lastCommand.len, name=lastCommand.name, values=[], closed=True)
         return ret
     except NoMatch:
         print "Can't parse |%s|"%text
         return None
-
-def rewrite_command(text):
-    token = parse_input_text(text)
-    if not token:
-        return None
-    last = token.values[-1]
-    if last.get_type() == 'Identifier':
-        last = CommandCall(index=last.index, len=len(text), name=last.name, values=[New(index=len(text))], closed=True)
-        token.values[-1] = last
-    return token.rewrited()

@@ -19,7 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 import documentManager
-import commandLauncher
+import commandLauncher as _commandLauncher
 
 _documentManager = documentManager.DocumentManager()
 _workspace = None
@@ -33,7 +33,7 @@ def init(_config):
     global commandLauncher
     config = _config
     _documentManager = documentManager.DocumentManager()
-    commandLauncher = commandLauncher.CommandLauncher()
+    commandLauncher = _commandLauncher.CommandLauncher()
 
 def get_documentManager():
     return _documentManager
@@ -58,7 +58,3 @@ def get_globalContainer():
 def get_currentContainer():
     return _workspace.get_currentContainer()
 
-
-def add_command(name, command):
-    global commands
-    commands[name] = command

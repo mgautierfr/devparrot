@@ -18,7 +18,6 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import types
 import constraints
 from constraintInstance import ConstraintInstance
 
@@ -93,7 +92,7 @@ class CommandWrapper(object):
                 return ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
             raise
 
-    def __call__(self, *args, **kwords):
+    def _get_call_args(self, args, kwords):
         call_list = []
         call_kwords = {}
         # bind positional constraints
@@ -152,6 +151,11 @@ class CommandWrapper(object):
         call_kwords.update(kwords)
 #TODO reactive the event stuff
 #        eventSystem.event("%s-"%command.__name__)(args)
+
+        return call_list, call_kwords
+
+    def __call__(self, *args, **kwords):
+        call_list, call_kwords = self._get_call_args(args, kwords)
         return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords, self.argSpec.args)
 #        eventSystem.event("%s+"%command.__name__)(args)
 
@@ -168,7 +172,10 @@ class Command(object):
         self.wrapper = CommandWrapper(kwords, streamName)
 
     def __call__(self, function):
+        from devparrot.core.commandLauncher import add_command
         self.wrapper._set_function(function)
-        from devparrot.core import session
-        session.add_command(function.__name__, self.wrapper)
-        return self.wrapper
+        add_command(function.__name__, self.wrapper)
+        return function
+
+
+
