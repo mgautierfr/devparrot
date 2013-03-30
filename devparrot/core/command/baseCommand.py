@@ -92,6 +92,9 @@ class CommandWrapper(object):
                 return ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
             raise
 
+    def provide_value(self, index, value):
+        pass
+
     def _get_call_args(self, args, kwords):
         call_list = []
         call_kwords = {}

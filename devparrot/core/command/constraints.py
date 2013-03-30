@@ -110,12 +110,22 @@ class Keyword(_Constraint):
     def __init__(self, keywords, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
         self.keywords = keywords
-    
-    def __str__(self):
-        return "Keyword <%s>" % self.keywords
-    
-    def __repr__(self):
-        return "<Constraint.Keyword %s>" % self.keywords
+
+    def complete(self, token):
+        print "try to complete |%s|"%token.get_type()
+        tokenValue = None
+        if token.get_type().endswith('String'):
+            tokenValue = token.values
+        if token.get_type() == 'Identifier':
+            tokenValue = token.name
+        if token.get_type() == 'New':
+            tokenValue = ""
+        print "tokenValue : |%s|"%tokenValue
+        if tokenValue is None:
+            return []
+        return [Completion(k, True) for k in self.keywords if k.startswith(tokenValue)]
+
+
 
 class Boolean(_Constraint):
     def __init__(self, *args, **kwords):

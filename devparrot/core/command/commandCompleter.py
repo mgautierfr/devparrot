@@ -64,6 +64,9 @@ def get_commandCompletions(functionCall):
     if command is None:
         return (0, [])
 
+    for i, value in enumerate(functionCall.values[:-1]):
+        command.provide_value(i, value)
+
     try:
         constraint = command.get_constraint(len(functionCall.values)-1)
     except IndexError:
