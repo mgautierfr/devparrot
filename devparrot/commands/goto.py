@@ -22,9 +22,30 @@ from devparrot.core.command.baseCommand import Command
 from devparrot.core.command import constraints
 from devparrot.core import capi
 
-@Command(
-index = constraints.Index()
-)
+@Command()
 def goto(index):
-    capi.currentDocument.goto_index(index)
+    if index[0] in "?/":
+        model = capi.currentDocument.model
+        backward = (index[0] == "?")
+        if backward:
+            start_search = "1.0"
+            stop_search = "insert"
+            get_search = -1
+        else:
+            start_search = "insert+1c"
+            stop_search = "end"
+            get_search = 0
+        select = model.tag_ranges("sel")
+        if select:
+            if backward:
+                stop_search = select[0]
+            else:
+                start_search = select[1]
+        indices = list(model.search(index[1:], start_search, stop_search))
+        if indices:
+            index = indices[get_search][0]
+        else:
+            index = None
+    if index is not None:
+        capi.currentDocument.goto_index(index)
 

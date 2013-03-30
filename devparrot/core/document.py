@@ -123,6 +123,7 @@ class Document(utils.event.EventSource):
         return False
 
     def goto_index(self, index):
+        self.currentView.view.sel_clear()
         self.currentView.view.mark_set("insert", index)
         self.currentView.view.see(index)
 
