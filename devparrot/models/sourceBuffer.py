@@ -222,34 +222,20 @@ class SourceBuffer(CodeText):
 
         if text:
             count = ttk.Tkinter.IntVar()
-            match_start = ttk.Tkinter.Text.search(self, text, "0.1", stopindex="end", forwards=True, exact=True, count=count)
+            match_start = ttk.Tkinter.Text.search(self, text, "0.1", stopindex="end", forwards=True, exact=False, count=count)
             while match_start:
                 match_end = "%s+%ic" % (match_start,count.get())
                 self.tag_add(tag, match_start, match_end)
-                match_start = ttk.Tkinter.Text.search(self, text, match_end, stopindex="end", forwards=True, exact=True, count=count)
+                match_start = ttk.Tkinter.Text.search(self, text, match_end, stopindex="end", forwards=True, exact=False, count=count)
 
-    def search(self, backward, text):
+    def search(self, text, start_search="1.0", end_search="end"):
         if not text:
             return
-        self.apply_tag_on_text("search_tag",text)
-
-        start_search = "insert"
-        select = self.tag_ranges("sel")
-        if select:
-            if backward:
-                start_search = select[0]
-            else:
-                start_search = select[1]
 
         count = ttk.Tkinter.IntVar()
-        match_start = ttk.Tkinter.Text.search(self, text, start_search, forwards=(not backward), backwards=backward, exact=True, count=count) 
-        if match_start:
+        match_start = ttk.Tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, count=count) 
+        while match_start:
             match_end = "%s+%ic" % (match_start, count.get())
-            self.highlight_tag_protected = True
-            self.sel_clear()
-            self.tag_add("sel", match_start, match_end)
-            self.highlight_tag_protected = False
-            self.mark_set("insert", match_start if backward else match_end)
-            return True
-        return False
+            yield match_start, match_end
+            match_start = ttk.Tkinter.Text.search(self, text, match_end, stopindex=end_search, forwards=True, exact=False, count=count)
 
