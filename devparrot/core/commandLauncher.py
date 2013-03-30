@@ -134,7 +134,6 @@ class CommandLauncher:
                     if command == "\n":
                         DefaultStreamEater(stream)
                         break
-                    print "try to eval with", command.get_type(), command.rewrited()
                     stream = eval("%s(stream)"%command.rewrited(), dict(session.commands), {"stream":stream})
             except StopIteration:
                 break
