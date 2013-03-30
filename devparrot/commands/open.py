@@ -12,7 +12,7 @@ def open(*files):
 
 def open_a_file(fileToOpen):
     if not fileToOpen: return False
-    lineToGo = None
+    lineToGo = 1
     # if path doesn't exist and we have a line marker, lets go to that line
     if not os.path.exists(fileToOpen):
         parts = fileToOpen.split(':')
@@ -31,8 +31,7 @@ def open_a_file(fileToOpen):
         capi.add_file(doc)
         doc.load()
     capi.currentDocument = doc
-    if lineToGo:
-        doc.goto_index("%s.0"%lineToGo-1)
+    doc.goto_index("%s.0"%lineToGo)
 
 
 binder["<Control-o>"] = "open\n"
