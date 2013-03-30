@@ -94,6 +94,10 @@ def expand_alias(commands):
     from devparrot.core.command.parserGrammar import parse_input_text
     from devparrot.core.command.alias import AliasWrapper
     for command in commands:
+        if command == "\n":
+            yield command
+            continue
+
         l = command.name.split('.')
         sections, commandName = l[:-1], l[-1]
         lastSection = session.commands
@@ -122,10 +126,19 @@ class CommandLauncher:
         from devparrot.core.command.baseCommand import PseudoStream, DefaultStreamEater
         pipe = parse_input_text(text, forCompletion=False)
         commands = expand_alias(pipe.values)
-        stream = PseudoStream()
-        for command in commands:
-            print "try to eval with", command.get_type(), command.rewrited()
-            stream = eval("%s(stream)"%command.rewrited(), dict(session.commands), {"stream":stream})
-        DefaultStreamEater(stream)
+        while True:
+            try:
+                stream = PseudoStream()
+                while True:
+                    command = commands.next()
+                    if command == "\n":
+                        DefaultStreamEater(stream)
+                        break
+                    print "try to eval with", command.get_type(), command.rewrited()
+                    stream = eval("%s(stream)"%command.rewrited(), dict(session.commands), {"stream":stream})
+            except StopIteration:
+                break
+            finally:
+                DefaultStreamEater(stream)
         self.history.push(text)
 

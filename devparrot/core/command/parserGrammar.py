@@ -23,10 +23,15 @@ from picoparse import string
 from picoparse import one_of, many, many1, many_until, not_one_of, run_parser, optional
 from picoparse import choice, peek, eof, any_token, satisfies, not_followed_by
 from picoparse import sep, sep1, NoMatch
-from picoparse.text import quote, whitespace, whitespace1
+from picoparse.text import quote
 from picoparse import partial, tri, commit, fail
 
 from tokens import *
+
+
+whitespace_char = partial(one_of, " \t")
+whitespace = partial(many, whitespace_char)
+whitespace1 = partial(many1, whitespace_char)
 
 def index():
     import picoparse
@@ -63,7 +68,8 @@ def optspecial(name):
 @tri
 def special(name):
     whitespace()
-    return string(name)
+    string(name)
+    return name
 
 @tri
 def string_char(quote):
@@ -74,7 +80,7 @@ def string_char(quote):
 
 @tri
 def unquoted_string_char1():
-    char = not_one_of(" ,()[]{}|")
+    char = not_one_of(" ,()[]{}|\n")
     if char == '\\':
         char = optional(any_token, '\\')
     return char
@@ -82,9 +88,9 @@ def unquoted_string_char1():
 @tri
 def unquoted_string_char(nokeyword):
     if nokeyword:
-        char = not_one_of(" ()[]{}|=")
+        char = not_one_of(" ()[]{}|\n=")
     else:
-        char = not_one_of(" ()[]{}|")
+        char = not_one_of(" ()[]{}|\n")
     if char == '\\':
         char = optional(any_token, '\\')
     return char
@@ -203,9 +209,16 @@ def commandCall():
 
 @tri
 def userCommand():
-    c = sep1( commandCall, pipe_sep )
+    commands = [ commandCall() ]
+    def inner():
+        sep = choice(partial(special, "\n"), pipe_sep)
+        if sep == "\n":
+            commands.append("\n")
+        commands.append(commandCall())
+
+    many(inner)
     
-    pipe = Pipe(index=c[0].index, len=index()-c[0].index, values=c)
+    pipe = Pipe(index=commands[0].index, len=index()-commands[0].index, values=commands)
     eof()
     return pipe
 
