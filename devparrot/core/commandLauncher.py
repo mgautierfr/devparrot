@@ -134,7 +134,11 @@ class CommandLauncher:
                     if command == "\n":
                         DefaultStreamEater(stream)
                         break
-                    stream = eval("%s(stream)"%command.rewrited(), dict(session.commands), {"stream":stream})
+                    streamEater = eval(command.rewrited(), dict(session.commands), {})
+                    if streamEater:
+                        stream = streamEater(stream)
+                    else:
+                        return
             except StopIteration:
                 break
             finally:

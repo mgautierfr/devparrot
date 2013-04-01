@@ -119,10 +119,7 @@ class CommandWrapper(object):
                         call_kwords[constraint.name] = constraint.default()
                     except constraints.noDefault:
                         if constraint.askUser:
-                            try:
-                                call_kwords[constraint.name] = constraint.ask_user()
-                            except constraints.userCancel:
-                                return
+                            call_kwords[constraint.name] = constraint.ask_user()
                         else:
                             raise TypeError
 
@@ -134,10 +131,7 @@ class CommandWrapper(object):
                     call_list.append(constraint.default())
                 except constraints.noDefault:
                     if constraint.askUser:
-                        try:
-                            call_list.extend(constraint.ask_user())
-                        except constraints.userCancel:
-                            return
+                        call_list.extend(constraint.ask_user())
                     else:
                         raise TypeError
             else:
@@ -158,8 +152,11 @@ class CommandWrapper(object):
         return call_list, call_kwords
 
     def __call__(self, *args, **kwords):
-        call_list, call_kwords = self._get_call_args(args, kwords)
-        return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords, self.argSpec.args)
+        try:
+            call_list, call_kwords = self._get_call_args(args, kwords)
+            return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords, self.argSpec.args)
+        except constraints.userCancel:
+            pass
 #        eventSystem.event("%s+"%command.__name__)(args)
 
 
