@@ -112,7 +112,6 @@ class Keyword(_Constraint):
         self.keywords = keywords
 
     def complete(self, token):
-        print "try to complete |%s|"%token.get_type()
         tokenValue = None
         if token.get_type().endswith('String'):
             tokenValue = token.values
@@ -120,12 +119,33 @@ class Keyword(_Constraint):
             tokenValue = token.name
         if token.get_type() == 'New':
             tokenValue = ""
-        print "tokenValue : |%s|"%tokenValue
         if tokenValue is None:
             return []
         return [Completion(k, True) for k in self.keywords if k.startswith(tokenValue)]
 
+class Command(_Constraint):
+    def __init(self, *args, **kwords):
+        _Constraint.__init__(self, *args, **kwords)
 
+    def complete(self, token):
+        import devparrot.core.session as session
+        from devparrot.core.command.baseCommand import CommandWrapper
+        from devparrot.core.command.alias import AliasWrapper
+        keywords = [k for k, i in session.commands.items() if isinstance(i, CommandWrapper) or isinstance(i, AliasWrapper)]
+        tokenValue = None
+        if token.get_type().endswith('String'):
+            tokenValue = token.values
+        if token.get_type() == 'Identifier':
+            tokenValue = token.name
+        if token.get_type() == 'New':
+            tokenValue = ""
+        if tokenValue is None:
+            return []
+        return [Completion(k, True) for k in keywords if k.startswith(tokenValue)]
+
+    def check(self, token):
+        import devparrot.core.session as session
+        return token in session.commands, session.commands.get(token)
 
 class Boolean(_Constraint):
     def __init__(self, *args, **kwords):

@@ -5,7 +5,11 @@ from constraintInstance import ConstraintInstance
 
 class MasterCommandWrapper(object):
     def __init__(self):
+        self._class = None
         self.subCommands = {}
+
+    def set_class(self, _class):
+        self._class = _class
 
     def add_subCommand(self, name, function):
         self.subCommands[name] = function
@@ -27,6 +31,12 @@ class MasterCommandWrapper(object):
         args = args[1:]
         return self.subCommands[subCommandName](*args, **kwords)
 
+    def get_help(self):
+        return self._class.__doc__
+
+    def get_name(self):
+        return self._class.__name__
+
 
 class MasterCommandMeta(type): 
     def __new__(cls, name, bases, dct):
@@ -40,7 +50,9 @@ class MasterCommandMeta(type):
             else:
                 new_dct[attrName] = attr
         add_command(name, wrapper)
-        return type.__new__(cls, name, bases, new_dct)
+        _class = type.__new__(cls, name, bases, new_dct)
+        wrapper.set_class(_class)
+        return _class
 
 
 class MasterCommand(object):

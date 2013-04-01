@@ -159,6 +159,12 @@ class CommandWrapper(object):
             pass
 #        eventSystem.event("%s+"%command.__name__)(args)
 
+    def get_help(self):
+        return self.functionToCall.__doc__
+
+    def get_name(self):
+        return self.functionToCall.__name__
+
 
 class Command(object):
     def __init__(self, **kwords):
