@@ -99,12 +99,13 @@ class Config(_Section):
         setattr(self, name, value)
 
 def init():
-    from devparrot.controllers.defaultControllerMode import DefaultControllerMode
+    from devparrot.controllers.defaultControllerMode import DefaultControllerMode, DefaultROControllerMode
     import os
     global _config
     devparrotPath = os.path.dirname(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
     _config = Config()
     _config.add_variable("controller", DefaultControllerMode())
+    _config.add_variable("ROcontroller", DefaultROControllerMode())
     _config.add_variable("devparrotPath", devparrotPath)
     section = createSection("window")
     section.add_variable("height", 600)
