@@ -43,7 +43,7 @@ class Document(utils.event.EventSource):
         self.set_path(documentSource)
         self.modifiedVar = Variable("normal")
         self.documentView = DocumentView(self)
-        self.model = SourceBuffer()
+        self.model = SourceBuffer(self.documentSource.is_readonly())
         self.model.bind("<<Modified>>", self.on_modified_changed)
         self.currentView = None	
         self.set_view(TextView(self))
@@ -83,6 +83,9 @@ class Document(utils.event.EventSource):
             self.title_notify()
             self.longTitle_notify()
             self.event('pathChanged')(self, oldPath)
+
+    def is_readonly(self):
+        return self.documentSource.is_readonly()
         
     def load(self):
         self.model.set_text(self.documentSource.get_content())

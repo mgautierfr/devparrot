@@ -57,3 +57,6 @@ class NewDocSource(object):
         """ return True if the file has been modified since last time """
         return False
 
+    def is_readonly(self):
+        return False
+

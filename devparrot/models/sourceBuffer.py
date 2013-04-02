@@ -31,7 +31,7 @@ def insert_char(event):
 
 
 class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
-    def __init__(self):
+    def __init__(self, readOnly):
         ttk.Tkinter.Text.__init__(self, session.get_globalContainer(),
                                   undo=True,
                                   autoseparators=False,
@@ -42,7 +42,10 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
         bindtags = " ".join(bindtags)
         self.bindtags(bindtags)
 
-        session.config.get("controller").install( self )
+        if readOnly:
+            session.config.get("ROcontroller").install(self)
+        else:
+            session.config.get("controller").install( self )
         
         self.tag_configure('currentLine_tag', background=session.config.get("color.currentLine_tag_color"))
         self.tag_raise("currentLine_tag")
@@ -178,8 +181,8 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
 
 
 class SourceBuffer(CodeText):
-    def __init__(self):
-        CodeText.__init__(self)
+    def __init__(self, readOnly):
+        CodeText.__init__(self, readOnly)
         self.highlight_tag_protected = False
         self.tag_configure("highlight_tag", background=session.config.get("color.highlight_tag_color"))
         self.tag_configure("search_tag", background=session.config.get("color.search_tag_color"))

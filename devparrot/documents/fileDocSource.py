@@ -96,3 +96,5 @@ class FileDocSource(object):
             return False
 
 
+    def is_readonly(self):
+        return not os.access(self.path, os.W_OK)

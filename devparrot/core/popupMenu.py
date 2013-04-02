@@ -67,3 +67,7 @@ class EditSection:
         else:
             self.menu.entryconfigure('Cut', state="disable")
             self.menu.entryconfigure('Copy', state="disable")
+
+        if capi.currentDocument.is_readonly():
+            self.menu.entryconfigure("Paste", state="disable")
+            self.menu.entryconfigure("Cut", state="disable")
