@@ -20,5 +20,5 @@ command = constraints.Command(default= lambda:None)
 def help(command):
     """The help command"""
     commandName = command.get_name() if command else "help"
-    line = "capi.help %s | new"%commandName
+    line = "capi.help %(commandName)s | capi.buffer 'help %(commandName)s"%{'commandName':commandName}
     return line
