@@ -141,9 +141,7 @@ class Command(_Constraint):
 
     def complete(self, token):
         import devparrot.core.session as session
-        from devparrot.core.command.baseCommand import CommandWrapper
-        from devparrot.core.command.alias import AliasWrapper
-        keywords = [k for k, i in session.commands.items() if isinstance(i, CommandWrapper) or isinstance(i, AliasWrapper)]
+        from devparrot.core.command.section import Section
         tokenValue = None
         if token.get_type().endswith('String'):
             tokenValue = token.values
@@ -153,11 +151,29 @@ class Command(_Constraint):
             tokenValue = ""
         if tokenValue is None:
             return []
-        return [Completion(k, True) for k in keywords if k.startswith(tokenValue)]
+        l = tokenValue.split('.')
+        sections = l[:-1]
+        name = l[-1]
+        currentSection = session.commands
+        try:
+            for section in sections:
+                currentSection = currentSection[section]
+        except KeyError:
+            return []
+        return [Completion(".".join(sections+([k, ""] if isinstance(i,Section) else [k])), not isinstance(i,Section)) for k,i in currentSection.items() if k.startswith(name)]
 
     def check(self, token):
-        import devparrot.core.session as session
-        return token in session.commands, session.commands.get(token)
+        from devparrot.core import session
+        l = token.split('.')
+        sections = l[:-1]
+        name = l[-1]
+        currentSection = session.commands
+        try:
+            for section in sections:
+                currentSection = currentSection[section]
+        except KeyError:
+            return False, None
+        return name in currentSection, currentSection.get(name)
 
 class Boolean(_Constraint):
     """Must be a boolean"""
