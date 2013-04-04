@@ -107,7 +107,7 @@ def expand_alias(commands):
         if commandName in aliases:
             #it is an alias, lets expand it
             #command with rewrite with all the section
-            alias_expansion = eval(command.rewrited(), session.commands, {})
+            alias_expansion = eval(command.rewrited(), dict(session.commands), {})
             #parse new text and redo the work for it
             pipe = parse_input_text(alias_expansion, forCompletion=False)
             for com in expand_alias(pipe.values):
