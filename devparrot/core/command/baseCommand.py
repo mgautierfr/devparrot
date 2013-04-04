@@ -67,6 +67,10 @@ class CommandWrapper(object):
     def __init__(self, constraints, streamName=None):
         self.constraints = constraints
         self.streamName = streamName
+        self.section = None
+
+    def _set_section(self, section):
+        self.section = section
 
     def _set_function(self, function):
         from inspect import getargspec
@@ -163,6 +167,8 @@ class CommandWrapper(object):
         return self.functionToCall.__doc__
 
     def get_name(self):
+        if self.section:
+            return "%s.%s"%(self.section.get_name(), self.functionToCall.__name__)
         return self.functionToCall.__name__
 
 
@@ -179,6 +185,7 @@ class Command(object):
 
     def __call__(self, function, section=None):
         from devparrot.core.commandLauncher import add_command
+        self.wrapper._set_section(section)
         self.wrapper._set_function(function)
         add_command(function.__name__, self.wrapper, section)
         return function

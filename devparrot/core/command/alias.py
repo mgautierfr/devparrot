@@ -23,5 +23,6 @@ class Alias(object):
     def __call__(self, function, section=None):
         from devparrot.core.commandLauncher import add_command
         self.wrapper._set_function(function)
+        self.wrapper._set_section(section)
         add_command(function.__name__, self.wrapper, section)
         return function

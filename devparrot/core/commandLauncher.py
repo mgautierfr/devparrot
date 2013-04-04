@@ -26,22 +26,22 @@ eventSystem = utils.event.EventSource()
 def add_command(name, command, parentSection=None):
     import session
     if parentSection is None:
-        session.commands[name] = command
+        session.commands.add_command(name, command)
     else:
-        parentSection[name] = command
+        parentSection.add_command(name, command)
 
 
 def create_section(name=None, parentSection=None):
     from devparrot.core.command.section import Section
     import session
     if name is None:
-        session.commands = Section()
+        session.commands = Section(None, None)
         return session.commands
     else:
         if parentSection is None:
-            return session.commands.setdefault(name, Section())
+            return session.commands.setdefault(name, Section(name))
         else:
-            return parentSection.setdefault(name,Section())
+            return parentSection.setdefault(name,Section(name, parentSection))
 
 class UserCommandError(Exception):
     pass

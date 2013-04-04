@@ -9,7 +9,7 @@ class inner:
     def help(command):
         helpText = command.get_help()
         for line in helpText.split('\n'):
-            yield line
+            yield "%s\n"%line
 
 Command(command=constraints.Command()
 )(inner.help, create_section("capi"))
