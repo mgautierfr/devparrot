@@ -41,7 +41,6 @@ class Document(utils.event.EventSource):
         utils.event.EventSource.__init__(self)
         self.documentSource = None
         self.set_path(documentSource)
-        self.modifiedVar = Variable("normal")
         self.documentView = DocumentView(self)
         self.model = SourceBuffer(self.documentSource.is_readonly())
         self.model.bind("<<Modified>>", self.on_modified_changed)
@@ -99,7 +98,8 @@ class Document(utils.event.EventSource):
         return False
         
     def on_modified_changed(self, event):
-        self.documentView.set_bold(self.model.edit_modified())
+        if not self.is_readonly():
+            self.documentView.set_bold(self.model.edit_modified())
     
     def on_focus_in_event(self, event):
         res = self.documentSource.need_reload()
