@@ -12,7 +12,6 @@ def shell(command, stdinput, *args):
     """
     from subprocess import Popen, PIPE
     commands = [command]+list(args)
-    print commands
     popen = Popen([command]+list(args), bufsize=0, shell=False, stdin=PIPE, stdout=PIPE, universal_newlines=True)
     outPipe = popen.stdout
     inPipe = popen.stdin
