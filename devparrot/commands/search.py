@@ -25,6 +25,8 @@ Command(
     backward = constraints.Boolean(default=lambda :False)
 )
 def search(searchText, backward):
+    """search for searchText in currentDocument
+    """
     searchChar = "?" if backward else "/"
 
     global lastSearch

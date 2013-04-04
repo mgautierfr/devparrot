@@ -9,6 +9,11 @@ endIndex = constraints.Index(),
 content = constraints.Stream()
 )
 def section(startIndex, endIndex, content):
+    """
+    represent a section of the current document starting from startIndex and ending at endIndex.
+
+    the section use as stream sink or stream source. (but not both)
+    """
     model = capi.currentDocument.get_model()
     startIndex = Index(model, startIndex)
     endIndex = Index(model, endIndex)

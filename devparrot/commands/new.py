@@ -6,6 +6,11 @@ from devparrot.core import capi
 content = constraints.Stream()
 )
 def new(content):
+    """
+    Create a new document
+
+    Content is inserted in the document once created
+    """
     from devparrot.core.document import Document
     from devparrot.documents.newDocSource import NewDocSource
     document = Document(NewDocSource())

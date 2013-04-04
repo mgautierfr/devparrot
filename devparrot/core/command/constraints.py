@@ -41,7 +41,7 @@ class userCancel(Exception):
     pass
 
 class _Constraint:
-    def __init__(self, optional=False, multiple=False, default=None, askUser=False):
+    def __init__(self, optional=False, multiple=False, default=None, askUser=False, help=""):
         self.optional = optional
         self.askUser = askUser
         if default is None:
@@ -50,6 +50,7 @@ class _Constraint:
             self.default = default
         self.multiple = multiple
         self.isVararg = False
+        self.help=help
 
     def check_arg(self, args):
         if self.multiple:
@@ -99,14 +100,17 @@ class _Constraint:
         return []
 
 class Stream(object):
-    pass
+    def __init__(self, help=""):
+        self.help = help
     
 
 class Default(_Constraint):
-    def __init__(self, optional=False, multiple=False, default=None):
-        _Constraint.__init__(self, optional, multiple, default)
+    """No particular constraint"""
+    def __init__(self, optional=False, multiple=False, default=None, help=""):
+        _Constraint.__init__(self, optional=optional, multiple=multiple, default=default, help=help)
 
 class Keyword(_Constraint):
+    """Must be a particular keyword"""
     def __init__(self, keywords, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
         self.keywords = keywords
@@ -124,6 +128,7 @@ class Keyword(_Constraint):
         return [Completion(k, True) for k in self.keywords if k.startswith(tokenValue)]
 
 class Command(_Constraint):
+    """Must be a command name"""
     def __init(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
@@ -148,6 +153,7 @@ class Command(_Constraint):
         return token in session.commands, session.commands.get(token)
 
 class Boolean(_Constraint):
+    """Must be a boolean"""
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
@@ -155,14 +161,15 @@ class Boolean(_Constraint):
         return True, bool(token)
             
 class File(_Constraint):
+    """Must be a file path"""
     OPEN, SAVE, NEW = xrange(3)
-    def __init__(self, mode=OPEN, optional=False, multiple=False, default=None):
+    def __init__(self, mode=OPEN, optional=False, multiple=False, default=None, help=""):
         try:
             (x for x in mode)
         except TypeError:
             mode = (mode,)
 
-        _Constraint.__init__(self, optional, multiple, default, askUser=True)
+        _Constraint.__init__(self, optional=optional, multiple=multiple, default=default, askUser=True, help=help)
         self.mode = mode
 
     def check(self, _file):
@@ -237,14 +244,17 @@ class File(_Constraint):
 
 
 class Index(_Constraint):
+    """Must be a index"""
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
 class Range(_Constraint):
+    """Must be a range"""
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
     
 class Integer(_Constraint):
+    """Must be a integer"""
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
@@ -256,12 +266,14 @@ class Integer(_Constraint):
             return False, None
 
 class OpenDocument(_Constraint):
+    """Must be a open document"""
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
 class ConfigEntry(_Constraint):
-    def __init__(self):
-        _Constraint.__init__(self)
+    """Must be a config entry"""
+    def __init__(self, *args, **kwords):
+        _Constraint.__init__(self, *args, **kwords)
         
     def check(self, arg):
         from devparrot.core import session

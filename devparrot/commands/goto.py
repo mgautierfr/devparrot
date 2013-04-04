@@ -24,6 +24,17 @@ from devparrot.core import capi
 
 @Command()
 def goto(index):
+    """
+    goto to index
+    set insert mare to index and see it.
+
+    index can be:
+        - a string that tk will understand :
+         . "lineNumber.charNumber" (line start from 1, char start from 0"
+         . a mark name
+        - a ex search syntax :
+         . [?/]regex
+    """
     if index[0] in "?/":
         model = capi.currentDocument.model
         backward = (index[0] == "?")

@@ -4,6 +4,7 @@ from devparrot.core.command import constraints
 from devparrot.core import capi
 
 class tag(MasterCommand):
+    """ Tag help stuff"""
 
     @SubCommand(
     tagList = constraints.Stream()

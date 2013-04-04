@@ -7,6 +7,9 @@ from devparrot.core.utils.posrange import Index
 stdinput = constraints.Stream()
 )
 def shell(command, stdinput, *args):
+    """
+    run a external command
+    """
     from subprocess import Popen, PIPE
     commands = [command]+list(args)
     print commands

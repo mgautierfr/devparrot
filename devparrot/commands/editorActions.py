@@ -24,22 +24,27 @@ from devparrot.core import capi
 
 @Command()
 def cut():
+    """cut selection to clipboard"""
     capi.currentDocument.get_currentView().cut_clipboard()
 
 @Command()
 def copy():
+    """copy selection to clipboard"""
     capi.currentDocument.get_currentView().copy_clipboard()
 
 @Command()
 def paste():
+    """paste clipboard content at "insert" mark"""
     capi.currentDocument.get_currentView().paste_clipboard()
 
 @Command()
 def undo():
+    """undo last command"""
     capi.currentDocument.get_model().undo()
 
 @Command()
 def redo():
+    """redo last undone command"""
     capi.currentDocument.get_model().redo()
 
 binder["<<Cut>>"] = "cut\n"

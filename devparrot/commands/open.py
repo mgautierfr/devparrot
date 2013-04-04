@@ -4,9 +4,12 @@ from devparrot.core.command import constraints, binder
 from devparrot.core import capi
 
 @Command(
-files = constraints.File(mode=(constraints.File.OPEN, constraints.File.NEW))
+files = constraints.File(mode=(constraints.File.OPEN, constraints.File.NEW), help="a list of file to open")
 )
 def open(*files):
+    """
+    Open a existing or new file
+    """
     for fileToOpen in files:
         open_a_file(fileToOpen)
 

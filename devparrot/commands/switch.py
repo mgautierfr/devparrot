@@ -6,5 +6,6 @@ from devparrot.core import capi
 document = constraints.OpenDocument()
 )
 def switch(document):
+    """set focus to document"""
     capi.currentDocument = document
 
