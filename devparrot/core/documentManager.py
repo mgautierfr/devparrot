@@ -49,6 +49,12 @@ class DocumentManager(utils.event.EventSource):
         except StopIteration:
             raise KeyError
 
+    def get_file_from_title(self, title):
+        try:
+            return next(doc for doc in self.documents if doc.get_title()==title)
+        except StopIteration:
+            raise KeyError
+
     def del_file(self, document):
         self.documents.remove(document)
         self.event('documentDeleted')(document)
@@ -63,4 +69,3 @@ class DocumentManager(utils.event.EventSource):
             'openfiles' : "\n".join([str(doc) for doc in self.documents])
         }
 
-documentManager = DocumentManager()

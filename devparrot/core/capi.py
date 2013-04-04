@@ -40,12 +40,12 @@ class DocumentWrapper(object):
         pass
         
     def __len__(self):
-        from devparrot.core import documentManager
-        return documentManager.documentManager.get_nbDocuments()
+        from devparrot.core import session
+        return session.get_documentManager().get_nbDocuments()
     
     def __getitem__(self, key):
-        from devparrot.core import documentManager
-        return documentManager.documentManager.get_nthFile(key)
+        from devparrot.core import session
+        return session.get_documentManager().get_nthFile(key)
 
 
 def __getattr__(name):
@@ -73,23 +73,23 @@ def __setattr__(name, value):
     raise AttributeError
 
 def add_file(document):
-    from devparrot.core import documentManager
-    return documentManager.documentManager.add_file(document)
+    from devparrot.core import session
+    return session.get_documentManager().add_file(document)
 
 def file_is_opened(filePath):
-    from devparrot.core import documentManager
-    return documentManager.documentManager.has_file(filePath)
+    from devparrot.core import session
+    return session.get_documentManager().has_file(filePath)
 
 def get_file(filePath):
-    from devparrot.core import documentManager
-    return documentManager.documentManager.get_file(filePath)
+    from devparrot.core import session
+    return session.get_documentManager().get_file(filePath)
     
 def get_nth_file(index):
-    from devparrot.core import documentManager
-    return documentManager.documentManager.get_nthFile(index)
+    from devparrot.core import session
+    return session.get_documentManager().get_nthFile(index)
 
 def close_document(document):
-    from devparrot.core import documentManager
+    from devparrot.core import session
     if document.check_for_save():
         save_document(document, document.get_path())
     if document.documentView.is_displayed():
@@ -97,7 +97,7 @@ def close_document(document):
         parentContainer.detach_child(document.documentView)
         if parentContainer.get_nbChildren() == 0:
             unsplit(parentContainer)
-    return documentManager.documentManager.del_file(document)
+    return session.get_documentManager().del_file(document)
 
 def open_file(filePath):
     if file_is_opened(filePath):
@@ -110,7 +110,7 @@ def open_file(filePath):
     return doc
 
 def save_document(document, fileToSave):
-    from devparrot.core import documentManager
+    from devparrot.core import session
     if document.has_a_path() and document.get_path() == fileToSave:
         return document.write()
 
@@ -122,8 +122,8 @@ def save_document(document, fileToSave):
 
     from devparrot.documents.fileDocSource import FileDocSource
     document.set_path(FileDocSource(fileToSave))
-    documentManager.documentManager.del_file(document)
-    documentManager.documentManager.add_file(document)
+    session.get_documentManager().del_file(document)
+    session.get_documentManager().add_file(document)
     return document.write()
 
 def quit():

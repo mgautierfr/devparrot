@@ -277,6 +277,27 @@ class OpenDocument(_Constraint):
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
+    def check(self, token):
+        from devparrot.core import session
+        try:
+            return True, session.get_documentManager().get_file_from_title(token)
+        except KeyError:
+            return False, None
+
+    def complete(self, token):
+        from devparrot.core import session
+        documentManager = session.get_documentManager()
+        tokenValue = None
+        if token.get_type().endswith('String'):
+            tokenValue = token.values
+        if token.get_type() == 'Identifier':
+            tokenValue = token.name
+        if token.get_type() == 'New':
+            tokenValue = ""
+        if tokenValue is None:
+            return []
+        return [Completion(d.get_title(), True) for d in documentManager.documents if d.get_title().startswith(tokenValue)]
+
 class ConfigEntry(_Constraint):
     """Must be a config entry"""
     def __init__(self, *args, **kwords):
