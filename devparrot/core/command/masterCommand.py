@@ -40,6 +40,8 @@ class MasterCommandWrapper(object):
 
 class MasterCommandMeta(type): 
     def __new__(cls, name, bases, dct):
+        if name == "MasterCommand":
+            return type.__new__(cls, name, bases, dct)
         from devparrot.core.commandLauncher import add_command
         new_dct = {}
         wrapper = MasterCommandWrapper()
