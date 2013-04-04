@@ -99,9 +99,16 @@ class _Constraint:
             return [Completion(token.name, False)]
         return []
 
+    def get_help(self):
+        return self.help
+
+
 class Stream(object):
     def __init__(self, help=""):
         self.help = help
+
+    def get_help(self):
+        return self.help
     
 
 class Default(_Constraint):

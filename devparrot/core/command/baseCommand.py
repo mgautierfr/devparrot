@@ -164,7 +164,31 @@ class CommandWrapper(object):
 #        eventSystem.event("%s+"%command.__name__)(args)
 
     def get_help(self):
-        return self.functionToCall.__doc__
+        helps = []
+        helps.append("%s command:"%self.get_name())
+        helps.append("="*len(helps[-1]))
+        helps.append("")
+
+        helps.append(self.functionToCall.__doc__ or "no description...")
+        helps.append("\n")
+        
+        helps.append("Arguments:")
+        helps.append("-"*len(helps[-1]))
+        helps.append("")
+        for constraint in self._get_all_constraints():
+            helps.append(constraint.get_help())
+
+        if self.argSpec.varargs and self.argSpec.varargs in self.constraints:
+            constraint = ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
+            helps.append(constraint.get_help())
+
+        helps.append("")
+        helps.append(" - stream : %s"%self.streamName)
+        if self.streamName:
+            constraint = self._get_constraint(self.streamName)
+            helps.append(constraint.get_help())
+
+        return "\n".join(helps)
 
     def get_name(self):
         if self.section:
