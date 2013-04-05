@@ -89,7 +89,7 @@ class History(object):
             return ""
         return self.history[-self.currentIndex]
 
-def expand_alias(commands):
+def expand_alias(commands, first=False):
     from devparrot.core import session
     from devparrot.core.command.parserGrammar import parse_input_text
     from devparrot.core.command.alias import AliasWrapper
@@ -115,6 +115,8 @@ def expand_alias(commands):
         else:
             #it is a command, just yield it
             yield command
+    if first:
+        yield "\n"
 
 class CommandLauncher:
     def __init__(self):
@@ -125,7 +127,7 @@ class CommandLauncher:
         from devparrot.core.command.parserGrammar import parse_input_text
         from devparrot.core.command.baseCommand import PseudoStream, DefaultStreamEater
         pipe = parse_input_text(text, forCompletion=False)
-        commands = expand_alias(pipe.values)
+        commands = expand_alias(pipe.values, True)
         while True:
             try:
                 stream = PseudoStream()
@@ -133,15 +135,13 @@ class CommandLauncher:
                     command = commands.next()
                     if command == "\n":
                         DefaultStreamEater(stream)
-                        break
+                        break # one pipe, start a new line (pipe)
                     streamEater = eval(command.rewrited(), dict(session.commands), {})
                     if streamEater:
                         stream = streamEater(stream)
                     else:
-                        return
+                        return # something wrong while calling
             except StopIteration:
-                break
-            finally:
-                DefaultStreamEater(stream)
+                break # no more command at all
         self.history.push(text)
 
