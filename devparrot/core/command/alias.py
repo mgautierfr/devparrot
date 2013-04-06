@@ -7,12 +7,8 @@ class AliasWrapper(CommandWrapper):
         CommandWrapper.__init__(self, constraints, None)
 
     def __call__(self, *args, **kwords):
-        try:
-            call_list, call_kwords = self._get_call_args(args, kwords)
-            return self.functionToCall(*call_list, **call_kwords)
-        except constraints.userCancel:
-            pass
-
+        call_list, call_kwords = self._get_call_args(args, kwords)
+        return self.functionToCall(*call_list, **call_kwords)
 
 
 class Alias(object):

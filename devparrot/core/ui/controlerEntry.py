@@ -69,11 +69,13 @@ class ControlerEntry(Tkinter.Text):
                     session.commandLauncher.run_command(text[:-1])
                     self.configure(background=session.config.get("color.okColor"))
                 except UserCommandError as userError:
+                    session.userLogger.error(userError)
                     self.configure(background=session.config.get("color.notFoundColor"))
                     self.toClean = True
                 if session.get_currentDocument():
                     session.get_currentDocument().get_currentView().focus()
-            except Exception:
+            except Exception as er:
+                self.userLogger.error(er)
                 self.configure(background=session.config.get("color.errorColor"))
             finally:
                 return "break"

@@ -22,6 +22,7 @@ import ttk
 
 from devparrot.core import popupMenu as popupMenuModule
 import controlerEntry
+import statusBar
 
 def quit(event):
     from devparrot.actions.controlerActions import quit
@@ -71,6 +72,7 @@ class MainWindow(ttk.Tkinter.Tk):
 
         self.hpaned.add(self.vpaned)
 
+        self.statusBar = statusBar.StatusBar(self._vbox)
 
         self.popupMenu = popupMenuModule.Menu()
 
@@ -83,9 +85,10 @@ class MainWindow(ttk.Tkinter.Tk):
         self.bindtags(bindtags)
 
     def report_callback_exception(self, *args):
+        from devparrot.core import session
         import traceback, tkMessageBox
         err = ''.join(traceback.format_exception(*args))
-        print err
+        session.logger.error(err)
         tkMessageBox.showerror('Exception', "An exception occurs\nPlease report to devparrot team", detail=err)
     
     def get_globalContainer(self):

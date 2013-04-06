@@ -28,6 +28,9 @@ _globalContainer = None
 config = None
 commands = None
 
+userLogger = logging.getLogger("user")
+userLogger.setLevel(logging.INFO)
+
 logger = logging.getLogger("devparrot")
 logger.setLevel(logging.INFO)
 

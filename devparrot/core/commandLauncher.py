@@ -134,12 +134,16 @@ class CommandLauncher:
                     if command == "\n":
                         DefaultStreamEater(stream)
                         break # one pipe, start a new line (pipe)
-                    streamEater = eval(command.rewrited(), dict(session.commands), {})
-                    if streamEater:
+                    try:
+                        streamEater = eval(command.rewrited(), dict(session.commands), {})
                         stream = streamEater(stream)
-                    else:
-                        return # something wrong while calling
+                    except NameError:
+                        raise UserCommandError("{0} is not a valid command name".format(command.name))
+                    except UserCancel:
+                        return
+
             except StopIteration:
-                break # no more command at all
+                break # cause no more command at all
+        session.userLogger.info("%s : OK", text)
         self.history.push(text)
 

@@ -157,11 +157,8 @@ class CommandWrapper(object):
         return call_list, call_kwords
 
     def __call__(self, *args, **kwords):
-        try:
-            call_list, call_kwords = self._get_call_args(args, kwords)
-            return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords, self.argSpec.args)
-        except constraints.userCancel:
-            pass
+        call_list, call_kwords = self._get_call_args(args, kwords)
+        return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords, self.argSpec.args)
 #        eventSystem.event("%s+"%command.__name__)(args)
 
     def get_help(self):
