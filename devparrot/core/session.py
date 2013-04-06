@@ -20,12 +20,23 @@
 
 import documentManager
 import commandLauncher as _commandLauncher
+import logging
 
 _documentManager = documentManager.DocumentManager()
 _workspace = None
 _globalContainer = None
 config = None
 commands = None
+
+logger = logging.getLogger("devparrot")
+logger.setLevel(logging.INFO)
+
+handler = logging.StreamHandler()
+handler.setLevel(logging.INFO)
+
+formatter = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 def init(_config):
     global config

@@ -48,7 +48,7 @@ def load_module(path, name):
     try:
         fp, pathname, description = imp.find_module(name, [path])
     except ImportError, err:
-        print err
+        session.logger.error("can't import module named %s", name)
         return
 
     with fp:

@@ -82,11 +82,11 @@ class Section(_Section):
 
     def __setattr__(self, name, value):
         if name in self.sections:
-            print "WARNING: can't redifine section name %s"%name
+            session.logger.warning("can't redifine section name %s", name)
             return
 
         if name not in self.variables:
-            print "WARNING: %s is not a valid (known) variables name in section %s"%(name, self)
+            session.logger.warning("%s is not a valid (known) variables name in section %s", name, self)
             return
 
         self.variables[name].set(value)
