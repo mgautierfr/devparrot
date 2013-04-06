@@ -5,7 +5,7 @@ from devparrot.controllers import editControllers, readOnlyControllers
 class DefaultControllerMode(ControllerMode):
     def __init__(self):
         ControllerMode.__init__(self)
-        self.subControllers = [ readOnlyControllers.CarretController(), editControllers.KeyboardController(), readOnlyControllers.MouseController(), editControllers.MouseController() ]
+        self.subControllers = [ readOnlyControllers.CarretController(), editControllers.KeyboardController(), editControllers.MouseController() ]
 
 
 class DefaultROControllerMode(ControllerMode):

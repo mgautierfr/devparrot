@@ -21,6 +21,7 @@
 import ttk
 from devparrot.core.controller import Controller, bind
 from pyparsing import printables, punc8bit, alphas8bit
+import readOnlyControllers
 
 
 validChars = set(printables+alphas8bit+punc8bit+" \t"+u'\u20ac')
@@ -131,14 +132,14 @@ class KeyboardController(Controller):
         event.widget.undo()
         return "break"
 
-class MouseController(Controller):
+class MouseController(readOnlyControllers.MouseController):
     def __init__(self):
-        Controller.__init__(self)
+        readOnlyControllers.MouseController.__init__(self)
 
     @bind( '<ButtonPress-2>' )
     def middle_click( self, event, modifiers):
         import Tkinter
-        MouseController.set_current(event)
+        self.set_current(event)
         try:
             event.widget.insert( 'current', event.widget.selection_get() )
             event.widget.edit_separator()
