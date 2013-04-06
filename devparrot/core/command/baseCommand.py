@@ -18,6 +18,7 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
+from devparrot.core.errors import NoDefault
 import constraints
 from constraintInstance import ConstraintInstance
 
@@ -121,7 +122,7 @@ class CommandWrapper(object):
                     # no positional argument
                     try:
                         call_kwords[constraint.name] = constraint.default()
-                    except constraints.noDefault:
+                    except NoDefault:
                         if constraint.askUser:
                             call_kwords[constraint.name] = constraint.ask_user()
                         else:
@@ -133,7 +134,7 @@ class CommandWrapper(object):
             if not args:
                 try:
                     call_list.append(constraint.default())
-                except constraints.noDefault:
+                except NoDefault:
                     if constraint.askUser:
                         call_list.extend(constraint.ask_user())
                     else:

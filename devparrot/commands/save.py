@@ -1,13 +1,14 @@
 from devparrot.core.command.baseCommand import Command
 from devparrot.core.command import constraints, binder
+from devparrot.core.errors import NoDefault
 from devparrot.core import capi
 
 def _get_default():
     if capi.currentDocument is None:
-        raise constraints.noDefault()
+        raise NoDefault()
     if capi.currentDocument.has_a_path():
         return capi.currentDocument.get_path()
-    raise constraints.noDefault()
+    raise NoDefault()
         
 @Command(
 fileName = constraints.File(mode=constraints.File.SAVE, default=lambda:_get_default())

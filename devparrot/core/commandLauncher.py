@@ -19,6 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 import utils.event
+from devparrot.core.errors import UserCommandError, UserCancel
 
 eventSystem = utils.event.EventSource()
 
@@ -42,9 +43,6 @@ def create_section(name=None, parentSection=None):
             return session.commands.setdefault(name, Section(name))
         else:
             return parentSection.setdefault(name,Section(name, parentSection))
-
-class UserCommandError(Exception):
-    pass
 
 
 class ListGenerator:

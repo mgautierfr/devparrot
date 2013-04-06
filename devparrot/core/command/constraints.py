@@ -22,6 +22,7 @@
 import os
 
 from devparrot.core.completion import Completion
+from devparrot.core.errors import UserCancel, NoDefault
 from devparrot.core.command.commandCompleter import DoubleStringCompletion, SimpleStringCompletion
 from devparrot.core.command.tokens import New
 
@@ -33,12 +34,6 @@ type_to_completion = {
     'Identifier'     : Completion,
     'New'            : Completion
 }
-
-class noDefault(Exception):
-    pass
-
-class userCancel(Exception):
-    pass
 
 class _Constraint:
     def __init__(self, optional=False, multiple=False, default=None, askUser=False, help=""):
@@ -63,7 +58,7 @@ class _Constraint:
             return self.check(args)
 
     def _no_default(self):
-        raise noDefault()
+        raise NoDefault()
 
     def complete_context(self, context):
         if not self.multiple and context.get_type() == "List":
@@ -90,7 +85,7 @@ class _Constraint:
         return True, token
     
     def ask_user(self):
-        raise userCancel()
+        raise UserCancel()
 
     def complete(self, token):
         if token.get_type().endswith('String'):
@@ -220,7 +215,7 @@ class File(_Constraint):
             d['multiple'] = self.multiple or self.isVararg
             token = ui.helper.ask_filenameOpen(**d)
         if not token:
-            raise userCancel()
+            raise UserCancel()
         return token
 
     def _complete(self, directory, filestart, prefix, completionClass):

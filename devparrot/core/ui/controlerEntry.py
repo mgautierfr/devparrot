@@ -68,7 +68,7 @@ class ControlerEntry(Tkinter.Text):
                 try:
                     session.commandLauncher.run_command(text[:-1])
                     self.configure(background=session.config.get("color.okColor"))
-                except UserCommandError:
+                except UserCommandError as userError:
                     self.configure(background=session.config.get("color.notFoundColor"))
                     self.toClean = True
                 if session.get_currentDocument():
