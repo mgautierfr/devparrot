@@ -40,11 +40,7 @@ class KeyboardController(Controller):
             return "break"
         char = event.char.decode('utf8')
         if char in validChars:
-            try:
-                event.widget.sel_delete( )
-            except ttk.Tkinter.TclError:
-                pass
-          
+            event.widget.sel_delete( )
             event.widget.insert( 'insert', char )
             event.widget.sel_clear( )
             return "break"
@@ -52,22 +48,20 @@ class KeyboardController(Controller):
     @bind('<Return>', '<KP_Enter>')
     def on_return(self, event, modifiers):
         from devparrot.core import session
-        try:
-            event.widget.sel_delete()
-        finally:
-            count = ttk.Tkinter.IntVar()
-            text = "\n"
-            l, c = event.widget.index('insert').split('.')
-            if session.config.get("textView.remove_tail_space"):
-                match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*$", '%s.0'%l, regexp=True)
-                if match_start:
-                    event.widget.delete(match_start, '%s.0 lineend'%l)
-            if session.config.get("textView.auto_indent"):
-                match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*" , '%s.0'%l, stopindex=event.widget.index('insert'), regexp=True, count=count)
-                if match_start:
-                    match_end = "%s.%i" % (l, min(count.get(), int(c)))
-                    text += event.widget.get(match_start, match_end)
-            event.widget.insert( 'insert', text )
+        event.widget.sel_delete()
+        count = ttk.Tkinter.IntVar()
+        text = "\n"
+        l, c = event.widget.index('insert').split('.')
+        if session.config.get("textView.remove_tail_space"):
+            match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*$", '%s.0'%l, regexp=True)
+            if match_start:
+                event.widget.delete(match_start, '%s.0 lineend'%l)
+        if session.config.get("textView.auto_indent"):
+            match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*" , '%s.0'%l, stopindex=event.widget.index('insert'), regexp=True, count=count)
+            if match_start:
+                match_end = "%s.%i" % (l, min(count.get(), int(c)))
+                text += event.widget.get(match_start, match_end)
+        event.widget.insert( 'insert', text )
     
     @bind('<ISO_Left_Tab>')
     def on_back_tab(self, event, modifier):
