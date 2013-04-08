@@ -28,11 +28,15 @@ def open_a_file(fileToOpen):
     if capi.file_is_opened(fileToOpen):
         doc = capi.get_file(fileToOpen)
     else:
+        from devparrot.core.errors import FileAccessError
         from devparrot.core.document import Document
         from devparrot.documents.fileDocSource import FileDocSource
-        doc = Document(FileDocSource(fileToOpen))
-        capi.add_file(doc)
-        doc.load()
+        try:
+            doc = Document(FileDocSource(fileToOpen))
+            doc.load()
+            capi.add_file(doc)
+        except IOError:
+            raise FileAccessError(doc.get_path())
     capi.currentDocument = doc
     doc.goto_index("%s.0"%lineToGo)
 

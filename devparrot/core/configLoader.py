@@ -122,7 +122,7 @@ def init():
     section.add_variable("smart_home_end", True)
     section.add_variable("font", "monospace")
     section = createSection("color")
-    section.add_variable("notFoundColor", "red")
+    section.add_variable("invalidColor", "red")
     section.add_variable("okColor", "#BBFFBB")
     section.add_variable("errorColor", "#FF9999")
     section.add_variable("highlight_tag_color", "#FFFFBB")

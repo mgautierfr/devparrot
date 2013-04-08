@@ -225,6 +225,7 @@ def userCommand():
 
 def parse_input_text(text, forCompletion=True):
     from devparrot.core import session
+    from devparrot.core.errors import InvalidSyntax
     if not text:
         return New(index=0)
     try:
@@ -235,5 +236,4 @@ def parse_input_text(text, forCompletion=True):
                 ret.values[-1] = CommandCall(index=lastCommand.index, len=lastCommand.len, name=lastCommand.name, values=[], closed=True)
         return ret
     except NoMatch:
-        session.userLogger("Can't parse |%s|", text)
-        return None
+        raise InvalidSyntax("Can't parse %s", text)

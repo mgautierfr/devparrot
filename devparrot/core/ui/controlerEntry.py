@@ -20,7 +20,6 @@
 
 import Tkinter
 from devparrot.core import session
-from devparrot.core.commandLauncher import UserCommandError
 from devparrot.core.command.commandCompleter import ControlerEntryCompletion
 
 from pyparsing import printables, punc8bit, alphas8bit
@@ -47,6 +46,7 @@ class ControlerEntry(Tkinter.Text):
     
     def on_entry_event(self, event):
         from devparrot.core import session
+        from devparrot.core.errors import ContextError, InvalidError
         if event.keysym == 'Up':
             self.delete("1.0", "end")
             self.insert("end", session.commandLauncher.history.get_previous())
@@ -67,16 +67,18 @@ class ControlerEntry(Tkinter.Text):
             try:
                 try:
                     session.commandLauncher.run_command(text[:-1])
-                    self.configure(background=session.config.get("color.okColor"))
-                except UserCommandError as userError:
-                    session.userLogger.error(userError)
-                    self.configure(background=session.config.get("color.notFoundColor"))
+                    session.userLogger.info(text[:-1])
                     self.toClean = True
+                except ContextError as err:
+                    session.userLogger.error(err)
+                    self.toClean = True
+                except InvalidError as err:
+                    session.userLogger.invalid(err)
+                    self.toClean = False
                 if session.get_currentDocument():
                     session.get_currentDocument().get_currentView().focus()
-            except Exception as er:
-                self.userLogger.error(er)
-                self.configure(background=session.config.get("color.errorColor"))
+            except Exception as err:
+                self.userLogger.error(err)
             finally:
                 return "break"
         if event.keysym == 'Escape':
@@ -104,7 +106,6 @@ class ControlerEntry(Tkinter.Text):
     def on_get_focus(self, event):
         if self.toClean:
             self.toClean = False
-            self.configure(background="white")
             self.delete("1.0",'end')
 
 

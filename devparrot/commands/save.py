@@ -19,7 +19,10 @@ def save(fileName):
 
     If fileName is provided, act as "saveas" command.
     """
-    capi.save_document(capi.currentDocument, fileName)
+    try:
+        capi.save_document(capi.currentDocument, fileName)
+    except IOError:
+        raise FileAccessError(fileName)
 
 @Command(
 fileName = constraints.File(mode=constraints.File.SAVE)
@@ -30,7 +33,10 @@ def saveas(fileName):
 
     If fileName is not provided, the user is asked for it.
     """
-    capi.save_document(capi.currentDocument, fileName)
+    try:
+        capi.save_document(capi.currentDocument, fileName)
+    except IOError:
+        raise FileAccessError(fileName)
 
 binder["<Control-s>"] = "save\n"
 binder["<Control-Shift-S>"] = "saveas\n"

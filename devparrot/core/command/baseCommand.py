@@ -101,6 +101,7 @@ class CommandWrapper(object):
         pass
 
     def _get_call_args(self, args, kwords):
+        from devparrot.core.errors import InvalidArgument
         call_list = []
         call_kwords = {}
         # bind positional constraints
@@ -108,14 +109,14 @@ class CommandWrapper(object):
             if constraint.name in kwords:
                 valid, newVal = constraint.check_arg(kwords[constraint.name])
                 if not valid:
-                    raise TypeError
+                    raise InvalidArgument("%s is not valid for constraint %s", kwords[constraint.name], constraint)
                 call_kwords[constraint.name] = newVal
                 del kwords[constraint.name]
             else:
                 try:
                     valid, newVal = constraint.check_arg(args[0])
                     if not valid:
-                        raise TypeError
+                        raise InvalidArgument("%s is not valid for constraint %s", args[0], constraint)
                     call_kwords[constraint.name] = newVal
                     args = args[1:]
                 except IndexError:
@@ -126,7 +127,7 @@ class CommandWrapper(object):
                         if constraint.askUser:
                             call_kwords[constraint.name] = constraint.ask_user()
                         else:
-                            raise TypeError
+                            raise InvalidArgument("missing argument for constraint %s", constraint)
 
         # bind left positional arguments
         if self.argSpec.varargs and self.argSpec.varargs in self.constraints:
@@ -138,12 +139,12 @@ class CommandWrapper(object):
                     if constraint.askUser:
                         call_list.extend(constraint.ask_user())
                     else:
-                        raise TypeError
+                        raise InvalidArgument("missing argument for constraint %s", constraint)
             else:
                 for arg in args:
                     valid, newVal = constraint.check_arg(arg)
                     if not valid:
-                        raise TypeError
+                        raise InvalidArgument("%s is not valid for constraint %s", arg, constraint)
                     call_list.append(newVal)
         else:
             # this will make the call fail, but user will have some info
@@ -202,7 +203,7 @@ class Command(object):
                 if streamName is None:
                     streamName = name
                 else:
-                    raise Exception("Function can have only on stream")
+                    raise Exception("Function can have only one stream")
         self.wrapper = CommandWrapper(kwords, streamName)
 
     def __call__(self, function, section=None):

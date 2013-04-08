@@ -20,7 +20,7 @@
 
 import Tkinter
 import logging
-from devparrot.core import session
+from devparrot.core import session, userLogging
 
 class StatusBar(Tkinter.Label, logging.Handler):
     def __init__(self, parent):
@@ -29,6 +29,9 @@ class StatusBar(Tkinter.Label, logging.Handler):
         self.pack(side=Tkinter.BOTTOM, fill=Tkinter.X)
         session.userLogger.addHandler(self)
 
+        self.defaultColor = self['background']
+        self['relief'] = 'sunken'
+        self['anchor'] = 'nw'
         self.currentLevel = 0
         self.callbackId = 0
 
@@ -39,15 +42,21 @@ class StatusBar(Tkinter.Label, logging.Handler):
 
     def clear(self):
         self.currentLevel = 0
-        self["text"] = ""
+        self['text'] = ""
+        self['background'] = self.defaultColor
         self.callbackId = 0
 
     def emit(self,record):
         """overide logging.Handler.emit"""
-        print record.levelno
         if record.levelno >= self.currentLevel:
             self.currentLevel = record.levelno
-            self["text"] = record.getMessage()
+            self['text'] = record.getMessage()
+            if self.currentLevel == userLogging.INFO:
+                self['background'] = session.config.get('color.okColor')
+            if self.currentLevel == userLogging.ERROR:
+                self['background'] = session.config.get('color.errorColor')
+            if self.currentLevel == userLogging.INVALID:
+                self['background'] = session.config.get('color.invalidColor')
             if self.callbackId:
                 self.after_cancel(self.callbackId)
             self.callbackId = self.after(5000, self.clear)

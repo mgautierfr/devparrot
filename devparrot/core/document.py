@@ -92,10 +92,8 @@ class Document(utils.event.EventSource):
         self.event('textSet')(self)
     
     def write(self):
-        if self.documentSource.set_content(self.model.get_text()):
-            self.model.edit_modified(False)
-            return True
-        return False
+        self.documentSource.set_content(self.model.get_text())
+        self.model.edit_modified(False)
         
     def on_modified_changed(self, event):
         if not self.is_readonly():

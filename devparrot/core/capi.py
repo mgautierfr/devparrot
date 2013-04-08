@@ -111,20 +111,21 @@ def open_file(filePath):
 
 def save_document(document, fileToSave):
     from devparrot.core import session
+    from devparrot.core.errors import ContextError
     if document.has_a_path() and document.get_path() == fileToSave:
-        return document.write()
+        document.write()
 
     # we've ask to change the path
     if file_is_opened(fileToSave):
         #The document is already opened.
         #do nothing (should warn or save/close/reopen)
-        return False
+        raise ContextError("%s is already open and is not the file you want to save", fileToSave)
 
     from devparrot.documents.fileDocSource import FileDocSource
     document.set_path(FileDocSource(fileToSave))
     session.get_documentManager().del_file(document)
     session.get_documentManager().add_file(document)
-    return document.write()
+    document.write()
 
 def quit():
     from devparrot.core import ui

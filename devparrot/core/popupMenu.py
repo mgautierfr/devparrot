@@ -46,12 +46,12 @@ class EditSection:
         self.menu = menu
     
     def createMenu(self):
-        self.menu.add_command(label='Undo', command=lambda:session.commandLauncher.run_command('undo'))
-        self.menu.add_command(label='Redo', command=lambda:session.commandLauncher.run_command('redo'))
+        self.menu.add_command(label='Undo', command=lambda:session.commandLauncher.run_command_nofail('undo'))
+        self.menu.add_command(label='Redo', command=lambda:session.commandLauncher.run_command_nofail('redo'))
         self.menu.add_separator()
-        self.menu.add_command(label='Copy',  command=lambda:session.commandLauncher.run_command('copy'))
-        self.menu.add_command(label='Cut',   command=lambda:session.commandLauncher.run_command('cut'))
-        self.menu.add_command(label='Paste', command=lambda:session.commandLauncher.run_command('paste'))
+        self.menu.add_command(label='Copy',  command=lambda:session.commandLauncher.run_command_nofail('copy'))
+        self.menu.add_command(label='Cut',   command=lambda:session.commandLauncher.run_command_nofail('cut'))
+        self.menu.add_command(label='Paste', command=lambda:session.commandLauncher.run_command_nofail('paste'))
     
     def postCommand(self):
         try:

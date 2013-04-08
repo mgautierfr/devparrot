@@ -57,14 +57,11 @@ class FileDocSource(object):
             return ""
 
         text = ""
-        try:
-            with open(self.path, 'r') as fileIn:
-                text = fileIn.read()
-            if text and text[-1] == '\n':
-                text = text[:-1]
-            self.init_timestamp()
-        except IOError:
-            sys.stderr.write("Error while loading file %s\n"%self.path)
+        with open(self.path, 'r') as fileIn:
+            text = fileIn.read()
+        if text and text[-1] == '\n':
+            text = text[:-1]
+        self.init_timestamp()
         return text
     
     def init_timestamp(self):
@@ -76,14 +73,9 @@ class FileDocSource(object):
 
     def set_content(self, content):
         """ set the content of the file (save it) """
-        try :
-            with open(self.path, 'w') as fileOut:
-                fileOut.write(content.encode('utf8'))
-            self.init_timestamp()
-            return True
-        except IOError:
-            sys.stderr.write("Error while writing file %s\n"%self.path)
-            return False
+        with open(self.path, 'w') as fileOut:
+            fileOut.write(content.encode('utf8'))
+        self.init_timestamp()
     
     def need_reload(self):
         """return True if the file has been modified since last init_timestamp"""

@@ -11,7 +11,7 @@ class BindLauncher(object):
     def __call__(self, event):
         from devparrot.core import session, ui
         for cmd in self.commands:
-            ret = session.commandLauncher.run_command(cmd)
+            ret = session.commandLauncher.run_command_nofail(cmd)
             if not ret:
                 return "break"
         ui.window.entry.delete("1.0", "end")

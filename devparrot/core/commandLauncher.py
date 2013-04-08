@@ -19,7 +19,7 @@
 #    Copyright 2011 Matthieu Gautier
 
 import utils.event
-from devparrot.core.errors import UserCommandError, UserCancel
+from devparrot.core.errors import InvalidName, UserCancel
 
 eventSystem = utils.event.EventSource()
 
@@ -89,6 +89,7 @@ class History(object):
 
 def expand_alias(commands, first=False):
     from devparrot.core import session
+    from devparrot.core.errors import InvalidArgument
     from devparrot.core.command.parserGrammar import parse_input_text
     from devparrot.core.command.alias import AliasWrapper
     for command in commands:
@@ -105,7 +106,10 @@ def expand_alias(commands, first=False):
         if commandName in aliases:
             #it is an alias, lets expand it
             #command with rewrite with all the section
-            alias_expansion = eval(command.rewrited(), dict(session.commands), {})
+            try:
+                alias_expansion = eval(command.rewrited(), dict(session.commands), {})
+            except TypeError as err:
+                raise InvalidArgument(err.message)
             #parse new text and redo the work for it
             pipe = parse_input_text(alias_expansion, forCompletion=False)
             for com in expand_alias(pipe.values):
@@ -118,7 +122,7 @@ def expand_alias(commands, first=False):
 
 class CommandLauncher:
     def __init__(self):
-        self.history = History()    
+        self.history = History()
 
     def run_command(self, text):
         from devparrot.core import session
@@ -138,12 +142,23 @@ class CommandLauncher:
                         streamEater = eval(command.rewrited(), dict(session.commands), {})
                         stream = streamEater(stream)
                     except NameError:
-                        raise UserCommandError("{0} is not a valid command name".format(command.name))
+                        raise InvalidName("{0} is not a valid command name".format(command.name))
                     except UserCancel:
-                        return
+                        raise StopIteration
 
             except StopIteration:
                 break # cause no more command at all
-        session.userLogger.info("%s : OK", text)
         self.history.push(text)
 
+    def run_command_nofail(self, text):
+        from devparrot.core import session
+        from devparrot.core.errors import ContextError, InvalidError
+        try:
+            self.run_command(text)
+            session.userLogger.info(text)
+        except ContextError as err:
+            session.userLogger.error(err)
+        except InvalidError as err:
+            session.userLogger.invalid(err)
+        except Exception as err:
+            session.logger.exception(err)

@@ -21,6 +21,7 @@
 import documentManager
 import commandLauncher as _commandLauncher
 import logging
+import userLogging
 
 _documentManager = documentManager.DocumentManager()
 _workspace = None
@@ -28,8 +29,7 @@ _globalContainer = None
 config = None
 commands = None
 
-userLogger = logging.getLogger("user")
-userLogger.setLevel(logging.INFO)
+userLogger = userLogging.UserLogger()
 
 logger = logging.getLogger("devparrot")
 logger.setLevel(logging.INFO)

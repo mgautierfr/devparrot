@@ -40,7 +40,8 @@ if __name__ == "__main__":
 
 
 	if len(sys.argv) > 1:
-		pathes = sys.argv[1:]
-		devparrot.core.session.commandLauncher.run_command("open %s"%",".join(['"%s"'%p for p in pathes]))
+		pathes = ",".join(['"{}"'.format(p) for p in sys.argv[1:]])
+		devparrot.core.session.commandLauncher.run_command_nofail("open {}".format(pathes))
+
 	devparrot.core.ui.window.mainloop()
 
