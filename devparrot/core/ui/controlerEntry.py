@@ -20,6 +20,7 @@
 
 import Tkinter
 from devparrot.core import session
+from devparrot.core.errors import *
 from devparrot.core.command.commandCompleter import ControlerEntryCompletion
 
 from pyparsing import printables, punc8bit, alphas8bit
@@ -91,7 +92,7 @@ class ControlerEntry(Tkinter.Text):
                 self.delete( 'sel.first', 'sel.last' )
                 self.tag_remove( 'sel', '1.0', 'end' )
                 self.mark_unset( 'sel.first', 'sel.last' )
-            except Tkinter.TclError:
+            except TclError:
                 self.delete( 'insert -1 chars', 'insert' )
             self.completionSystem.update_completion()
             return "break"

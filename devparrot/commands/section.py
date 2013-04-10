@@ -1,7 +1,8 @@
 from devparrot.core.command.baseCommand import Command
 from devparrot.core.command import constraints, binder
+from devparrot.core.errors import *
 from devparrot.core import capi
-from devparrot.core.utils.posrange import Index, BadArgument
+from devparrot.core.utils.posrange import Index
 
 @Command(
 startIndex = constraints.Index(),

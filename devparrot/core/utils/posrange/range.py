@@ -1,9 +1,9 @@
-from error import BadArgument
+from devparrot.core.errors import *
 
 class Range:
     def __init__(self, textWidget, startIndex, endIndex):
         if startIndex > endIndex:
-            raise BadArgument()
+            raise BadArgument("{} is superior to {}".format(startIndex, endIndex))
         self.textWidget = textWidget
         self.startIndex = startIndex
         self.endIndex = endIndex

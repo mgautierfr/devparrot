@@ -22,6 +22,7 @@ import ttk
 from ttk import Tkinter
 
 from devparrot.core import session, utils
+from devparrot.core.errors import *
 from devparrot.core.utils.variable import mcb
 
 
@@ -71,12 +72,12 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
     def sel_clear( self ):
         try:
             self.tag_remove( 'sel', '1.0', 'end' )
-        except Tkinter.TclError:
+        except TclError:
             pass
       
         try:
             self.mark_unset( 'sel.anchor', 'sel.first', 'sel.last' )
-        except Tkinter.TclError:
+        except TclError:
             pass
    
     def sel_setAnchor( self, index ):
@@ -86,14 +87,14 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
         try:
             self.index( 'sel.anchor' )
             return True
-        except Tkinter.TclError:
+        except TclError:
             return False
 
     def sel_isSelection( self ):
         try:
             self.index( 'sel.first' )
             return True
-        except Tkinter.TclError:
+        except TclError:
             return False
 
     def sel_update( self ):
@@ -112,7 +113,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
     def sel_delete( self ):
         try:
             self.delete('sel.first', 'sel.last' )
-        except Tkinter.TclError:
+        except TclError:
             pass
         
         self.sel_clear( )
@@ -139,7 +140,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
             	
                 self.tag_remove( 'sel', '1.0', 'end' )
                 self.tag_add( 'sel', 'sel.first', 'sel.last' )
-            except Tkinter.TclError:
+            except TclError:
                 pass 
         
     def insert(self, index, *args, **kword):
@@ -167,14 +168,14 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
     def undo(self):
         try:
             self.edit_undo()
-        except Tkinter.TclError:
+        except TclError:
             pass
         self.sel_clear()
 
     def redo(self):
         try:
             self.edit_redo()
-        except Tkinter.TclError:
+        except TclError:
             pass
         self.sel_clear()
 

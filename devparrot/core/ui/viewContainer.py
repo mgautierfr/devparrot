@@ -20,6 +20,7 @@
 
 import Tkinter, ttk, Tkdnd
 from devparrot.core import session
+from devparrot.core.errors import *
 from devparrot.core.utils.variable import fcb, ref
 from weakref import proxy
 
@@ -189,7 +190,7 @@ def on_button_pressed(event):
 def on_button_released(event):
     try:
         event.widget.select("@%d,%d" % (event.x, event.y))
-    except Tkinter.TclError:
+    except TclError:
         pass
 
 class NotebookContainer(ContainerChild, ttk.Notebook):

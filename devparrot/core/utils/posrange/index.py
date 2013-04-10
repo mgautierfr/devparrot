@@ -1,7 +1,6 @@
 
-from Tkinter import TclError
 from collections import namedtuple
-from error import BadArgument
+from devparrot.core.errors import *
 
 Index_ = namedtuple('Index', "line col text")
 

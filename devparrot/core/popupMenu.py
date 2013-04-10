@@ -18,13 +18,14 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-import ttk
+import Tkinter
 import session
+from devparrot.core.errors import *
 
 
-class Menu(ttk.Tkinter.Menu):
+class Menu(Tkinter.Menu):
     def __init__(self):
-        ttk.Tkinter.Menu.__init__(self)
+        Tkinter.Menu.__init__(self)
         self.sections = []
         self.config(postcommand=self.postCommand)
         self.add_section(EditSection(self))
@@ -57,7 +58,7 @@ class EditSection:
         try:
             self.menu.clipboard_get()
             self.menu.entryconfigure('Paste', state="normal")
-        except ttk.Tkinter.TclError:
+        except TclError:
             self.menu.entryconfigure('Paste', state="disable")
 
         import capi

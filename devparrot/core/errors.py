@@ -1,4 +1,5 @@
 
+from Tkinter import TclError
 
 class ContextError(Exception):
     """This error representes all errors that come from the context.
@@ -50,4 +51,7 @@ class NoDefault(Exception):
     pass
 
 class UserCancel(Exception):
+    pass
+
+class BadArgument(Exception):
     pass

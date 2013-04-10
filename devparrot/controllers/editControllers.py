@@ -23,6 +23,8 @@ from devparrot.core.controller import Controller, bind
 from pyparsing import printables, punc8bit, alphas8bit
 import readOnlyControllers
 
+from devparrot.core.errors import *
+
 
 validChars = set(printables+alphas8bit+punc8bit+" \t"+u'\u20ac')
 # euro signe (\u20ac) is not in alpha8bit => add it
@@ -66,7 +68,7 @@ class KeyboardController(Controller):
     @bind('<ISO_Left_Tab>')
     def on_back_tab(self, event, modifier):
         from devparrot.core import session
-        from devparrot.core.utils.posrange import Index, BadArgument
+        from devparrot.core.utils.posrange import Index
         tabs = ['\t']
         if session.config.get("textView.space_indent"):
             tabs += [' '*i for i in xrange(session.config.get("textView.tab_width"), 0, -1)]
@@ -84,7 +86,7 @@ class KeyboardController(Controller):
 
     @bind('<Tab>')
     def on_tab(self, event, modifier):
-        from devparrot.core.utils.posrange import Index, BadArgument
+        from devparrot.core.utils.posrange import Index
         from devparrot.core import session
         tab = ' '*session.config.get("textView.tab_width") if session.config.get("textView.space_indent") else '\t'
         try:
@@ -103,7 +105,7 @@ class KeyboardController(Controller):
         try:
             event.widget.delete( 'sel.first', 'sel.last' )
             event.widget.sel_clear()
-        except ttk.Tkinter.TclError:
+        except TclError:
             event.widget.delete( 'insert -1 chars', 'insert' )
     
     @bind('<Delete>', '<KP_Delete>')
@@ -113,7 +115,7 @@ class KeyboardController(Controller):
         try:
             event.widget.delete( 'sel.first', 'sel.last' )
             event.widget.sel_clear()
-        except ttk.Tkinter.TclError:
+        except TclError:
             event.widget.delete( 'insert', 'insert +1 chars' )
     
     @bind('<Control-r>')
@@ -132,11 +134,10 @@ class MouseController(readOnlyControllers.MouseController):
 
     @bind( '<ButtonPress-2>' )
     def middle_click( self, event, modifiers):
-        import Tkinter
         self.set_current(event)
         try:
             event.widget.insert( 'current', event.widget.selection_get() )
             event.widget.edit_separator()
-        except Tkinter.TclError:
+        except TclError:
             pass
 

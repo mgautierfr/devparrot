@@ -1,4 +1,5 @@
 import Tkinter
+from devparrot.core.errors import *
 
 def escape_token(value):
     if set("'\"\\ ") | set(value):
@@ -194,6 +195,6 @@ class CompletionSystem(object):
             self.textWidget.delete( 'sel.first', 'sel.last' )
             self.textWidget.tag_remove( 'sel', '1.0', 'end' )
             self.textWidget.mark_unset( 'sel.first', 'sel.last' )
-        except Tkinter.TclError:
+        except TclError:
             self.textWidget.delete( 'insert -1 chars', 'insert' )
         self.update_completion()
