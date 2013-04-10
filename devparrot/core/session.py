@@ -28,6 +28,7 @@ _workspace = None
 _globalContainer = None
 config = None
 commands = None
+memories = {}
 
 userLogger = userLogging.UserLogger()
 
