@@ -33,7 +33,7 @@ def Index(textWidget, index, indexCallNeeded = False):
         except ValueError:
             indexCallNeeded = True
         except IndexError:
-            raise BadArgument()
+            raise BadArgument("{} is not a valid index".format(index))
 
     if indexCallNeeded:
         try:
@@ -41,6 +41,6 @@ def Index(textWidget, index, indexCallNeeded = False):
             _split = index.split('.')
             split = (int(_split[0]), int(_split[1]))
         except TclError:
-            raise BadArgument()
+            raise BadArgument("{} is not a valid index".format(index))
     return _Index(split[0], split[1], index)
 
