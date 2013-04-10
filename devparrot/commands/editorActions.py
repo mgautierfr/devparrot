@@ -19,25 +19,26 @@
 #    Copyright 2011 Matthieu Gautier
 
 from devparrot.core.command.baseCommand import Command
+from devparrot.core.command.alias import Alias
 from devparrot.core.command import binder
 from devparrot.core import capi
 
-@Command()
+@Alias()
 def cut():
     """cut selection to clipboard"""
-    capi.currentDocument.get_currentView().cut_clipboard()
+    return "section sel | memory CLIPBOARD\nstream.empty | section sel"
 
-@Command()
+@Alias()
 def copy():
     """copy selection to clipboard"""
-    capi.currentDocument.get_currentView().copy_clipboard()
+    return "section sel | memory CLIPBOARD"
 
-@Command()
+@Alias()
 def paste():
     """paste clipboard content at "insert" mark"""
-    capi.currentDocument.get_currentView().paste_clipboard()
+    return "memory CLIPBOARD | section standardInsert"
 
-@Command()
+@Alias()
 def undo():
     """undo last command"""
     capi.currentDocument.get_model().undo()
