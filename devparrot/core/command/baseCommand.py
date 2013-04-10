@@ -42,9 +42,6 @@ class Stream(object):
             raise StopIteration
         return self.stream.next()
 
-    def __or__(self, streamEater):
-        return streamEater(self)
-
 class PseudoStream(Stream):
     def __init__(self):
         Stream.__init__(self, None)

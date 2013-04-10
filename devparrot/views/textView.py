@@ -136,40 +136,6 @@ class TextView():
         self.view.lift(self.uiContainer)
         self.view.connect('insert', mcb(self.on_event_lineChanged))
         self.view.connect('delete', mcb(self.on_event_lineChanged))
-    
-    def copy_clipboard(self):
-        if self.view:
-            try:
-                self.view.clipboard_clear()
-                self.view.clipboard_append(self.view.get('sel.first','sel.last'))
-            except Tkinter.TclError:
-                # there is no selection, can't copy
-                return False
-            return True
-
-    def cut_clipboard(self):
-        if self.view:
-            try:
-                self.view.clipboard_clear()
-                self.view.clipboard_append( self.view.get( 'sel.first', 'sel.last' ) )
-                self.view.delete( 'sel.first', 'sel.last' )
-                self.view.sel_clear( )
-            except Tkinter.TclError:
-                # there is no selection, can't cut
-                return False
-            return True
-
-    def paste_clipboard(self):
-        if self.view:
-            try:
-                self.view.mark_set( 'insert', 'sel.first' )
-                self.view.delete( 'sel.first', 'sel.last' )
-            except Tkinter.TclError:
-                # not a pb if there is no selection
-                pass
-            self.view.insert( 'insert', self.view.clipboard_get( ) )
-            self.view.sel_clear( )
-            return True
 
     def lift(self, above):
         self.uiContainer.lift(above)
