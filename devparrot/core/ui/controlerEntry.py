@@ -78,7 +78,7 @@ class ControlerEntry(Tkinter.Text):
                 if session.get_currentDocument():
                     session.get_currentDocument().get_currentView().focus()
             except Exception as err:
-                self.userLogger.error(err)
+                session.logger.error(err)
             finally:
                 return "break"
         if event.keysym == 'Escape':
