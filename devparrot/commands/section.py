@@ -1,11 +1,11 @@
 from devparrot.core.command.baseCommand import Command
 from devparrot.core.command import constraints, binder
 from devparrot.core import capi
-from devparrot.core.utils.posrange import Index
+from devparrot.core.utils.posrange import Index, BadArgument
 
 @Command(
 startIndex = constraints.Index(),
-endIndex = constraints.Index(),
+endIndex = constraints.Index(optional=True, default=lambda : None),
 content = constraints.Stream()
 )
 def section(startIndex, endIndex, content):
@@ -15,8 +15,27 @@ def section(startIndex, endIndex, content):
     the section use as stream sink or stream source. (but not both)
     """
     model = capi.currentDocument.get_model()
-    startIndex = Index(model, startIndex)
-    endIndex = Index(model, endIndex)
+
+    if startIndex == "standardInsert":
+        try:
+            startIndex = Index(model, "sel.first")
+            endIndex = Index(model, "sel.last")
+        except BadArgument:
+            startIndex = Index(model, "insert")
+            endIndex = startIndex
+
+    elif endIndex is None:
+        try:
+            startIndex = Index(model, startIndex)
+            endIndex = startIndex
+        except BadArgument:
+            startStr = startIndex
+            startIndex = Index(model, "{}.first".format(startStr))
+            endIndex = Index(model, "{}.last".format(startStr))
+
+    else:
+        startIndex = Index(model, startIndex)
+        endIndex = Index(model, endIndex)
     
     insertionMode = False
 
@@ -37,9 +56,9 @@ def section(startIndex, endIndex, content):
         if startIndex.line == endIndex.line:
             yield model.get(str(startIndex), str(endIndex))
         else:
-            yield model.get(str(startIndex), "%s lineend"%str(startIndex))
+            yield "{}\n".format(model.get(str(startIndex), "%s lineend"%str(startIndex)))
             for i in range(startIndex.line+1, endIndex.line):
-                yield model.get("%d.0"%i, "%d.0 lineend"%i)
+                yield "{}\n".format(model.get("%d.0"%i, "%d.0 lineend"%i))
             yield model.get("%s linestart"%str(endIndex), str(endIndex))
 
     return gen()
