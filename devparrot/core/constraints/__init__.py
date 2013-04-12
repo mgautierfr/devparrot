@@ -21,6 +21,8 @@
 
 import os
 
+from constraintInstance import ConstraintInstance
+
 from devparrot.core.completion import Completion
 from devparrot.core.errors import UserCancel, NoDefault
 from devparrot.core.command.commandCompleter import DoubleStringCompletion, SimpleStringCompletion

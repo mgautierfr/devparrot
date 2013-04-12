@@ -1,6 +1,5 @@
-from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import constraints
-from devparrot.core import capi
+from devparrot.core.command import Command
+from devparrot.core import constraints, capi
 
 @Command(
 document = constraints.OpenDocument()

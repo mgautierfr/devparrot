@@ -1,4 +1,4 @@
-from devparrot.core.command.baseCommand import Command
+from devparrot.core.command import Command
 from devparrot.core.commandLauncher import create_section
 
 

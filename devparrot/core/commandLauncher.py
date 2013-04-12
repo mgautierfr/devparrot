@@ -91,7 +91,7 @@ def expand_alias(commands, first=False):
     from devparrot.core import session
     from devparrot.core.errors import InvalidArgument
     from devparrot.core.command.parserGrammar import parse_input_text
-    from devparrot.core.command.alias import AliasWrapper
+    from devparrot.core.command.wrappers import AliasWrapper
     for command in commands:
         if command == "\n":
             yield command
@@ -127,7 +127,7 @@ class CommandLauncher:
     def run_command(self, text):
         from devparrot.core import session
         from devparrot.core.command.parserGrammar import parse_input_text
-        from devparrot.core.command.baseCommand import PseudoStream, DefaultStreamEater
+        from devparrot.core.command.stream import PseudoStream, DefaultStreamEater
         pipe = parse_input_text(text, forCompletion=False)
         commands = expand_alias(pipe.values, True)
         while True:

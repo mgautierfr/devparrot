@@ -18,48 +18,9 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from devparrot.core.errors import NoDefault
-import constraints
-from constraintInstance import ConstraintInstance
-
-def DefaultStreamEater(stream):
-    try:
-        for _ in stream:
-            pass
-    except TypeError:
-        pass
-        
-
-class Stream(object):
-    def __init__(self, stream):
-        self.stream = stream
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        if not self.stream:
-            raise StopIteration
-        return self.stream.next()
-
-class PseudoStream(Stream):
-    def __init__(self):
-        Stream.__init__(self, None)
-
-class StreamEater(object):
-    def __init__(self, function, streamName, args, kwords, argsorder):
-        self.function = function
-        self.streamName = streamName
-        self.args = args
-        self.kwords = kwords
-        self.argsorder = argsorder
-
-    def __call__(self, stream):
-        if self.streamName:
-            self.kwords[self.streamName] = stream
-        call_list = [self.kwords[name] for name in self.argsorder]
-        call_list.extend(self.args)
-        return Stream(self.function(*call_list))
+from devparrot.core.constraints import ConstraintInstance, Default, Keyword
+from devparrot.core.command.stream import StreamEater
+from devparrot.core.errors import *
 
 class CommandWrapper(object):
     def __init__(self, constraints, streamName=None):
@@ -79,7 +40,7 @@ class CommandWrapper(object):
             varargConstraint.isVararg = True
 
     def _get_constraint(self, name):
-        return self.constraints.get(name, constraints.Default())
+        return self.constraints.get(name, Default())
 
     def _get_all_constraints(self):
         for name in  self.argSpec.args:
@@ -98,7 +59,6 @@ class CommandWrapper(object):
         pass
 
     def _get_call_args(self, args, kwords):
-        from devparrot.core.errors import InvalidArgument
         call_list = []
         call_kwords = {}
         # bind positional constraints
@@ -191,24 +151,46 @@ class CommandWrapper(object):
             return "%s.%s"%(self.section.get_name(), self.functionToCall.__name__)
         return self.functionToCall.__name__
 
+class AliasWrapper(CommandWrapper):
+    def __init__(self, constraints):
+        CommandWrapper.__init__(self, constraints, None)
 
-class Command(object):
-    def __init__(self, **kwords):
-        streamName = None
-        for name, constraint in kwords.items():
-            if isinstance(constraint, constraints.Stream):
-                if streamName is None:
-                    streamName = name
-                else:
-                    raise Exception("Function can have only one stream")
-        self.wrapper = CommandWrapper(kwords, streamName)
+    def __call__(self, *args, **kwords):
+        call_list, call_kwords = self._get_call_args(args, kwords)
+        return self.functionToCall(*call_list, **call_kwords)
 
-    def __call__(self, function, section=None):
-        from devparrot.core.commandLauncher import add_command
-        self.wrapper._set_section(section)
-        self.wrapper._set_function(function)
-        add_command(function.__name__, self.wrapper, section)
-        return function
+class MasterCommandWrapper(object):
+    def __init__(self):
+        self._class = None
+        self.subCommands = {}
 
+    def set_class(self, _class):
+        self._class = _class
+
+    def add_subCommand(self, name, function):
+        self.subCommands[name] = function
+
+    def get_constraint(self, index):
+        if index == 0:
+            return ConstraintInstance(Keyword(self.subCommands.keys()), "subCommand")
+        else:
+            return self.subCommands[self.currentSubCommand].get_constraint(index-1)
+
+    def provide_value(self, index, value):
+        if index == 0:
+            self.currentSubCommand = value
+        else:
+            self.subCommands[self.currentSubCommand].provide_value(index-1, value)
+
+    def __call__(self, *args, **kwords):
+        subCommandName = args[0]
+        args = args[1:]
+        return self.subCommands[subCommandName](*args, **kwords)
+
+    def get_help(self):
+        return self._class.__doc__
+
+    def get_name(self):
+        return self._class.__name__
 
 

@@ -1,6 +1,6 @@
 
-from devparrot.core.command.masterCommand import MasterCommand, SubCommand
-from devparrot.core.command import constraints
+from devparrot.core.command import MasterCommand, SubCommand
+from devparrot.core import constraints
 from devparrot.core import capi
 
 class tag(MasterCommand):

@@ -18,9 +18,8 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from devparrot.core.command.baseCommand import Command
-from devparrot.core.command.alias import Alias
-from devparrot.core.command import binder
+from devparrot.core.command import Command, Alias
+from devparrot.core.session import bindings
 from devparrot.core import capi
 
 @Alias()
@@ -48,6 +47,6 @@ def redo():
     """redo last undone command"""
     capi.currentDocument.get_model().redo()
 
-binder["<<Cut>>"] = "cut\n"
-binder["<<Copy>>"] = "copy\n"
-binder["<<Paste>>"] = "paste\n"
+bindings["<<Cut>>"] = "cut\n"
+bindings["<<Copy>>"] = "copy\n"
+bindings["<<Paste>>"] = "paste\n"

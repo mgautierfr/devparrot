@@ -1,5 +1,6 @@
-from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import constraints, binder
+from devparrot.core.command import Command
+from devparrot.core.session import bindings
+from devparrot.core import constraints
 from devparrot.core import capi
 
 
@@ -17,4 +18,4 @@ def closeall():
     while len(capi.documents):
         capi.close_document(capi.get_nth_file(0))
 
-binder["<Control-w>"] = "close\n"
+bindings["<Control-w>"] = "close\n"

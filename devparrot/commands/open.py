@@ -1,6 +1,7 @@
 import os
-from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import constraints, binder
+from devparrot.core.command import Command
+from devparrot.core import constraints
+from devparrot.core.session import bindings
 from devparrot.core import capi
 
 @Command(
@@ -41,4 +42,4 @@ def open_a_file(fileToOpen):
     doc.goto_index("%s.0"%lineToGo)
 
 
-binder["<Control-o>"] = "open\n"
+bindings["<Control-o>"] = "open\n"

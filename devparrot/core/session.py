@@ -29,6 +29,7 @@ _globalContainer = None
 config = None
 commands = None
 memories = {}
+bindings = None
 
 userLogger = userLogging.UserLogger()
 
@@ -43,13 +44,16 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 def init(_config):
+    from devparrot.core.command import bind
     global config
     global _documentManager
     global commandLauncher
+    global bindings
     config = _config
     _documentManager = documentManager.DocumentManager()
     commandLauncher = _commandLauncher.CommandLauncher()
     _commandLauncher.create_section()
+    bindings = bind.Binder()
 
 def get_documentManager():
     return _documentManager

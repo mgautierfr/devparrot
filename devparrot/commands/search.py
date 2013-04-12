@@ -1,6 +1,6 @@
-from devparrot.core.command.baseCommand import Command
-from devparrot.core.command.alias import Alias
-from devparrot.core.command import constraints, binder
+from devparrot.core.command import Command, Alias
+from devparrot.core import constraints
+from devparrot.core.session import bindings
 from devparrot.core.commandLauncher import create_section
 from devparrot.core import capi
 
@@ -43,6 +43,6 @@ def search(searchText, backward):
 def bsearch(searchText):
     return "search %s backward=True"%searchText
 
-binder["<F3>"] = "search\n"
-binder["<Alt-F3>"] = "search backward=True\n"
-binder["<Control-f>"] = "search "
+bindings["<F3>"] = "search\n"
+bindings["<Alt-F3>"] = "search backward=True\n"
+bindings["<Control-f>"] = "search "

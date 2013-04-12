@@ -1,8 +1,7 @@
 
-from devparrot.core.command.baseCommand import Command
-from devparrot.core.command.alias import Alias
+from devparrot.core.command import Command, Alias
 from devparrot.core.commandLauncher import create_section
-from devparrot.core.command import constraints
+from devparrot.core import constraints
 
 class inner:
     @staticmethod

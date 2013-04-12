@@ -1,6 +1,6 @@
-import bind
+__all__ = ['Command', 'Alias', 'MasterCommand', 'SubCommand']
 
-binder = bind.Binder()
+from decorators import Command, Alias, MasterCommand, SubCommand
 
 def load():
     from pwd import getpwuid
@@ -33,4 +33,6 @@ def load_module(path, name):
 
     with fp:
         return imp.load_module(name, fp, pathname, description)
+
+
 

@@ -1,5 +1,6 @@
-from devparrot.core.command.baseCommand import Command
-from devparrot.core.command import constraints, binder
+from devparrot.core.command import Command
+from devparrot.core import constraints
+from devparrot.core.session import bindings
 from devparrot.core.errors import NoDefault
 from devparrot.core import capi
 
@@ -38,5 +39,5 @@ def saveas(fileName):
     except IOError:
         raise FileAccessError(fileName)
 
-binder["<Control-s>"] = "save\n"
-binder["<Control-Shift-S>"] = "saveas\n"
+bindings["<Control-s>"] = "save\n"
+bindings["<Control-Shift-S>"] = "saveas\n"
