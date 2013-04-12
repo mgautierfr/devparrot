@@ -138,11 +138,17 @@ class CommandLauncher:
                     if command == "\n":
                         DefaultStreamEater(stream)
                         break # one pipe, start a new line (pipe)
+                    l = command.name.split('.')
+                    sections, commandName = l[:-1], l[-1]
+                    try:
+                        lastSection = session.commands
+                        for section in sections:
+                                    lastSection = lastSection[section]
+                    except KeyError:
+                         raise InvalidName("{0} is not a valid command name".format(command.name))
                     try:
                         streamEater = eval(command.rewrited(), dict(session.commands), {})
                         stream = streamEater(stream)
-                    except NameError:
-                        raise InvalidName("{0} is not a valid command name".format(command.name))
                     except UserCancel:
                         raise StopIteration
 
