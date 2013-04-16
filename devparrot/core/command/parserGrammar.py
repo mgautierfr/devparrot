@@ -226,6 +226,7 @@ def userCommand():
 def parse_input_text(text, forCompletion=True):
     from devparrot.core import session
     from devparrot.core.errors import InvalidSyntax
+    session.logger.debug("parsing %s", repr(text))
     if not text:
         return New(index=0)
     try:

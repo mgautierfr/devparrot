@@ -128,8 +128,10 @@ class CommandLauncher:
         from devparrot.core import session
         from devparrot.core.command.parserGrammar import parse_input_text
         from devparrot.core.command.stream import PseudoStream, DefaultStreamEater
+        session.logger.debug("running command %s", repr(text))
         pipe = parse_input_text(text, forCompletion=False)
         commands = expand_alias(pipe.values, True)
+
         while True:
             try:
                 stream = PseudoStream()
