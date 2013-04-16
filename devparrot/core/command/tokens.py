@@ -54,7 +54,7 @@ class Section(Token):
             for v in self.values:
                 v.pprint(ident+"    ")
         else:
-            print ident+"    ", self.values
+            print ident+"    ", repr(self.values)
 
     def enclose(self, text):
         return "%s%s%s"%(self.__class__.opener, text, self.__class__.closer if self.closed else "")
@@ -120,7 +120,7 @@ class String(Section):
         return self.enclose(self.values)
 
     def rewrited(self):
-        return self.rewrited_enclose(self.values)
+        return self.rewrited_enclose(self.values.replace("\\", "\\\\"))
 
     def pprint(self, ident):
         super(String, self).pprint(ident)
