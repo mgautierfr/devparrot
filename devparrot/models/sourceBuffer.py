@@ -161,6 +161,13 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
         self.edit_separator()
         self.set_currentLineTag()
         self.event('delete')(self, index1, index2)
+
+    def replace(self, index1, index2, text):
+        index1 = self.index(index1)
+        self.tk.call((self._w, 'replace', str(index1), str(index2), text))
+        self.edit_separator()
+        self.set_currentLineTag()
+        self.event('replace')(self, index1, index2, text)
     
     def calcule_distance(self, first, second):
         return self.tk.call(self._w, "count", "-chars", first, second)

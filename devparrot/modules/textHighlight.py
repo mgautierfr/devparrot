@@ -132,6 +132,7 @@ def on_new_document(document):
     init_and_highlight(document)
     document.model.connect('insert', on_insert)
     document.model.connect('delete', on_delete)
+    document.model.connect('replace', on_replace)
     Tkinter.Text.mark_set(document.model, "DP::SH::_synctx_START", "1.0")
     Tkinter.Text.mark_gravity(document.model, "DP::SH::_synctx_START", "left")
 
@@ -157,10 +158,10 @@ def on_insert(model, insertMark, text):
         start = Index(model, insertMark)
         stop = Index(model, "%s + %d c"%(insertMark, l))
 
-        for name in model.tag_names(insertMark):
+        for name in model.tag_names(str(start)):
             if not name.startswith("DP::SH::"):
                 continue
-            model.tag_remove(name, insertMark, "%s + %d c"%(insertMark, l))
+            model.tag_remove(name, str(start), str(stop))
 
 #		import statprof
 #		statprof.reset(1000000-1)
@@ -178,6 +179,8 @@ def on_delete(model, fromMark, toMark):
     if model._highlight.lexer :
         update_highlight(model, Index(model, fromMark), 0)
 
+def on_replace(model, fromMark, toMark, text):
+    on_insert(model, fromMark, text)
 
 def update_highlight(textWidget, insertPoint, length):
     start_name, start_pos = find_previous(textWidget,insertPoint)
