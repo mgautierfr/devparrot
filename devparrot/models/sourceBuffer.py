@@ -244,9 +244,9 @@ class SourceBuffer(CodeText):
             return
 
         count = ttk.Tkinter.IntVar()
-        match_start = ttk.Tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, count=count) 
+        match_start = ttk.Tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count) 
         while match_start:
             match_end = "%s+%ic" % (match_start, count.get())
             yield match_start, match_end
-            match_start = ttk.Tkinter.Text.search(self, text, match_end, stopindex=end_search, forwards=True, exact=False, count=count)
+            match_start = ttk.Tkinter.Text.search(self, text, match_end, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count)
 
