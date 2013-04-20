@@ -15,7 +15,7 @@ def shell(command, stdinput, *args):
     inPipe = popen.stdin
 
     for line in stdinput:
-        line = "%s\n"%line
+        line = "{}\n".format(line)
         inPipe.write(line)
     inPipe.close()
 

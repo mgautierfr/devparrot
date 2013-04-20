@@ -33,15 +33,15 @@ def search(searchText, backward):
     lastSearch = searchText
 
     commands = [
-        "capi.search %s | tag set search_tag"%searchText,
-        "goto %s%s"%(searchChar, searchText)
+        "capi.search {0!r} | tag set search_tag".format(searchText),
+        "goto {0!r}{1!r}".format(searchChar, searchText)
     ]
 
     return "\n".join(commands)
 
 @Alias()
 def bsearch(searchText):
-    return "search %s backward=True"%searchText
+    return "search {0!r} backward=True".format(searchText)
 
 bindings["<F3>"] = "search\n"
 bindings["<Alt-F3>"] = "search backward=True\n"

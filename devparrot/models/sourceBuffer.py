@@ -235,7 +235,7 @@ class SourceBuffer(CodeText):
             count = ttk.Tkinter.IntVar()
             match_start = ttk.Tkinter.Text.search(self, text, "0.1", stopindex="end", forwards=True, exact=False, count=count)
             while match_start:
-                match_end = "%s+%ic" % (match_start,count.get())
+                match_end = "{}+{}c".format(match_start,count.get())
                 self.tag_add(tag, match_start, match_end)
                 match_start = ttk.Tkinter.Text.search(self, text, match_end, stopindex="end", forwards=True, exact=False, count=count)
 
@@ -246,7 +246,7 @@ class SourceBuffer(CodeText):
         count = ttk.Tkinter.IntVar()
         match_start = ttk.Tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count) 
         while match_start:
-            match_end = "%s+%ic" % (match_start, count.get())
+            match_end = "{}+{}c".format(match_start, count.get())
             yield match_start, match_end
             match_start = ttk.Tkinter.Text.search(self, text, match_end, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count)
 

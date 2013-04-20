@@ -93,20 +93,21 @@ class TextView():
 
         nbLine = int(self.view.index('end').split('.')[0])
         if self.lastLineCreated < nbLine:
-            map(self._create_textLine, ['%d'%(i+1) for i in range(self.lastLineCreated, nbLine)])
+            map(self._create_textLine, [str(i+1) for i in range(self.lastLineCreated, nbLine)])
             self.lastLineCreated = nbLine
         
         firstLine = int(self.view.index('@0,0').split('.')[0])-1
-        lastLine = int(self.view.index('@0,%d'%self.view.winfo_height()).split('.')[0])+1
+        lastIndex = self.view.index('@0,{}'.format(self.view.winfo_height()))
+        lastLine = int(lastIndex.split('.')[0])+1
         
         firstLine = max(firstLine, 1)
         lastLine = min(lastLine, nbLine)
 
         for i in range( min(firstLine, self.firstLine) , max(lastLine, self.lastLine)+1 ):
-            name = "%d" % i
-            pos = self.view.bbox("%d.0"%i)
+            name = str(i)
+            pos = self.view.bbox("{}.0".format(i))
             if pos:
-                self.lineNumbers.coords(name, "0", "%d"%pos[1])
+                self.lineNumbers.coords(name, "0", str(pos[1]))
                 self.lineNumbers.itemconfig(name, state="disable")
             else:
                 self.lineNumbers.itemconfig(name, state="hidden")

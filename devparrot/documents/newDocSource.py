@@ -22,7 +22,7 @@ class NewDocSource(object):
     """ This class is used for new document """
     newFileNumber = 0
     def __init__(self):
-        self.name = "NewFile%d" % NewDocSource.newFileNumber
+        self.name = "NewFile{}".format(NewDocSource.newFileNumber)
         NewDocSource.newFileNumber += 1
         
     def __getattr__(self, name):

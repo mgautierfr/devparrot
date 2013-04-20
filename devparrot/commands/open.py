@@ -39,7 +39,7 @@ def open_a_file(fileToOpen):
         except IOError:
             raise FileAccessError(doc.get_path())
     capi.currentDocument = doc
-    doc.goto_index("%s.0"%lineToGo)
+    doc.goto_index("{}.0".format(lineToGo))
 
 
 bindings["<Control-o>"] = "open\n"
