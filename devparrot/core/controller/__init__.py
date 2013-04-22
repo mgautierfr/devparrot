@@ -9,24 +9,15 @@ def bind(*events):
     return decorator
 
 class Modifiers(object):
-    _button3 = 1024
-    _button2 = 512
-    _button1 = 256
-    _altgr   = 128
-    _super   = 64
-    _meta    = 32
-    _numlock = 16
-    _alt     = 8
-    _ctrl    = 4
-    _lock    = 2
-    _shift   = 1
+    _shift, _lock, _ctrl, _alt, _numlock, _meta, _super, _altgr, _button1, _button2, _button3, _unknown1, _unknown2, _unknown3, _unknown4 = (2**i for i in xrange(0, 15))
+    # _unknown2 seems to be activate when we are in alternate keymap (in linux/X/gnome)
     def __init__(self, event):
-        self.state = event.state
+        state = event.state
         self.modifiers = set()
-        for level in [2**i for i in xrange(10, -1, -1)]:
-            if self.state >= level:
+        for level in [2**i for i in xrange(15, -1, -1)]:
+            if state >= level:
                 self.modifiers.add(level)
-                self.state -= level
+                state -= level
             
 
     def __getattr__(self, name):
