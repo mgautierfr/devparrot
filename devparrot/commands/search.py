@@ -34,7 +34,7 @@ def search(searchText, backward):
 
     commands = [
         "capi.search {0!r} | tag set search_tag".format(searchText),
-        "goto {0!r}{1!r}".format(searchChar, searchText)
+        "goto {0!r}".format(searchChar+searchText)
     ]
 
     return "\n".join(commands)
