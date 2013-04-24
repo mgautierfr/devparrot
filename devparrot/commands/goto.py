@@ -56,6 +56,15 @@ def goto(index):
             index = indices[get_search][0]
         else:
             index = None
+    else:
+        try:
+            line = int(index)
+            index = "{}.0".format(line)
+        except ValueError:
+            pass
     if index is not None:
-        capi.currentDocument.goto_index(index)
+        try:
+            get_currentDocument().goto_index(index)
+        except errors.TclError as err:
+            raise errors.InvalidArgument(str(err))
 
