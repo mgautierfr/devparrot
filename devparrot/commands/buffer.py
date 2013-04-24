@@ -1,7 +1,7 @@
-from devparrot.core.command import Command
-from devparrot.core import constraints
-from devparrot.core.commandLauncher import create_section
-from devparrot.core import capi
+from devparrot import capi
+from devparrot.capi import Command, create_section
+from devparrot.capi.constraints import Stream
+
 
 def buffer(name, content):
     """Open a buffer and fill it with comment
@@ -11,13 +11,11 @@ A buffer is not attach to any file and can't be modified"""
     from devparrot.documents.bufferSource import BufferSource
     document = Document(BufferSource(name))
     capi.add_file(document)
-    capi.currentDocument = document
+    capi.set_currentDocument(document)
     model = document.get_model()
 
     for line in content:
         model.insert("insert", line)
 
 
-Command(
-content = constraints.Stream()
-)(buffer, create_section("capi"))
+Command(content=Stream())(buffer, create_section("capi"))

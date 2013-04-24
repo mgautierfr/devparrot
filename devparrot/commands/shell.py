@@ -1,8 +1,8 @@
-from devparrot.core.command import Command
-from devparrot.core import constraints
+from devparrot.capi import Command
+from devparrot.capi.constraints import Stream
 
 @Command(
-stdinput = constraints.Stream()
+stdinput = Stream()
 )
 def shell(command, stdinput, *args):
     """

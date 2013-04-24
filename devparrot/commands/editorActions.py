@@ -18,9 +18,8 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from devparrot.core.command import Command, Alias
+from devparrot.capi import Command, Alias, get_currentDocument
 from devparrot.core.session import bindings
-from devparrot.core import capi
 
 @Alias()
 def cut():
@@ -40,12 +39,12 @@ def paste():
 @Alias()
 def undo():
     """undo last command"""
-    capi.currentDocument.get_model().undo()
+    get_currentDocument().get_model().undo()
 
 @Command()
 def redo():
     """redo last undone command"""
-    capi.currentDocument.get_model().redo()
+    get_currentDocument().get_model().redo()
 
 bindings["<<Cut>>"] = "cut\n"
 bindings["<<Copy>>"] = "copy\n"

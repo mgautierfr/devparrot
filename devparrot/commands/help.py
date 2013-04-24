@@ -1,7 +1,6 @@
 
-from devparrot.core.command import Command, Alias
-from devparrot.core.commandLauncher import create_section
-from devparrot.core import constraints
+from devparrot.capi import Command, Alias, create_section
+from devparrot.capi.constraints import Command as CommandConstraint
 
 class inner:
     @staticmethod
@@ -26,13 +25,13 @@ class inner:
         for command in commands:
             yield " - {}\n".format(command)
 
-Command(command=constraints.Command()
+Command(command=CommandConstraint()
 )(inner.help, create_section("capi"))
 
 Command()(inner.help_devparrot, create_section("capi"))
 
 @Alias(
-command = constraints.Command(default= lambda:None)
+command = CommandConstraint(default= lambda:None)
 )
 def help(command):
     """The help command"""

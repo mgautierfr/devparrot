@@ -1,8 +1,6 @@
-from devparrot.core.command import Command, Alias
-from devparrot.core import constraints
+from devparrot.capi import Command, Alias, create_section, get_currentDocument
+from devparrot.capi import constraints
 from devparrot.core.session import bindings
-from devparrot.core.commandLauncher import create_section
-from devparrot.core import capi
 
 lastSearch = None
 capi_section = create_section("capi")
@@ -13,7 +11,7 @@ class inner:
         if not searchText:
             return None
 
-        return capi.currentDocument.model.search(searchText)
+        return get_currentDocument().model.search(searchText)
 
 Command(
     backward = constraints.Boolean(default=lambda : False)

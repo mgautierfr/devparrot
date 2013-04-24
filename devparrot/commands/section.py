@@ -1,7 +1,5 @@
-from devparrot.core.command import Command
-from devparrot.core import constraints
+from devparrot.capi import Command, get_currentDocument, constraints
 from devparrot.core.errors import *
-from devparrot.core import capi
 from devparrot.core.utils.posrange import Index
 
 @Command(
@@ -15,7 +13,7 @@ def section(startIndex, endIndex, content):
 
     the section use as stream sink or stream source. (but not both)
     """
-    model = capi.currentDocument.get_model()
+    model = get_currentDocument().get_model()
 
     if startIndex == "standardInsert":
         try:

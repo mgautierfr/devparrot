@@ -1,8 +1,8 @@
 import os
-from devparrot.core.command import Command
-from devparrot.core import constraints
+from devparrot import capi
+from devparrot.capi import Command
+from devparrot.capi import constraints
 from devparrot.core.session import bindings
-from devparrot.core import capi
 
 @Command(
 files = constraints.File(mode=(constraints.File.OPEN, constraints.File.NEW), help="a list of file to open")
@@ -38,7 +38,7 @@ def open_a_file(fileToOpen):
             capi.add_file(doc)
         except IOError:
             raise FileAccessError(doc.get_path())
-    capi.currentDocument = doc
+    capi.set_currentDocument(doc)
     doc.goto_index("{}.0".format(lineToGo))
 
 

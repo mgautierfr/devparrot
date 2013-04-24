@@ -18,8 +18,8 @@
 #
 #    Copyright 2011 Matthieu Gautier
 
-from devparrot.core.command import Command
-from devparrot.core import capi
+from devparrot.capi import Command, get_currentDocument
+from devparrot.core import errors
 
 @Command()
 def goto(index):
@@ -35,7 +35,7 @@ def goto(index):
          . [?/]regex
     """
     if index[0] in "?/":
-        model = capi.currentDocument.model
+        model = get_currentDocument().model
         backward = (index[0] == "?")
         if backward:
             start_search = "1.0"

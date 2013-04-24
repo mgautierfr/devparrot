@@ -1,5 +1,4 @@
-from devparrot.core.command import Command
-from devparrot.core import constraints
+from devparrot.capi import Command, constraints
 
 @Command(
 content = constraints.Stream()

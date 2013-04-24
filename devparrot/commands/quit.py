@@ -1,5 +1,6 @@
-from devparrot.core.command import Command
-from devparrot.core import capi
+from devparrot import capi
+from devparrot.capi import Command
+
 
 @Command()
 def quit():

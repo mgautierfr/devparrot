@@ -1,17 +1,15 @@
-
-from devparrot.core.command import MasterCommand, SubCommand
-from devparrot.core import constraints
-from devparrot.core import capi
+from devparrot.capi import MasterCommand, SubCommand, get_currentDocument
+from devparrot.capi.constraints import Stream
 
 class tag(MasterCommand):
     """ Tag help stuff"""
 
     @SubCommand(
-    tagList = constraints.Stream()
+    tagList = Stream()
     )
     def set(tagName, tagList):
         tgList = [ str(item) for tuple_ in tagList for item in tuple_]
-        capi.currentDocument.model.tag_add(tagName, *tgList)
+        get_currentDocument().model.tag_add(tagName, *tgList)
 
 
 

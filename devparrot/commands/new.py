@@ -1,7 +1,8 @@
-from devparrot.core.command import Command
-from devparrot.core import constraints
+from devparrot import capi
+from devparrot.capi import Command
+from devparrot.capi import constraints
 from devparrot.core.session import bindings
-from devparrot.core import capi
+
 
 @Command(
 content = constraints.Stream()
@@ -16,7 +17,7 @@ def new(content):
     from devparrot.documents.newDocSource import NewDocSource
     document = Document(NewDocSource())
     capi.add_file(document)
-    capi.currentDocument = document
+    capi.set_currentDocument(document)
     model = document.get_model()
 
     for line in content:

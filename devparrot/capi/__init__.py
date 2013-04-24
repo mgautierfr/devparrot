@@ -21,75 +21,46 @@
 
 import sys
 from devparrot.core import session
+print session
+from devparrot.core.command import *
+from devparrot.core.commandLauncher import create_section
 
-class ModuleWrapper(object):
-    def __init__(self, module):
-        self.__dict__['module'] = module
-    
-    def __getattr__(self, name):
-        try:
-            return getattr(self.module, name)
-        except AttributeError:
-            return self.module.__getattr__(name)
-    
-    def __setattr__(self, name, value):
-        return self.module.__setattr__(name, value)
+get_currentDocument = session.get_currentDocument
+get_currentContainer = session.get_currentContainer
+
+def set_currentDocument(document):
+    if document == None:
+        session.get_currentContainer().set_documentView(None)
+    elif document.documentView.is_displayed():
+        document.documentView.parentContainer.select(document.documentView)
+        document.documentView.focus()
+    else:
+        session.get_currentContainer().set_documentView(document.documentView)
+        document.documentView.focus()
             
 class DocumentWrapper(object):
     def __init__(self):
         pass
         
     def __len__(self):
-        from devparrot.core import session
         return session.get_documentManager().get_nbDocuments()
     
     def __getitem__(self, key):
-        from devparrot.core import session
         return session.get_documentManager().get_nthFile(key)
 
-
-def __getattr__(name):
-    if name == 'currentDocument':
-        return session.get_currentDocument()
-    if name == 'currentContainer':
-        return session.get_currentContainer()
-    if name == 'bind':
-        from devparrot.core.command import binder
-        return binder
-    raise AttributeError
-
-def __setattr__(name, value):
-    if name == 'currentDocument':
-        if value == None:
-            session.get_currentContainer().set_documentView(None)
-        elif value.documentView.is_displayed():
-            value.documentView.parentContainer.select(value.documentView)
-            value.documentView.focus()
-        else:
-            session.get_currentContainer().set_documentView(value.documentView)
-            value.documentView.focus()
-
-        return
-    raise AttributeError
-
 def add_file(document):
-    from devparrot.core import session
     return session.get_documentManager().add_file(document)
 
 def file_is_opened(filePath):
-    from devparrot.core import session
     return session.get_documentManager().has_file(filePath)
 
 def get_file(filePath):
-    from devparrot.core import session
     return session.get_documentManager().get_file(filePath)
     
 def get_nth_file(index):
-    from devparrot.core import session
     return session.get_documentManager().get_nthFile(index)
 
 def close_document(document):
-    from devparrot.core import session
     if document.check_for_save():
         save_document(document, document.get_path())
     if document.documentView.is_displayed():
@@ -110,7 +81,6 @@ def open_file(filePath):
     return doc
 
 def save_document(document, fileToSave):
-    from devparrot.core import session
     from devparrot.core.errors import ContextError
     if document.has_a_path() and document.get_path() == fileToSave:
         document.write()
@@ -144,5 +114,4 @@ def unsplit(container=None):
         container = session.get_currentContainer()
     return viewContainer.unsplit(container)
 
-sys.modules[__name__] = ModuleWrapper(sys.modules[__name__])
 documents = DocumentWrapper()

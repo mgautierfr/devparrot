@@ -1,14 +1,13 @@
-from devparrot.core.command import Command
-from devparrot.core import constraints
+from devparrot.capi import Command, get_currentDocument, save_document
+from devparrot.capi import constraints
 from devparrot.core.session import bindings
 from devparrot.core.errors import NoDefault
-from devparrot.core import capi
 
 def _get_default():
-    if capi.currentDocument is None:
+    if get_currentDocument() is None:
         raise NoDefault()
-    if capi.currentDocument.has_a_path():
-        return capi.currentDocument.get_path()
+    if get_currentDocument().has_a_path():
+        return get_currentDocument().get_path()
     raise NoDefault()
         
 @Command(
@@ -21,7 +20,7 @@ def save(fileName):
     If fileName is provided, act as "saveas" command.
     """
     try:
-        capi.save_document(capi.currentDocument, fileName)
+        save_document(get_currentDocument(), fileName)
     except IOError:
         raise FileAccessError(fileName)
 
@@ -35,7 +34,7 @@ def saveas(fileName):
     If fileName is not provided, the user is asked for it.
     """
     try:
-        capi.save_document(capi.currentDocument, fileName)
+        save_document(get_currentDocument(), fileName)
     except IOError:
         raise FileAccessError(fileName)
 

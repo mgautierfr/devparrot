@@ -61,14 +61,14 @@ class EditSection:
         except TclError:
             self.menu.entryconfigure('Paste', state="disable")
 
-        import capi
-        if capi.currentDocument.get_currentView().view.sel_isSelection():
+        import session
+        if session.get_currentDocument().get_currentView().view.sel_isSelection():
             self.menu.entryconfigure('Cut', state="normal")
             self.menu.entryconfigure('Copy', state="normal")
         else:
             self.menu.entryconfigure('Cut', state="disable")
             self.menu.entryconfigure('Copy', state="disable")
 
-        if capi.currentDocument.is_readonly():
+        if session.get_currentDocument().is_readonly():
             self.menu.entryconfigure("Paste", state="disable")
             self.menu.entryconfigure("Cut", state="disable")

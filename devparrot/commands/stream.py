@@ -1,5 +1,4 @@
-from devparrot.core.command import Command
-from devparrot.core.commandLauncher import create_section
+from devparrot.capi import Command, create_section
 
 
 def empty():

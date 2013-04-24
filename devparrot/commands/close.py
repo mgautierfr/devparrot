@@ -1,11 +1,11 @@
-from devparrot.core.command import Command
+from devparrot.capi import Command
 from devparrot.core.session import bindings
-from devparrot.core import constraints
-from devparrot.core import capi
+from devparrot.capi.constraints import OpenDocument
+from devparrot import capi
 
 
 @Command(
-    documents = constraints.OpenDocument(default=lambda:capi.currentDocument, help="documents to close")
+    documents = OpenDocument(default=capi.get_currentDocument, help="documents to close")
 )
 def close(*documents):
     "close one or several documents"

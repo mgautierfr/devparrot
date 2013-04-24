@@ -1,8 +1,9 @@
-from devparrot.core.command import Command
-from devparrot.core import constraints, capi
+from devparrot import capi
+from devparrot.capi import Command
+from devparrot.capi.constraints import Boolean
 
 @Command(
-vertical = constraints.Boolean(default= lambda : False)
+vertical = Boolean(default= lambda : False)
 )
 def split(vertical):
     """split the view it two separate panes"""
