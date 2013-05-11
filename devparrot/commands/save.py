@@ -1,7 +1,7 @@
 from devparrot.capi import Command, get_currentDocument, save_document
 from devparrot.capi import constraints
 from devparrot.core.session import bindings
-from devparrot.core.errors import NoDefault
+from devparrot.core.errors import NoDefault, FileAccessError
 
 def _get_default():
     if get_currentDocument() is None:
