@@ -21,7 +21,6 @@
 
 import sys
 from devparrot.core import session
-print session
 from devparrot.core.command import *
 from devparrot.core.commandLauncher import create_section
 
