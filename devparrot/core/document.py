@@ -112,7 +112,7 @@ class Document(utils.event.EventSource):
             self.documentSource.init_timestamp()
 
     def check_for_save(self):
-        if self.model.edit_modified():
+        if not self.is_readonly() and self.model.edit_modified():
             import ui
             return ui.helper.ask_questionYesNo("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.title})
         return False
