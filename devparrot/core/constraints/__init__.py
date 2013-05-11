@@ -37,12 +37,19 @@ type_to_completion = {
     'New'            : Completion
 }
 
-class _Constraint:
+class _Constraint(object):
+    class _NoDefault(object):
+        def __call__(self):
+            raise NoDefault()
+
+        def __nonzero__(self):
+            return False
+
     def __init__(self, optional=False, multiple=False, default=None, askUser=False, help=""):
         self.optional = optional
         self.askUser = askUser
         if default is None:
-            self.default = self._no_default
+            self.default = _Constraint._NoDefault()
         else:
             self.default = default
         self.multiple = multiple
@@ -58,9 +65,6 @@ class _Constraint:
             return True, args
         else:
             return self.check(args)
-
-    def _no_default(self):
-        raise NoDefault()
 
     def complete_context(self, context):
         if not self.multiple and context.get_type() == "List":
