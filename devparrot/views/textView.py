@@ -34,6 +34,7 @@ class TextView():
                              in_=self.uiContainer,
                              sticky="nsew"
                             )
+        self.hScrollbar.grid_remove()
 
         self.vScrollbar = ttk.Scrollbar(session.get_globalContainer(),
                                         orient=ttk.Tkinter.VERTICAL)
@@ -41,6 +42,7 @@ class TextView():
                              row=0,
                              in_=self.uiContainer,
                              sticky="nsew")
+        self.vScrollbar.grid_remove()
 
         self.lineNumbers = ttk.Tkinter.Canvas(session.get_globalContainer(),
                                               highlightthickness = 0,
@@ -78,8 +80,19 @@ class TextView():
             self.set_lineNumbers()
 
     def proxy_yscrollcommand(self, *args, **kwords):
+        if args == ('0.0' , '1.0'):
+            self.vScrollbar.grid_remove()
+        else:
+            self.vScrollbar.grid_configure()
         self.vScrollbar.set(*args, **kwords)
         self.set_lineNumbers()
+
+    def proxy_xscrollcommand(self, *args, **kwords):
+        if args == ('0.0' , '1.0'):
+            self.hScrollbar.grid_remove()
+        else:
+            self.hScrollbar.grid_configure()
+        self.hScrollbar.set(*args, **kwords)
 
     def _create_textLine(self, name):
         self.lineNumbers.create_text("0", "0",
@@ -132,7 +145,7 @@ class TextView():
     def set_model(self, model):
         self.view = model
         self.view['yscrollcommand'] = self.proxy_yscrollcommand
-        self.view['xscrollcommand'] = self.hScrollbar.set
+        self.view['xscrollcommand'] = self.proxy_xscrollcommand
         self.hScrollbar['command'] = self.view.xview
         self.view.grid(column=1, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
         self.view.lift(self.uiContainer)
