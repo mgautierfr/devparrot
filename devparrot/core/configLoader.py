@@ -22,13 +22,15 @@ from devparrot.core.utils.variable import CbCaller
 
 _config = None
 
-class _Section(CbCaller):
-    def __init__(self):
+class Section(CbCaller):
+    def __init__(self, config, name):
         from devparrot.core.utils.variable import CbList
         # do not call parent __init__
         object.__setattr__(self, "_callbacks", CbList())
         object.__setattr__(self, "sections", {})
         object.__setattr__(self, "variables", {})
+        object.__setattr__(self, "config", config)
+        object.__setattr__(self, "name", name)
 
     def _get(self,name):
         try:
@@ -65,9 +67,6 @@ class _Section(CbCaller):
     def add_variable(self, name, value):
         from devparrot.core.utils.variable import Variable
         self.variables[name] = Variable(value)
-
-    def __str__(self):
-        return "Section named %s" % type(self)
     
     def notify(self):
         for var in self.variables:
@@ -75,25 +74,25 @@ class _Section(CbCaller):
         for section in self.sections:
             section.notify()
 
-class Section(_Section):
-    def __init__(self, config):
-        _Section.__init__(self)
-        object.__setattr__(self, "config", config)
-
     def __setattr__(self, name, value):
+        from devparrot.core.session import logger
         if name in self.sections:
-            session.logger.warning("can't redifine section name %s", name)
+            logger.warning("can't redifine section name %s", name)
             return
 
         if name not in self.variables:
-            session.logger.warning("%s is not a valid (known) variables name in section %s", name, self)
+            logger.warning("%s is not a valid (known) variables name in section %s", name, self)
             return
 
         self.variables[name].set(value)
 
-class Config(_Section):
+
+    def __str__(self):
+        return self.name
+
+class Config(Section):
     def __init__(self):
-        _Section.__init__(self)
+        Section.__init__(self, self, "config")
 
     def __setitem__(self, name, value):
         setattr(self, name, value)
@@ -134,7 +133,7 @@ def init():
 def createSection(name, parent=None):
     if not parent:
         parent = _config
-    newSection = Section(_config)
+    newSection = Section(_config, name)
     parent.add_section(name, newSection)
     return newSection
 
