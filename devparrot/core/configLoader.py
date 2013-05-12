@@ -1,6 +1,6 @@
 #    This file is part of DevParrot.
 #
-#    Author: Matthieu Gautier <matthieu.gautier@mgautier.fr>
+#    Author: Matthieu Gautier <matthieu.gautier@devparrot.org>
 #
 #    DevParrot is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,8 @@
 #    along with DevParrot.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-#    Copyright 2011 Matthieu Gautier
+#    Copyright 2011-2013 Matthieu Gautier
+
 
 from devparrot.core.utils.variable import CbCaller
 
@@ -148,6 +149,4 @@ def load():
 
     if os.path.exists(user_config_path):
         execfile(user_config_path, _global, _config)
-
-
 
