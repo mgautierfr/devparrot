@@ -1,0 +1,22 @@
+
+Dependecies
+===========
+
+
+You will need to have:
+
+- tkinter
+- pyparsing
+- PIL (Python Imaging Library)
+- picoparse
+
+
+How to install:
+===============
+
+
+On Fedora:
+
+$ sudo yum install tkinter pyparsing python-imaging-tk
+$ sudo easy_install picoparse
+
