@@ -141,7 +141,7 @@ class String(Section):
         return self.enclose(self.values)
 
     def rewrited(self):
-        return self.rewrited_enclose(self.values.replace("\\", "\\\\"))
+        return "%s%s%s"%('"""', self.values.replace("\\", "\\\\"), '"""')
 
     def pprint(self, ident):
         super(String, self).pprint(ident)
