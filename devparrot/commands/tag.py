@@ -25,6 +25,10 @@ from devparrot.capi.constraints import Stream
 class tag(MasterCommand):
     """ Tag help stuff"""
 
+    @SubCommand()
+    def clean(tagName):
+        get_currentDocument().model.tag_remove(tagName, "1.0", "end")
+
     @SubCommand(
     tagList = Stream()
     )
