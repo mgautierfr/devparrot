@@ -25,7 +25,7 @@ from devparrot.core.utils.posrange import Index
 
 @Command(
 startIndex = constraints.Index(),
-endIndex = constraints.Index(optional=True, default=lambda : None),
+endIndex = constraints.Index(default=lambda : None),
 content = constraints.Stream()
 )
 def section(startIndex, endIndex, content):
@@ -33,6 +33,9 @@ def section(startIndex, endIndex, content):
     represent a section of the current document starting from startIndex and ending at endIndex.
 
     the section use as stream sink or stream source. (but not both)
+
+    If endIndex is not provided, startIndex must be a tag name.
+    The special tag name "standardInsert" can be used to represent the insert mark or the sel tag depending of context
     """
     model = get_currentDocument().get_model()
 
