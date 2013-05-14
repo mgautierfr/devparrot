@@ -22,8 +22,6 @@
 import utils.event
 from devparrot.core.errors import InvalidName, UserCancel
 
-eventSystem = utils.event.EventSource()
-
 
 def add_command(name, command, parentSection=None):
     import session

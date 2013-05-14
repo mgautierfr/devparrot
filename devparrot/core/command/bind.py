@@ -29,7 +29,7 @@ class BindLauncher(object):
         self.commands = commands[:-1]
         self.leftText = commands[-1]
 
-    def __call__(self, event):
+    def __call__(self, *args):
         from devparrot.core import session, ui
         for cmd in self.commands:
             ret = session.commandLauncher.run_command_nofail(cmd)
@@ -51,6 +51,7 @@ class Binder(object):
         self.binds = {}
 
     def __setitem__(self, accel, command):
+        from devparrot.core import session
         bindLauncher = BindLauncher(command)
         if TkEventMatcher.match(accel):
             from devparrot.core import ui
@@ -59,9 +60,8 @@ class Binder(object):
             else:
                 self.tkBinds[accel] = bindLauncher
         else:
-            from devparrot.core import commandLauncher
             currentBinds = self.binds.setdefault(accel, set())
-            currentBinds.add(commandLauncher.eventSystem.connect(accel, bindLauncher))
+            currentBinds.add(session.eventSystem.connect(accel, bindLauncher))
 
     def bind(self, window=None):
         if window is None:
@@ -73,12 +73,12 @@ class Binder(object):
             self.tkBinds = []
 
     def __delitem__(self, accel):
+        from devparrot.core import session
         if TkEventMatcher.match(accel):
             from devparrot.core import ui
             if ui.window:
                 ui.window.unbind_class("Command", accel)
             del self.tkBinds[accel]
         else:
-            from devparrot.core import commandLauncher
             for bind in self.binds.get(accel, []):
-                commandLauncher.eventSystem.event(accel).unregister(bind)
+                session.eventSystem.event(accel).unregister(bind)

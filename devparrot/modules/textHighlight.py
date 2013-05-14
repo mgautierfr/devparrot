@@ -46,12 +46,11 @@ def init(configSection, name):
 
 def activate(var, old):
     if var.get():
-        from devparrot.core import commandLauncher
         create_fonts()
         create_styles()
         session.config.textView.font.register(on_font_changed)
         session.config.modules[_moduleName].hlstyle.register(on_style_changed)
-        commandLauncher.eventSystem.connect("newDocument",on_new_document)
+        session.eventSystem.connect("newDocument",on_new_document)
     else:
         pass
 

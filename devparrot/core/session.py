@@ -23,6 +23,7 @@ import documentManager
 import commandLauncher as _commandLauncher
 import logging
 import userLogging
+import utils.event
 
 _documentManager = documentManager.DocumentManager()
 _workspace = None
@@ -31,6 +32,8 @@ config = None
 commands = None
 memories = {}
 bindings = None
+
+eventSystem = utils.event.EventSource()
 
 userLogger = userLogging.UserLogger()
 
