@@ -114,9 +114,12 @@ class CommandWrapper(object):
 
         return call_list, call_kwords
 
-    def __call__(self, *args, **kwords):
+    def resolve(self, *args, **kwords):
         call_list, call_kwords = self._get_call_args(args, kwords)
         return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords, self.argSpec.args)
+
+    def __call__(self, *args, **kwords):
+        self.functionToCall(*args, **kwords)
 
     def get_help(self):
         helps = []
@@ -154,7 +157,7 @@ class AliasWrapper(CommandWrapper):
     def __init__(self, constraints):
         CommandWrapper.__init__(self, constraints, None)
 
-    def __call__(self, *args, **kwords):
+    def resolve(self, *args, **kwords):
         call_list, call_kwords = self._get_call_args(args, kwords)
         return self.functionToCall(*call_list, **call_kwords)
 
@@ -181,10 +184,10 @@ class MasterCommandWrapper(object):
         else:
             self.subCommands[self.currentSubCommand].provide_value(index-1, value)
 
-    def __call__(self, *args, **kwords):
+    def resolve(self, *args, **kwords):
         subCommandName = args[0]
         args = args[1:]
-        return self.subCommands[subCommandName](*args, **kwords)
+        return self.subCommands[subCommandName].resolve(*args, **kwords)
 
     def get_help(self):
         return self._class.__doc__

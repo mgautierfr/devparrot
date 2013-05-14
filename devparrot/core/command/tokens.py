@@ -103,7 +103,7 @@ class CommandCall(Section, Identifier):
           }
 
     def rewrited(self):
-        return "%(name)s%(parameters)s"%{
+        return "%(name)s.resolve%(parameters)s"%{
             'name' : self.name,
             'parameters' : Section.rewrited(self)
           }
