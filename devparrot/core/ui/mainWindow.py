@@ -20,6 +20,8 @@
 
 
 import ttk
+from PIL.ImageTk import PhotoImage
+from os.path import join
 
 from devparrot.core import popupMenu as popupMenuModule
 import controlerEntry
@@ -56,6 +58,12 @@ class MainWindow(ttk.Tkinter.Tk):
             pass
         self.wm_geometry("%dx%d+%s+%s"%(w, h, x, y))
         self.wm_title("devparrot")
+
+        # [TODO] Look in standard data directory ?
+        iconpath = session.config.get("devparrotPath")
+        iconpath = join(iconpath, "..", "resources", "icon.png")
+        img = PhotoImage(file=iconpath)
+        self.tk.call('wm', 'iconphoto', self._w, img)
 
         self._vbox = ttk.Tkinter.Frame(self)
         self._vbox.pack(expand=True, fill=ttk.Tkinter.BOTH)
