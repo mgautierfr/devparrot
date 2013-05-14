@@ -32,7 +32,7 @@ def quit(event):
 class MainWindow(ttk.Tkinter.Tk):
     def __init__(self):
         from devparrot.core import session
-        ttk.Tkinter.Tk.__init__(self)
+        ttk.Tkinter.Tk.__init__(self, className='Devparrot')
         geom = self.wm_geometry()
         w = geom.split('+')[0].split('x')[0]
         try:
