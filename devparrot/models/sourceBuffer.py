@@ -230,7 +230,7 @@ class SourceBuffer(CodeText):
         self.hl_callId = None
 
     def apply_tag_on_text(self, tag, text):
-        self.tag_remove(tag, "0.1","end")
+        self.tag_remove(tag, "1.0","end")
 
         if text:
             count = ttk.Tkinter.IntVar()
