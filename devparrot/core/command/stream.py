@@ -18,6 +18,7 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
+from devparrot.core import session
 
 def DefaultStreamEater(stream):
     try:
@@ -28,20 +29,27 @@ def DefaultStreamEater(stream):
         
 
 class Stream(object):
-    def __init__(self, stream):
+    def __init__(self, functionName, stream):
+        self.functionName = functionName
         self.stream = stream
 
     def __iter__(self):
         return self
 
     def next(self):
-        if not self.stream:
+        try:
+            if self.stream is None:
+                raise StopIteration
+
+            return self.stream.next()
+        except StopIteration:
+            if self.functionName is not None:
+                session.eventSystem.event("{}+".format(self.functionName))()
             raise StopIteration
-        return self.stream.next()
 
 class PseudoStream(Stream):
     def __init__(self):
-        Stream.__init__(self, None)
+        Stream.__init__(self, None, None)
 
 class StreamEater(object):
     def __init__(self, function, streamName, args, kwords, argsorder):
@@ -56,6 +64,9 @@ class StreamEater(object):
             self.kwords[self.streamName] = stream
         call_list = [self.kwords[name] for name in self.argsorder]
         call_list.extend(self.args)
-        return Stream(self.function(*call_list))
+        session.eventSystem.event("{}-".format(self.function.__name__))()
+        stream_ = self.function(*call_list)
+        session.eventSystem.event("{}=".format(self.function.__name__))()
+        return Stream(self.function.__name__, stream_)
 
 

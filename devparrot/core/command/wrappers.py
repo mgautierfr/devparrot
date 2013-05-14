@@ -110,15 +110,13 @@ class CommandWrapper(object):
 
         # bind left keyword arguments
         call_kwords.update(kwords)
-#TODO reactive the event stuff
-#        eventSystem.event("%s-"%command.__name__)(args)
+
 
         return call_list, call_kwords
 
     def __call__(self, *args, **kwords):
         call_list, call_kwords = self._get_call_args(args, kwords)
         return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords, self.argSpec.args)
-#        eventSystem.event("%s+"%command.__name__)(args)
 
     def get_help(self):
         helps = []
