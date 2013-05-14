@@ -52,8 +52,9 @@ class PseudoStream(Stream):
         Stream.__init__(self, None, None)
 
 class StreamEater(object):
-    def __init__(self, function, streamName, args, kwords, argsorder):
+    def __init__(self, function, functionName, streamName, args, kwords, argsorder):
         self.function = function
+        self.functionName = functionName
         self.streamName = streamName
         self.args = args
         self.kwords = kwords
@@ -64,9 +65,9 @@ class StreamEater(object):
             self.kwords[self.streamName] = stream
         call_list = [self.kwords[name] for name in self.argsorder]
         call_list.extend(self.args)
-        session.eventSystem.event("{}-".format(self.function.__name__))()
+        session.eventSystem.event("{}-".format(self.functionName))()
         stream_ = self.function(*call_list)
-        session.eventSystem.event("{}=".format(self.function.__name__))()
-        return Stream(self.function.__name__, stream_)
+        session.eventSystem.event("{}=".format(self.functionName))()
+        return Stream(self.functionName, stream_)
 
 

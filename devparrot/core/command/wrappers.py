@@ -35,10 +35,17 @@ class CommandWrapper(object):
     def _set_function(self, function):
         from inspect import getargspec
         self.functionToCall = function
+        if self.section is not None:
+            self.commandName = "{}.{}".format(self.section.name, function.__name__)
+        else:
+            self.commandName = function.__name__
         self.argSpec = getargspec(function)
         varargConstraint = self.constraints.get(self.argSpec.varargs, None)
         if varargConstraint:
             varargConstraint.isVararg = True
+
+    def _set_commandName(self, name):
+        self.commandName = name
 
     def _get_constraint(self, name):
         return self.constraints.get(name, Default())
@@ -116,7 +123,7 @@ class CommandWrapper(object):
 
     def resolve(self, *args, **kwords):
         call_list, call_kwords = self._get_call_args(args, kwords)
-        return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords, self.argSpec.args)
+        return StreamEater(self.functionToCall, self.commandName, self.streamName, call_list, call_kwords, self.argSpec.args)
 
     def __call__(self, *args, **kwords):
         self.functionToCall(*args, **kwords)

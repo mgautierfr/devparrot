@@ -54,6 +54,7 @@ class MasterCommandMeta(type):
         for attrName, attr in dct.items():
             if isinstance(attr, CommandWrapper):
                 wrapper.add_subCommand(attrName, attr)
+                attr._set_commandName("{} {}".format(name, attr.commandName))
                 # only keep the function in the class. wrapper is internal
                 new_dct[attrName] = staticmethod(attr.functionToCall)
             else:
