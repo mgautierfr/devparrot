@@ -52,10 +52,10 @@ class ControlerEntry(Tkinter.Text):
             self.completionSystem.update_completion()
             return
         if event.keysym == "Down":
-            next = session.commandLauncher.history.get_next()
-            if next:
+            next_ = session.commandLauncher.history.get_next()
+            if next_:
                 self.delete("1.0", "end")
-                self.insert("end", session.commandLauncher.history.get_next())
+                self.insert("end", next_)
                 self.completionSystem.update_completion()
             else:
                 self.completionSystem.start_completion()
