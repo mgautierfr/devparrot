@@ -137,8 +137,8 @@ class CompletionSystem(object):
         return "break"
 
     def _on_event(self, event):
-        from pyparsing import printables
-        validChars = set(printables+" ")
+        from devparrot.core import session
+        validChars = set(session.config.get("wchars")+" ")
         if event.keysym == 'Escape':
             self.stop_completion()
             return

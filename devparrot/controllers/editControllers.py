@@ -21,15 +21,9 @@
 
 import ttk
 from devparrot.core.controller import Controller, bind
-from pyparsing import printables, punc8bit, alphas8bit
 import readOnlyControllers
 
 from devparrot.core.errors import *
-
-
-validChars = set(printables+alphas8bit+punc8bit+" \t"+u'\u20ac')
-# euro signe (\u20ac) is not in alpha8bit => add it
-wordChars = set(printables+alphas8bit+punc8bit)
 
 
 class KeyboardController(Controller):
@@ -38,11 +32,12 @@ class KeyboardController(Controller):
     
     @bind('<KeyPress>')
     def on_key_pressed(self, event, modifiers):
+        from devparrot.core import session
         if event.keysym in ( 'Return', 'Enter', 'KP_Enter', 'BackSpace', 'Delete', 'Insert' ):
             event.widget.sel_clear()
             return "break"
         char = event.char.decode('utf8')
-        if char in validChars:
+        if char in set(session.config.get("wchars")+session.config.get("puncchars")+session.config.get("spacechars")):
             event.widget.sel_delete( )
             event.widget.insert( 'insert', char )
             event.widget.sel_clear( )

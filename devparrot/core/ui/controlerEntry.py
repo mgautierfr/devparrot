@@ -24,9 +24,6 @@ from devparrot.core import session
 from devparrot.core.errors import *
 from devparrot.core.command.commandCompleter import ControlerEntryCompletion
 
-from pyparsing import printables, punc8bit, alphas8bit
-validChars = set(printables+alphas8bit+punc8bit+" \t"+u'\u20ac')
-
 class ControlerEntry(Tkinter.Text):
     def __init__(self, parent):
         Tkinter.Text.__init__(self, parent, height=1)
@@ -98,7 +95,7 @@ class ControlerEntry(Tkinter.Text):
             self.completionSystem.update_completion()
             return "break"
         char = event.char.decode('utf8')
-        if char in validChars:
+        if char in set(session.config.get("wchars")+session.config.get("puncchars")+session.config.get("spacechars")):
             self.tag_remove( 'sel', '1.0', 'end' )
             self.mark_unset( 'sel.first', 'sel.last' )
             self.insert( 'insert', char)

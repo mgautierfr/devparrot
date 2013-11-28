@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 #    This file is part of DevParrot.
 #
 #    Author: Matthieu Gautier <matthieu.gautier@devparrot.org>
@@ -107,6 +108,9 @@ def init():
     _config.add_variable("controller", DefaultControllerMode())
     _config.add_variable("ROcontroller", DefaultROControllerMode())
     _config.add_variable("devparrotPath", devparrotPath)
+    _config.add_variable("wchars", u"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ€")
+    _config.add_variable("spacechars", u" \t")
+    _config.add_variable("puncchars", u"!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿×÷")
     section = createSection("window")
     section.add_variable("height", 600)
     section.add_variable("width", 800)

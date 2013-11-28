@@ -21,12 +21,6 @@
 
 import ttk
 from devparrot.core.controller import Controller, bind
-from pyparsing import printables, punc8bit, alphas8bit
-
-
-validChars = set(printables+alphas8bit+punc8bit+" \t"+u'\u20ac')
-# euro signe (\u20ac) is not in alpha8bit => add it
-wordChars = set(printables+alphas8bit+punc8bit)
 
 class CarretController( Controller ):
     def __init__( self ):
@@ -82,7 +76,8 @@ class CarretController( Controller ):
             word = event.widget.get(currentPos, wordend)
 
             while wordend != currentPos:
-                if len(set(word)&wordChars) != 0:
+                from devparrot.core import session
+                if len(set(word)&set(session.config.get("wchars"))) != 0:
                     break
                 currentPos = wordend
                 wordend = event.widget.index( '%s wordend'%currentPos )
@@ -105,7 +100,8 @@ class CarretController( Controller ):
             word = event.widget.get(wordstart, currentPos)
 
             while wordstart != currentPos:
-                if len(set(word)&wordChars) != 0:
+                from devparrot.core import session
+                if len(set(word)&set(session.config.get("wchars"))) != 0:
                     break
                 currentPos = wordstart
                 wordstart = event.widget.index( '%s -1c wordstart'%currentPos )
