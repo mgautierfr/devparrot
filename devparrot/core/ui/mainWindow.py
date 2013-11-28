@@ -61,7 +61,7 @@ class MainWindow(ttk.Tkinter.Tk):
 
         # [TODO] Look in standard data directory ?
         iconpath = session.config.get("devparrotPath")
-        iconpath = join(iconpath, "..", "resources", "icon.png")
+        iconpath = join(iconpath, "..", "resources", "icon48.png")
         img = PhotoImage(file=iconpath)
         self.tk.call('wm', 'iconphoto', self._w, img)
 
