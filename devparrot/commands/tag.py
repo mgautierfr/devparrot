@@ -34,7 +34,8 @@ class tag(MasterCommand):
     )
     def set(tagName, tagList):
         tgList = [ str(item) for tuple_ in tagList for item in tuple_]
-        get_currentDocument().model.tag_add(tagName, *tgList)
+        if len(tgList)>=2 and len(tgList)%2==0:
+            get_currentDocument().model.tag_add(tagName, *tgList)
 
 
 
