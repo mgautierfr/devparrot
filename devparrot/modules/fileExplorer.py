@@ -54,7 +54,13 @@ def on_iconTheme_changed(var, old):
     fileExplorerView.filltree()
 
 def _load_icon_for_mime(mimeType):
-    import Image, ImageTk
+    try:
+        from PIL import Image, ImageTk
+    except ImportError:
+        try:
+            import Image, ImageTk
+        except ImportError:
+            return None
     iconPath = getIconPath(mimeType, size=16, theme=configSection.get("iconTheme"), extensions=["png", "xpm"])
     if iconPath:
         iconImage = Image.open(iconPath)
