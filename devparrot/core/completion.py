@@ -52,7 +52,7 @@ def getcommonstart(seq):
 class CompletionSystem(object):
     """
     CompletionSystem Class allow a text widget to be completed.
-    This class is abstract. It is intent to be inherite to provide  how to posible completion and to insert the text as wanted
+    This class is abstract. It is intent to be inherite to provide how to find posible completion and to insert the text as wanted
     """
     def __init__(self, textWidget, completionEvent='<Tab>', previousCompletionEvent='<Up>', nextCompletionEvent='<Down>'):
         """
@@ -132,7 +132,8 @@ class CompletionSystem(object):
 
     def on_widget_key_completion(self, event):
         self.start_completion()
-        self.complete(self.startIndex, self.get_common())
+        if(self.commonString):
+            self.complete(self.startIndex, self.commonString)
         self.update_completion()
         return "break"
 
@@ -168,8 +169,8 @@ class CompletionSystem(object):
         text = self.textWidget.get('1.0', 'insert')
         startIndex, completions = self.get_completions(text)
         self._update_completion(startIndex, completions)
-        if autoCommon and not text.endswith(commonString):
-            self.complete(self.startIndex, common)
+        if autoCommon and not text.endswith(self.commonString):
+            self.complete(self.startIndex, self.commonString)
 
     def _update_completion(self, startIndex, completions):
         self.startIndex = startIndex
@@ -177,7 +178,7 @@ class CompletionSystem(object):
         self.commonString = getcommonstart([str(c) for c in completions])
         self.listbox.delete('0', 'end')
         if len(completions)<=1:
-            self._hide()
+            self.stop_completion()
             return
         size = 0
         for v in self.completions:
@@ -209,7 +210,7 @@ class CompletionSystem(object):
 
     def perform_insert_char(self, char):
         self.textWidget.insert('insert', char)
-        self.update_completion()
+        self.update_completion(True)
 
     def perform_backspace(self):
         try:
