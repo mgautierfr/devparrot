@@ -210,6 +210,7 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
             self.bind_class("Drag", "<ButtonRelease-1>", on_button_released)
             NotebookContainer.initialized = True
         self.bindtags(" ".join(["Drag"]+[t for t in self.bindtags()]))
+        self.bind("<Button-2>", self.on_middleClickButton)
         self.bind("<<NotebookTabChanged>>", self.on_tabChanged)
     
     def dnd_register(self):
@@ -274,6 +275,12 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
         selected = self.select()
         if selected:
             self.nametowidget(selected).focus()
+
+    def on_middleClickButton(self, event):
+        documentViewIndex = self.index("@%d,%d" % (event.x, event.y))
+        if documentViewIndex != "":
+            from devparrot import capi
+            capi.close_document(self._children[documentViewIndex].document)
 
 def split(documentView, direction, first=True):
     notebook = documentView.get_parentContainer()
