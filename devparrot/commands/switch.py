@@ -21,6 +21,7 @@
 
 from devparrot.capi import Command, set_currentDocument
 from devparrot.capi.constraints import OpenDocument
+from devparrot.core.session import bindings
 
 @Command(
 document = OpenDocument()
@@ -29,3 +30,10 @@ def switch(document):
     """set focus to document"""
     set_currentDocument(document)
 
+
+bindings["<Alt-Right>"] = "switch $right\n"
+bindings["<Alt-Left>"] = "switch $left\n"
+bindings["<Alt-Up>"] = "switch $top\n"
+bindings["<Alt-Down>"] = "switch $bottom\n"
+bindings["<Alt-Prior>"] = "switch $previous\n"
+bindings["<Alt-Next>"] = "switch $next\n"

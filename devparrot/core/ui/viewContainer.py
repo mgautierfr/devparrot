@@ -160,7 +160,7 @@ class SplittedContainer(ContainerChild, Tkinter.PanedWindow):
         self.remove(self.uiSubContainer1)
         self.remove(self.uiSubContainer2)
         self.uiSubContainer1 = None
-        self.uiSubContainer2 = None	
+        self.uiSubContainer2 = None
     
     def set_as_current(self):
         if self.container1:
@@ -175,7 +175,7 @@ class SplittedContainer(ContainerChild, Tkinter.PanedWindow):
         if isinstance(testContainer, NotebookContainer):
             return testContainer
         else:
-            return testContainer.find_notebook_different_of()	
+            return testContainer.find_notebook_different_of()
 
 def on_drag_begin_notebook(event):
     event.num = 1
@@ -183,7 +183,7 @@ def on_drag_begin_notebook(event):
     documentViewIndex = notebook.index("@%d,%d" % (event.x, event.y))
     if documentViewIndex != "":
         documentView = notebook._children[documentViewIndex]
-        Tkdnd.dnd_start(documentView, event)		
+        Tkdnd.dnd_start(documentView, event)
 
 def on_button_pressed(event):
     return "break"
@@ -350,6 +350,75 @@ def unsplit_notebook(notebook):
     leftnotebook.set_as_current()
     return leftnotebook
 
+def find_top_neighbour_container(view, horizontal, first):
+    parent = view.get_parentContainer()
+    while parent:
+        # We are not a splittedContainer
+        if not isinstance(parent, SplittedContainer):
+            view = parent
+            parent = parent.get_parentContainer()
+            continue
+        # We are not split in the right direction
+        if parent.isVertical == horizontal:
+            view = parent
+            parent = parent.get_parentContainer()
+            continue
+        # We are looking on one side but we are already on that side
+        if view == parent.container1 and first:
+            view = parent
+            parent = parent.get_parentContainer()
+            continue
+        # we have found the parent
+        if first:
+            return parent.container1
+        else:
+            return parent.container2
+    return None
+
+def find_bottom_notebook(container, horizontal, first):
+    while container:
+        if isinstance(container, NotebookContainer):
+            return container
+        # we are not in the same direction, get whatever child
+        # [TODO] get the closest container
+        if container.isVertical == horizontal:
+            container = container.container1
+            continue
+        if first:
+            container = container.container1
+        else:
+            container = container.container2
+    return None
+
+def get_neighbour(documentView, position):
+    if position in ("next", "previous"):
+        selected = documentView.select()
+        if selected :
+            index = documentView.index(selected)
+            if position=="next":
+                index += 1
+            else:
+                index -= 1
+            index %= len(documentView._children)
+            return documentView._children[index]
+    horizontal = position in ("left", "right")
+    first      = position in ("left", "top")
+
+    topNeighboorContainer = find_top_neighbour_container(documentView, horizontal, first)
+
+    if not topNeighboorContainer:
+        # we have no split container
+        return None
+
+    notebook = find_bottom_notebook(topNeighboorContainer, horizontal, not first)
+    if not notebook:
+        # we have no notebook (so no document). Is it a valid situation ?
+        return None
+
+    return notebook.get_documentView()
+
+
+
 class DragHandler(ttk.Tkinter.Toplevel):
     def __init__(self, container):
         from devparrot.core import ui
@@ -407,7 +476,7 @@ class DragHandler(ttk.Tkinter.Toplevel):
             "height" : self.container.winfo_height(),
             "X"      : self.container.winfo_rootx(),
             "Y"      : self.container.winfo_rooty()
-        }		
+        }
         self.pos = self.calculate_pos(x, y)
         if self.pos == 'left':
             new['width'] /= 2
@@ -446,7 +515,7 @@ class DragHandler(ttk.Tkinter.Toplevel):
             parent.destroy_tree()
             parent.destroy()
         
-            grandParent.attach_child(goodChild)				
+            grandParent.attach_child(goodChild)
         
         notebook.detach_child(documentView)
         
