@@ -57,6 +57,10 @@ def ask_questionYesNo(title, message):
     import tkMessageBox
     return tkMessageBox.askyesno(title, message)
 
+def ask_questionYesNoCancel(title, message):
+    import tkMessageBox
+    return tkMessageBox.askyesnocancel(title, message)
+
 def ask_filenameSave(*args, **kwords):
     import tkFileDialog
     response = tkFileDialog.asksaveasfilename(title="Save a file", *args, **kwords)

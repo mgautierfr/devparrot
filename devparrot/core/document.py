@@ -115,7 +115,7 @@ class Document(utils.event.EventSource):
     def check_for_save(self):
         if not self.is_readonly() and self.model.edit_modified():
             import ui
-            return ui.helper.ask_questionYesNo("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.title})
+            return ui.helper.ask_questionYesNoCancel("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.title})
         return False
         
     def search(self, backward, text):

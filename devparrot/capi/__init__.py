@@ -21,6 +21,7 @@
 
 import sys
 from devparrot.core import session
+from devparrot.core.errors import UserCancel
 from devparrot.core.command import *
 from devparrot.core.commandLauncher import create_section
 
@@ -60,7 +61,10 @@ def get_nth_file(index):
     return session.get_documentManager().get_nthFile(index)
 
 def close_document(document):
-    if document.check_for_save():
+    must_save = document.check_for_save()
+    if must_save is None:
+        raise UserCancel
+    if must_save:
         save_document(document, document.get_path())
     if document.documentView.is_displayed():
         parentContainer = document.documentView.get_parentContainer()
