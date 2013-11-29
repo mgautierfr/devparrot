@@ -91,5 +91,5 @@ class FileDocSource(object):
 
     def is_readonly(self):
         if not os.path.exists(self.path):
-            return True
+            return False
         return not os.access(self.path, os.W_OK)
