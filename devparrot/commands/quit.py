@@ -21,11 +21,14 @@
 
 from devparrot import capi
 from devparrot.capi import Command
+from devparrot.core.errors import UserCancel
 
 
 @Command()
 def quit():
     """quit devparrot"""
-    while len(capi.documents):
-        capi.close_document(capi.get_nth_file(0))
+    documents_edited = [d for d in capi.documents if d.is_modified()]
+    if documents_edited:
+        if not capi.ui.helper.ask_questionYesNo("Quit ?", "Some files are modified, do you really want to quit ?"):
+            raise UserCancel()
     capi.quit()

@@ -35,7 +35,7 @@ class DocumentManager(utils.event.EventSource):
         try:
             return next(doc for (i, doc) in enumerate(sorted(self.documents)) if i==index)
         except StopIteration:
-            return None
+            raise IndexError
 
     def has_file(self, path):
         try :

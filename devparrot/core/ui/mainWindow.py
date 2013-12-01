@@ -27,9 +27,9 @@ from devparrot.core import popupMenu as popupMenuModule
 import controlerEntry
 import statusBar
 
-def quit(event):
-    from devparrot.actions.controlerActions import quit
-    quit.run()
+def quit():
+    from devparrot.core import session
+    session.commandLauncher.run_command_nofail("quit")
 
 class MainWindow(ttk.Tkinter.Tk):
     def __init__(self):
@@ -58,6 +58,8 @@ class MainWindow(ttk.Tkinter.Tk):
             pass
         self.wm_geometry("%dx%d+%s+%s"%(w, h, x, y))
         self.wm_title("devparrot")
+
+        self.protocol('WM_DELETE_WINDOW', quit)
 
         # [TODO] Look in standard data directory ?
         iconpath = session.config.get("devparrotPath")

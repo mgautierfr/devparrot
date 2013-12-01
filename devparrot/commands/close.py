@@ -18,25 +18,40 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
-
+from devparrot import capi
 from devparrot.capi import Command
 from devparrot.core.session import bindings
 from devparrot.capi.constraints import OpenDocument
-from devparrot import capi
+from devparrot.core.errors import UserCancel
 
+
+def ask_save_question(document):
+    answer = capi.ui.helper.ask_questionYesNoCancel("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':document.title})
+    if answer is None:
+        raise UserCancel()
+    return answer
 
 @Command(
     documents = OpenDocument(default=capi.get_currentDocument, help="documents to close")
 )
 def close(*documents):
     "close one or several documents"
+    documents_modified = [d for d in documents if d.is_modified()]
+    documents_must_save = [d for d in documents_modified if ask_save_question(d)]
+    for document in documents_must_save:
+        if document.has_a_path():
+            capi.save_document(document, document.get_path())
+        else:
+            answer = capi.ui.helper.ask_filenameSave()
+            if not answer:
+                raise UserCancel()
+            capi.save_document(document, answer)
     for document in documents:
         capi.close_document(document)
 
 @Command()
 def closeall():
     """close all opened documents"""
-    while len(capi.documents):
-        capi.close_document(capi.get_nth_file(0))
+    close(*capi.documents)
 
 bindings["<Control-w>"] = "close\n"

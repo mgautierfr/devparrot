@@ -24,6 +24,7 @@ from devparrot.core import session
 from devparrot.core.errors import UserCancel
 from devparrot.core.command import *
 from devparrot.core.commandLauncher import create_section
+from devparrot.core import ui
 
 get_currentDocument = session.get_currentDocument
 get_currentContainer = session.get_currentContainer
@@ -61,11 +62,6 @@ def get_nth_file(index):
     return session.get_documentManager().get_nthFile(index)
 
 def close_document(document):
-    must_save = document.check_for_save()
-    if must_save is None:
-        raise UserCancel
-    if must_save:
-        save_document(document, document.get_path())
     if document.documentView.is_displayed():
         parentContainer = document.documentView.get_parentContainer()
         parentContainer.detach_child(document.documentView)
@@ -102,9 +98,8 @@ def save_document(document, fileToSave):
     document.write()
 
 def quit():
-    from devparrot.core import ui
     def destroy():
-        ui.window.destroy()	
+        ui.window.destroy()
     ui.window.after_idle(destroy)
     
 def split(vertical, first=True):

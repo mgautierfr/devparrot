@@ -112,11 +112,8 @@ class Document(utils.event.EventSource):
                 #glib.idle_add(self.currentView.set_context, ctx)
             self.documentSource.init_timestamp()
 
-    def check_for_save(self):
-        if not self.is_readonly() and self.model.edit_modified():
-            import ui
-            return ui.helper.ask_questionYesNoCancel("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':self.title})
-        return False
+    def is_modified(self):
+        return not self.is_readonly() and self.model.edit_modified()
         
     def search(self, backward, text):
         if self.model.search(backward, text):
