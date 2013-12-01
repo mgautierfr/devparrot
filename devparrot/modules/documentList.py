@@ -21,7 +21,7 @@
 
 import Tkinter,ttk
 
-from devparrot.core import documentManager, ui
+from devparrot.core import session, ui
 
 documentListView = None
 
@@ -32,8 +32,8 @@ def activate(var, old):
     if var.get():
         global documentListView
         documentListView = DocumentListView(ui.window)
-        documentManager.documentManager.connect('documentDeleted', documentListView.on_documentDeleted)
-        documentManager.documentManager.connect('documentAdded', documentListView.on_documentAdded)
+        session.get_documentManager().connect('documentDeleted', documentListView.on_documentDeleted)
+        session.get_documentManager().connect('documentAdded', documentListView.on_documentAdded)
         ui.helperManager.add_helper(documentListView, "documentList", 'left')
     else:
         pass
@@ -74,11 +74,16 @@ class DocumentListView(ttk.Treeview):
         bindtags.insert(1,"Command")
         bindtags = " ".join(bindtags)
         self.bindtags(bindtags)
+        nb_doc = session.get_documentManager().get_nbDocuments()
+        [self._add_document(session.get_documentManager().get_nthFile(i)) for i in xrange(nb_doc)]
+        self.sort()
 
-
-    def on_documentAdded(self, document):
+    def _add_document(self, document):
         ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=('"%s"'%document.title))
         document.connect('pathChanged', self.on_path_changed)
+
+    def on_documentAdded(self, document):
+        self._add_document(document)
         self.sort()
 
     def on_documentDeleted(self,document):
@@ -95,7 +100,7 @@ class DocumentListView(ttk.Treeview):
         from devparrot.core import session
         selection = self.selection()
         if selection:
-            document = documentManager.documentManager.get_file(selection[0])
+            document = session.get_documentManager().get_file(selection[0])
             if document.documentView.is_displayed():
                 document.documentView.parentContainer.select(document.documentView)
             else:
