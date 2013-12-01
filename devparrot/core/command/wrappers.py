@@ -63,7 +63,7 @@ class CommandWrapper(object):
                 return ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
             raise
 
-    def provide_value(self, index, value):
+    def provide_value(self, index, token):
         pass
 
     def _get_call_args(self, args, kwords):
@@ -185,11 +185,11 @@ class MasterCommandWrapper(object):
         else:
             return self.subCommands[self.currentSubCommand].get_constraint(index-1)
 
-    def provide_value(self, index, value):
+    def provide_value(self, index, token):
         if index == 0:
-            self.currentSubCommand = value
+            self.currentSubCommand = token.values
         else:
-            self.subCommands[self.currentSubCommand].provide_value(index-1, value)
+            self.subCommands[self.currentSubCommand].provide_value(index-1, token)
 
     def resolve(self, *args, **kwords):
         subCommandName = args[0]

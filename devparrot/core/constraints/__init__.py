@@ -344,7 +344,7 @@ class ConfigEntry(_Constraint):
         completions = []
         
         if token.get_type().endswith('String'):
-            token = token.value
+            token = token.values
         elif token.get_type() == 'Identifier':
             token = token.name
         else:
