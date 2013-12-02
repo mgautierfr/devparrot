@@ -37,6 +37,7 @@ _fonts = {}
 _styles = {}
 _tokens_name = {}
 _moduleName = None
+_lexers_cache = {}
 
 def init(configSection, name):
     global _moduleName
@@ -137,12 +138,20 @@ def on_new_document(document):
 
 def init_and_highlight(document):
     def find_lexer(filename):
-        from pygments.lexers import get_lexer_for_filename
+        from pygments.lexers import get_lexer_for_mimetype
         from pygments.util import ClassNotFound
+        from xdg import Mime
+        mime = str(Mime.get_type_by_name(filename))
+        lexer = None
         try:
-            return get_lexer_for_filename(filename, noSyncPoint=False)
-        except ClassNotFound:
-            return None
+            lexer = _lexers_cache[mime](noSyncPoint=False)
+        except KeyError:
+            try:
+                lexer = get_lexer_for_mimetype(mime, noSyncPoint=False)
+                _lexers_cache[mime] = lexer.__class__
+            except ClassNotFound:
+                pass
+        return lexer
 
     if not document.has_a_path():
         return
