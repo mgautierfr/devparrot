@@ -38,6 +38,7 @@ class BindLauncher(object):
         ui.window.entry.delete("1.0", "end")
         ui.window.entry.insert("1.0", self.leftText)
         if self.leftText:
+            ui.window.entry.toClean = False
             ui.window.entry.focus()
             ui.window.entry.mark_set("index", "end")
         return "break"
