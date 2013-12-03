@@ -30,18 +30,24 @@ except ImportError:
 	sys.exc_clear()
 
 if __name__ == "__main__":
-	import devparrot
-	config = devparrot.core.configLoader.init()
-	devparrot.core.session.init(config)
-	devparrot.core.ui.init()
-	devparrot.core.modules.load()
-	devparrot.core.command.load()
-	devparrot.core.configLoader.load()
+    import devparrot
+    config = devparrot.core.configLoader.init()
+    devparrot.core.session.init(config)
+    devparrot.core.ui.init()
+    devparrot.core.modules.load()
+    devparrot.core.command.load()
+    devparrot.core.configLoader.load()
 
 
-	if len(sys.argv) > 1:
-		pathes = " ".join(['"{}"'.format(p) for p in sys.argv[1:]])
-		devparrot.core.session.commandLauncher.run_command_nofail("open {}".format(pathes))
+    def delayed():
+        if len(sys.argv) > 1:
+            pathes = " ".join(['"{}"'.format(p) for p in sys.argv[1:]])
+            devparrot.core.session.commandLauncher.run_command_nofail("open {}".format(pathes))
 
-	devparrot.core.ui.window.mainloop()
+    def double_delayed():
+        devparrot.core.ui.window.after(0, delayed)
+
+    devparrot.core.ui.window.after(0, double_delayed)
+
+    devparrot.core.ui.window.mainloop()
 
