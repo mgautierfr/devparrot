@@ -30,6 +30,7 @@ from devparrot.core import ui, session
 fileExplorerView = None
 tkImages = {}
 configSection = None
+pending_filltree = None
 
 def init(_configSection, name):
     global configSection
@@ -51,7 +52,8 @@ def activate(var, old):
 def on_iconTheme_changed(var, old):
     global tkImages
     tkImages = {}
-    fileExplorerView.filltree()
+    if configSection.active.get():
+        ui.window.after_idle(fileExplorerView.filltree)
 
 def _load_icon_for_mime(mimeType):
     try:
@@ -151,6 +153,14 @@ class FileExplorerView(ttk.Treeview):
         ttk.Treeview.insert(self, '', 'end', **args)
 
     def filltree(self):
+        global pending_filltree
+        if pending_filltree:
+            return
+        pending_filltree = self.after_idle(self._filltree)
+
+    def _filltree(self):
+        global pending_filltree
+        pending_filltree = None
         self.heading('#0', text=os.path.basename(self.currentPath))
         while len(self.get_children('')):
             self.delete(self.get_children('')[0])
@@ -163,7 +173,7 @@ class FileExplorerView(ttk.Treeview):
             if os.path.isdir(fullPath):
                 image = _get_icon_for_mime(("folder",))
             else:
-                mime = str(Mime.get_type(fullPath)).split('/')
+                mime = str(Mime.get_type_by_name(fullPath)).split('/')
                 image = _get_icon_for_mime(mime)
             self.insert_child(fullPath, child, image)
 

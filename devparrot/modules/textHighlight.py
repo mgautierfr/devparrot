@@ -122,6 +122,7 @@ class HighlightContext(object):
     def __init__(self):
         self.lexer = None
         self.markNb=0
+        self.idle_handle = None
 
 def on_new_document(document):
     create_style_table(document.model)
@@ -190,7 +191,24 @@ def on_delete(model, fromMark, toMark):
 def on_replace(model, fromMark, toMark, text):
     on_insert(model, fromMark, text)
 
-def update_highlight(textWidget, insertPoint, length):
+def update_highlight(textWidget, new_insertPoint, new_length):
+    if textWidget._highlight.idle_handle is None:
+        handle = textWidget.after_idle(lambda : _update_highlight(textWidget, new_insertPoint, new_length))
+        textWidget._highlight.idle_handle = (handle, new_insertPoint, new_length)
+        return
+
+    idle_handle, old_insertPoint, old_length = textWidget._highlight.idle_handle
+    old_end = Index(textWidget, "%s + %d c"%(old_insertPoint, old_length))
+    new_end = Index(textWidget, "%s + %d c"%(new_insertPoint, new_length))
+    insertPoint = min(new_insertPoint, old_insertPoint)
+    stopPoint = max(new_end, old_end)
+    length = textWidget.tk.call(textWidget._w, "count", "-chars", str(insertPoint), str(stopPoint))
+    textWidget.after_cancel(textWidget._highlight.idle_handle[0])
+    handle = textWidget.after_idle(lambda : _update_highlight(textWidget, insertPoint, length))
+    textWidget._highlight.idle_handle = (handle, insertPoint, length)
+
+def _update_highlight(textWidget, insertPoint, length):
+    textWidget._highlight.idle_handle = None
     start_name, start_pos = find_previous(textWidget,insertPoint)
     content = textWidget.get(start_pos.text, "end")
     tokens = textWidget._highlight.lexer.get_tokens_unprocessed(content)
