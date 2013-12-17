@@ -35,8 +35,14 @@ A buffer is not attach to any file and can't be modified"""
     capi.set_currentDocument(document)
     model = document.get_model()
 
-    for line in content:
-        model.insert("insert", line)
+    def read_line():
+        try:
+            line = content.next()
+            model.insert("insert", line)
+            model.after_idle(read_line)
+        except StopIteration:
+            pass
 
+    model.after_idle(read_line)
 
 Command(content=Stream())(buffer, create_section("capi"))
