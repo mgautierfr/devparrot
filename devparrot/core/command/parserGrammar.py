@@ -22,7 +22,7 @@
 from picoparse import string
 
 from picoparse import one_of, many, many1, many_until, not_one_of, run_parser, optional
-from picoparse import choice, peek, eof, any_token, satisfies, not_followed_by
+from picoparse import choice, peek, eof, is_eof, any_token, satisfies, not_followed_by
 from picoparse import sep, sep1, NoMatch
 from picoparse.text import quote
 from picoparse import partial, tri, commit, fail
@@ -104,8 +104,9 @@ def unquoted_string(nokeyword):
     if nokeyword:
         not_followed_by(partial(one_of, "="))
     st = ''.join([first] + rest)
-    closed = optional(whitespace1, None)
-    return UnquotedString(index=idx, len=index()-idx, values=st, closed=(closed is not None))
+    end = index()
+    closed = optional(eof, False)
+    return UnquotedString(index=idx, len=end-idx, values=st, closed=(closed is not None))
     
 @tri
 def string_literal():
@@ -114,10 +115,11 @@ def string_literal():
     quote = optional(partial(one_of,'\'"'), None)
     if quote:
         st = ''.join(many(partial(string_char, quote)))
+        closed=optspecial(quote)
         if quote == "'":
-            return SimpleString(index=idx, len=index()-idx, values=st, closed=optspecial(quote))
+            return SimpleString(index=idx, len=index()-idx, values=st, closed=closed)
         else:
-            return DoubleString(index=idx, len=index()-idx, values=st, closed=optspecial(quote))
+            return DoubleString(index=idx, len=index()-idx, values=st, closed=closed)
     return partial(unquoted_string, True)()
 
 @tri
@@ -140,7 +142,7 @@ def list_():
     whitespace()
     idx = index()
     special('(')
-    st = ''.join(many(partial(string_char, ')')))
+    st = many(string_literal)
     closed=optspecial(')')
     return List(index=idx, len=index()-idx, values=st, closed=closed )
     
@@ -206,13 +208,15 @@ def commandCall():
 
     if not parameter:
         parameter = [New(index=index())]
-    return CommandCall(index=ident.index, len=index()-ident.index, name=ident.name, values=parameter, closed=True)
+    return CommandCall(index=ident.index, len=index()-ident.index, name=ident.name, values=parameter, closed=False)
 
 @tri
 def userCommand():
     commands = [ commandCall() ]
     def inner():
         sep = choice(partial(special, "\n"), pipe_sep)
+        if sep:
+            commands[-1].closed = True
         if sep == "\n":
             commands.append("\n")
         commands.append(commandCall())
@@ -235,7 +239,7 @@ def parse_input_text(text, forCompletion=True):
         if not forCompletion:
             lastCommand = ret.values[-1]
             if lastCommand.get_type() == "Identifier":
-                ret.values[-1] = CommandCall(index=lastCommand.index, len=lastCommand.len, name=lastCommand.name, values=[], closed=True)
+                ret.values[-1] = CommandCall(index=lastCommand.index, len=lastCommand.len, name=lastCommand.name, values=[], closed=False)
         return ret
     except NoMatch:
         raise InvalidSyntax("Can't parse %s", text)

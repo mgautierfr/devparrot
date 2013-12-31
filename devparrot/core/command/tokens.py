@@ -27,6 +27,12 @@ class Token(object):
     def get_type(self):
         return self.__class__.__name__
 
+    def __eq__(self, other):
+        try:
+            return self.get_type() == other.get_type() and self.index == other.index and self.len == other.len
+        except AttributeError:
+            return False
+
     def pprint(self, ident):
         print ident, "%s : %s(%s)"%(self.__class__.__name__, self.index, self.len)
 
@@ -34,6 +40,9 @@ class Identifier(Token):
     def __init__(self, **kw):
         super(Identifier, self).__init__(**kw)
         self.name = kw['name']
+
+    def __eq__(self, other):
+        return super(Identifier, self).__eq__(other) and self.name == other.name
 
     def __str__(self):
         return self.name
@@ -43,12 +52,19 @@ class Identifier(Token):
 
     def pprint(self, ident):
         super(Identifier, self).pprint(ident)
-        print ident, " - name :", self.name
+        if isinstance(self.name, Token):
+            print ident, " -name:"
+            self.name.pprint(ident+"    ")
+        else:
+            print ident, " -name :", self.name
 
 class Number(Token):
     def __init__(self, **kw):
         super(Number, self).__init__(**kw)
         self.value = kw['value']
+
+    def __eq__(self, other):
+        return super(Number, self).__eq__(other) and self.value == other.value
 
     def __str__(self):
         return '%s'%self.value
@@ -64,8 +80,11 @@ class Number(Token):
 class Section(Token):
     def __init__(self, **kw):
         super(Section, self).__init__(**kw)
-        self.closed = kw['closed']
+        self.__dict__['closed'] = kw['closed']
         self.values = kw['values']
+
+    def __eq__(self, other):
+        return super(Section, self).__eq__(other) and self.closed == other.closed and self.values == other.values
 
     def pprint(self, ident):
         super(Section, self).pprint(ident)
@@ -73,7 +92,10 @@ class Section(Token):
         print ident, " - values:"
         if isinstance(self.values, list):
             for v in self.values:
-                v.pprint(ident+"    ")
+                if isinstance(v, Token):
+                    v.pprint(ident+"    ")
+                else:
+                    print ident,"    ", repr(v)
         else:
             print ident+"    ", repr(self.values)
 
@@ -96,11 +118,20 @@ class CommandCall(Section, Identifier):
     def __init__(self, **kw):
         super(CommandCall, self).__init__(**kw)
 
+    def __eq__(self, other):
+        return super(CommandCall, self).__eq__(other)
+
     def __str__(self):
         return "%(name)s%(parameters)s"%{
             'name' : self.name,
             'parameters' : Section.__str__(self)
           }
+
+    def __setattr__(self, name, value):
+        if name == "closed" and value:
+            if self.values[-1].get_type() == "New":
+                del self.values[-1]
+        super(CommandCall, self).__setattr__(name, value)
 
     def rewrited(self):
         return "%(name)s.resolve%(parameters)s"%{
@@ -116,12 +147,18 @@ class Pipe(Token):
         super(Pipe, self).__init__(**kw)
         self.values = kw['values']
 
+    def __eq__(self, other):
+        return super(Pipe, self).__eq__(other) and self.values == other.values
+
     def pprint(self, ident):
         super(Pipe, self).pprint(ident)
         print ident, " - values:"
         if isinstance(self.values, list):
             for v in self.values:
-                v.pprint(ident+"    ")
+                if isinstance(v, Token):
+                    v.pprint(ident+"    ")
+                else:
+                    print ident, "    ", repr(v)
         else:
             print ident+"    ", self.values
 
@@ -137,6 +174,9 @@ class String(Section):
     def __init__(self, **kw):
         super(String, self).__init__(**kw)
 
+    def __eq__(self, other):
+        return super(String, self).__eq__(other)
+
     def __str__(self):
         return self.enclose(self.values)
 
@@ -151,6 +191,9 @@ class SimpleString(String):
     def __init__(self, **kw):
         super(SimpleString, self).__init__(**kw)
 
+    def __eq__(self, other):
+        return super(SimpleString, self).__eq__(other)
+
     def pprint(self, ident):
         super(SimpleString, self).pprint(ident)
 
@@ -160,6 +203,9 @@ class DoubleString(String):
     def __init__(self, **kw):
         super(DoubleString, self).__init__(**kw)
 
+    def __eq__(self, other):
+        return super(DoubleString, self).__eq__(other)
+
     def pprint(self, ident):
         super(DoubleString, self).pprint(ident)
 
@@ -168,13 +214,19 @@ class UnquotedString(String):
     def __init__(self, **kw):
         super(UnquotedString, self).__init__(**kw)
 
+    def __eq__(self, other):
+        return super(UnquotedString, self).__eq__(other)
+
     def pprint(self, ident):
         super(UnquotedString, self).pprint(ident)
 
 class List(Section):
-    opener, closer = "[]"
+    opener, closer = "()"
     def __init__(self, **kw):
         super(List, self).__init__(**kw)
+
+    def __eq__(self, other):
+        return super(List, self).__eq__(other)
 
     def pprint(self, ident):
         super(List, self).pprint(ident)
@@ -183,6 +235,9 @@ class KeywordArg(Identifier):
     def __init__(self, **kw):
         super(KeywordArg, self).__init__(**kw)
         self.value = kw['value']
+
+    def __eq__(self, other):
+        return super(KeywordArg, self).__eq__(other) and self.value == other.value
 
     def __str__(self):
         return "%s=%s"%(self.name, str(self.value))
@@ -202,6 +257,9 @@ class New(Token):
     def __init__(self, **kw):
         kw['len'] = 0
         super(New, self).__init__(**kw)
+
+    def __eq__(self, other):
+        return super(New, self).__eq__(other)
 
     def __str__(self):
         return ""
