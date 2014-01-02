@@ -197,7 +197,7 @@ class File(_Constraint):
         self.mode = mode
 
     def check(self, _file):
-        _file = os.path.abspath(_file)
+        _file = os.path.abspath(os.path.expanduser(_file))
         if os.path.exists(_file):
             return True, _file
         d = os.path.dirname(_file)
@@ -226,14 +226,18 @@ class File(_Constraint):
 
     def _complete(self, directory, filestart, prefix, completionClass):
         completions = []
-        for f in os.listdir(directory):
-            if f.startswith(filestart):
-                name = os.path.join(prefix, f)
-                if os.path.isdir(os.path.join(directory, f)):
-                    completion = completionClass(name+"/", False)
-                else:
-                    completion = completionClass(name, True)
-                completions.append(completion)
+        try:
+            for f in os.listdir(directory):
+                if f.startswith(filestart):
+                    name = os.path.join(prefix, f)
+                    if os.path.isdir(os.path.join(directory, f)):
+                        completion = completionClass(name+"/", False)
+                    else:
+                        completion = completionClass(name, True)
+                    completions.append(completion)
+        except OSError:
+            #directory is not an valid directory. Fail silently.
+            pass
         return completions
 
     def complete(self, token):
@@ -247,7 +251,7 @@ class File(_Constraint):
 
         completionClass = type_to_completion[token.get_type()]
 
-        currentFile = os.path.abspath(value)
+        currentFile = os.path.abspath(os.path.expanduser(value))
 
         if value:
             if os.path.isdir(currentFile):
