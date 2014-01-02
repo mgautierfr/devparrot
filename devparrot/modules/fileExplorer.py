@@ -20,7 +20,7 @@
 
 
 import Tkinter,ttk
-import os
+import os, re
 
 from xdg.IconTheme import getIconPath
 from xdg import Mime
@@ -37,6 +37,7 @@ def init(_configSection, name):
     configSection = _configSection
     configSection.add_variable("iconTheme", None)
     configSection.add_variable("showIcon", False)
+    configSection.add_variable("excludes", ["*.pyc", "*.pyo", "*.o"])
     configSection.active.register(activate)
 
 def activate(var, old):
@@ -121,22 +122,41 @@ def FileComparator(rootpath):
             return self.entry != other.entry
     return PseudoKey
 
-class FileExplorerView(ttk.Treeview):
+def apply_exclude(entry):
+    from fnmatch import fnmatch
+    for filter_ in configSection.excludes.get():
+        if fnmatch(entry, filter_):
+            return False
+    return True
+
+class FileExplorerView(ttk.Frame):
     def __init__(self,parent):
-        ttk.Treeview.__init__(self,parent)
-        self.column('#0')
-        self['selectmode'] =(Tkinter.BROWSE)
-        self.bind('<Double-Button-1>', self.on_double_click)
-        bindtags = list(self.bindtags())
+        ttk.Frame.__init__(self, parent)
+        self.vScrollbar = ttk.Scrollbar(self, orient=ttk.Tkinter.VERTICAL)
+        self.vScrollbar.grid(column=1, row=0, sticky="nsew")
+        self.treeView = ttk.Treeview(self)
+        self.treeView.grid(column=0, row=0, sticky="nsew")
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=0)
+        self.rowconfigure(0, weight=1)
+
+        self.treeView.column('#0')
+        self.treeView['selectmode'] =(Tkinter.BROWSE)
+        self.treeView.bind('<Double-Button-1>', self.on_double_click)
+
+        self.vScrollbar['command'] = self.treeView.yview
+        self.treeView['yscrollcommand'] = self.vScrollbar.set
+
+        bindtags = list(self.treeView.bindtags())
         bindtags.insert(1,"Command")
         bindtags = " ".join(bindtags)
-        self.bindtags(bindtags)
+        self.treeView.bindtags(bindtags)
         self.currentPath = os.getcwd()
         self.filltree()
 
     def on_double_click(self, event):
         from devparrot.core import session
-        selection = self.selection()
+        selection = self.treeView.selection()
         if selection:
             fullPath = os.path.join(self.currentPath, selection[0])
             fullPath = os.path.abspath(fullPath)
@@ -150,7 +170,7 @@ class FileExplorerView(ttk.Treeview):
         args = {'iid':iid, 'text':text}
         if image:
             args['image'] = image
-        ttk.Treeview.insert(self, '', 'end', **args)
+        self.treeView.insert('', 'end', **args)
 
     def filltree(self):
         global pending_filltree
@@ -161,10 +181,11 @@ class FileExplorerView(ttk.Treeview):
     def _filltree(self):
         global pending_filltree
         pending_filltree = None
-        self.heading('#0', text=os.path.basename(self.currentPath))
-        while len(self.get_children('')):
-            self.delete(self.get_children('')[0])
+        self.treeView.heading('#0', text=os.path.basename(self.currentPath))
+        while len(self.treeView.get_children('')):
+            self.treeView.delete(self.treeView.get_children('')[0])
         children = os.listdir(self.currentPath)
+        children = [ c for c in children if apply_exclude(c) ]
         children = sorted(children, key=FileComparator(self.currentPath))
         image = _get_icon_for_mime(("folder",))
         self.insert_child(os.path.join(self.currentPath, ".."), "..", image)
