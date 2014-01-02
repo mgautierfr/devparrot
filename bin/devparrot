@@ -23,20 +23,40 @@
 
 import sys
 import os.path
+import argparse
 
 try:
 	import _preambule
 except ImportError:
 	sys.exc_clear()
 
+def parse_commandLine(args=sys.argv):
+    parser = argparse.ArgumentParser(description="The Devparrot IDE. The one")
+    parser.add_argument("call_name",
+                        type=os.path.basename,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--configrc",
+                        type=argparse.FileType('r'),
+                        default=os.path.expanduser("~/.devparrotrc"),
+                        help="The rc file to load")
+    parser.add_argument("--no_configrc",
+                        dest="load_configrc",
+                        action='store_false',
+                        help="Do not load rc file")
+    parser.add_argument("ARGUMENTS", nargs="*")
+    return parser.parse_args(args)
+
+
+
 if __name__ == "__main__":
     import devparrot
-    config = devparrot.core.configLoader.init()
+    cmd_options = parse_commandLine()
+    config = devparrot.core.configLoader.init(cmd_options)
     devparrot.core.session.init(config)
     devparrot.core.ui.init()
     devparrot.core.modules.load()
     devparrot.core.command.load()
-    devparrot.core.configLoader.load()
+    devparrot.core.configLoader.load(cmd_options)
 
 
     def delayed():

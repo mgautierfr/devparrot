@@ -21,6 +21,7 @@
 
 
 from devparrot.core.utils.variable import CbCaller
+import re
 
 _config = None
 
@@ -99,7 +100,7 @@ class Config(Section):
     def __setitem__(self, name, value):
         setattr(self, name, value)
 
-def init():
+def init(cmd_options):
     from devparrot.controllers.defaultControllerMode import DefaultControllerMode, DefaultROControllerMode
     import os
     global _config
@@ -111,11 +112,15 @@ def init():
     _config.add_variable("wchars", u"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ€")
     _config.add_variable("spacechars", u" \t")
     _config.add_variable("puncchars", u"!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿×÷")
+    section = createSection("cmd")
+    section.add_variable("ARGUMENTS", cmd_options.ARGUMENTS)
+
     section = createSection("window")
     section.add_variable("height", 600)
     section.add_variable("width", 800)
     section.add_variable("posx", 10)
     section.add_variable("posy", 10)
+
     section = createSection("textView")
     section.add_variable("auto_indent", True)
     section.add_variable("remove_tail_space", True)
@@ -125,6 +130,7 @@ def init():
     section.add_variable("show_line_numbers", True)
     section.add_variable("smart_home_end", True)
     section.add_variable("font", "monospace")
+
     section = createSection("color")
     section.add_variable("invalidColor", "red")
     section.add_variable("okColor", "#BBFFBB")
@@ -142,15 +148,19 @@ def createSection(name, parent=None):
     parent.add_section(name, newSection)
     return newSection
 
-def load():
-    from pwd import getpwuid
-    import os
+comment_reg = re.compile(r"(?P<line>[^#]*)(?P<comment>#.*)?")
+def load(cmd_options):
     from devparrot.core import session
-    homedir = getpwuid(os.getuid())[5]
-    user_config_path = os.path.join(homedir,'.devparrotrc')
 
-    _global = {'bindings':session.bindings}
+    if cmd_options.load_configrc:
+        for line in cmd_options.configrc:
+            line = line.strip()
+            match = comment_reg.match(line)
+            line  = match.group("line")
+            if not line:
+                continue
 
-    if os.path.exists(user_config_path):
-        execfile(user_config_path, _global, _config)
+            session.commandLauncher.run_command_nofail(line)
+
+    cmd_options.configrc.close()
 
