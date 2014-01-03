@@ -480,6 +480,54 @@ to_test = {
                                              )
                                 ]
                          ),
+              "function %macro(key=value)" : Pipe(index=0,
+                                 len=26,
+                                 values=[CommandCall(index=0,
+                                                     len=26,
+                                                     name="function",
+                                                     closed=False,
+                                                     values=[MacroCall(index=9,
+                                                                       len=17,
+                                                                       opened=True,
+                                                                       closed=True,
+                                                                       name="macro",
+                                                                       values=[KeywordArg(index=16,
+                                                                                          len=9,
+                                                                                          name=Identifier(index=16, len=3, name="key"),
+                                                                                          value=UnquotedString(index=20, len=5, values="value", closed=True)
+                                                                                         )
+                                                                              ]
+                                                                      )
+                                                             ]
+                                                    )
+                                        ]
+                                ),
+             "function %macro(arg , key=value)" : Pipe(index=0,
+                                 len=32,
+                                 values=[CommandCall(index=0,
+                                                     len=32,
+                                                     name="function",
+                                                     closed=False,
+                                                     values=[MacroCall(index=9,
+                                                                       len=23,
+                                                                       opened=True,
+                                                                       closed=True,
+                                                                       name="macro",
+                                                                       values=[UnquotedString(index=16,
+                                                                                              len=3,
+                                                                                              closed=True,
+                                                                                              values="arg"),
+                                                                               KeywordArg(index=22,
+                                                                                          len=9,
+                                                                                          name=Identifier(index=22, len=3, name="key"),
+                                                                                          value=UnquotedString(index=26, len=5, values="value", closed=True)
+                                                                                         )
+                                                                              ]
+                                                                      )
+                                                             ]
+                                                    )
+                                        ]
+                                ),
           }
 
 @pytest.fixture(params=to_test.keys())
