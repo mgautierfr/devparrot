@@ -142,6 +142,28 @@ class CommandCall(Section, Identifier):
     def pprint(self, ident):
         super(CommandCall, self).pprint(ident)
 
+class MacroCall(CommandCall):
+    opener, closer = "()"
+    def __init__(self,  **kw):
+        self.opened = kw['opened']
+        super(MacroCall, self).__init__(**kw)
+
+    def __eq__(self, other):
+        return super(MacroCall, self).__eq__(other)
+
+    def __str__(self):
+        return super(MacroCall, self).__str__()
+
+    def rewrited(self):
+        return "_macros['%(name)s'].resolve%(parameters)s"%{
+            'name' : self.name,
+            'parameters' : Section.rewrited(self)
+          }
+
+    def pprint(self, ident):
+        super(MacroCall, self).pprint(ident)
+        print ident, " - opened:", self.opened
+
 class Pipe(Token):
     def __init__(self, **kw):
         super(Pipe, self).__init__(**kw)

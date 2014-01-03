@@ -31,6 +31,11 @@ def add_command(name, command, parentSection=None):
         parentSection.add_command(name, command)
 
 
+def add_macro(name, command):
+    import session
+    session.macros[name] = command
+
+
 def create_section(name=None, parentSection=None):
     from devparrot.core.command.section import Section
     import session
@@ -106,7 +111,9 @@ def expand_alias(commands, first=False):
             #it is an alias, lets expand it
             #command with rewrite with all the section
             try:
-                alias_expansion = eval(command.rewrited(), dict(session.commands), {})
+                _globals = dict(session.commands)
+                _globals["_macros"] = dict(session.macros)
+                alias_expansion = eval(command.rewrited(), _globals, {})
             except TypeError as err:
                 raise InvalidArgument(err.message)
             #parse new text and redo the work for it
@@ -148,7 +155,9 @@ class CommandLauncher:
                     except KeyError:
                          raise InvalidName("{0} is not a valid command name".format(command.name))
                     try:
-                        streamEater = eval(command.rewrited(), dict(session.commands), {})
+                        _globals = dict(session.commands)
+                        _globals["_macros"] = dict(session.macros)
+                        streamEater = eval(command.rewrited(), _globals, {})
                         stream = streamEater(stream)
                     except UserCancel:
                         raise StopIteration

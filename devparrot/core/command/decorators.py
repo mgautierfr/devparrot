@@ -74,3 +74,14 @@ class SubCommand(Command):
         self.wrapper._set_function(function)
         # return the wrapper to be able to do some isinstance in metaclass
         return self.wrapper
+
+class Macro(Command):
+    def __init__(self, **kwords):
+        self.wrapper = MacroWrapper(kwords)
+
+    def __call__(self, function):
+        from devparrot.core.commandLauncher import add_macro
+        self.wrapper._set_function(function)
+        add_macro(function.__name__, self.wrapper)
+        return function
+

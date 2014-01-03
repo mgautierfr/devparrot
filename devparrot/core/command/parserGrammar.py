@@ -81,28 +81,24 @@ def string_char(quote):
 
 @tri
 def unquoted_string_char1():
-    char = not_one_of(" ,()[]{}|\n")
+    char = not_one_of(" ,()[]{}|%\n")
     if char == '\\':
         char = optional(any_token, '\\')
     return char
 
 @tri
-def unquoted_string_char(nokeyword):
-    if nokeyword:
-        char = not_one_of(" ()[]{}|\n=")
-    else:
-        char = not_one_of(" ()[]{}|\n")
+def unquoted_string_char():
+    char = not_one_of(" ,()[]{}|\n=")
     if char == '\\':
         char = optional(any_token, '\\')
     return char
 
 @tri
-def unquoted_string(nokeyword):
+def unquoted_string():
     idx = index()
     first = unquoted_string_char1()
-    rest = many(partial(unquoted_string_char, nokeyword))
-    if nokeyword:
-        not_followed_by(partial(one_of, "="))
+    rest = many(unquoted_string_char)
+    not_followed_by(partial(one_of, "="))
     st = ''.join([first] + rest)
     end = index()
     closed = optional(eof, False)
@@ -120,11 +116,10 @@ def string_literal():
             return SimpleString(index=idx, len=index()-idx, values=st, closed=closed)
         else:
             return DoubleString(index=idx, len=index()-idx, values=st, closed=closed)
-    return partial(unquoted_string, True)()
+    return unquoted_string()
 
 @tri
 def identifier1():
-    whitespace()
     idx = index()
     first = identifier_char1()
     rest = many(identifier_char)
@@ -154,47 +149,47 @@ def keywordparameter():
     whitespace()
     special("=")
     whitespace()
-    value = optional( partial (choice, parameter, partial( unquoted_string, False) ), "")
+    value = optional( parameter, "")
     return KeywordArg(index=idx, len=index()-idx, name=name, value=value)
 
 @tri
 def parameter():
-    return choice(list_, string_literal)
+    return choice(list_, string_literal, macroCall)
 
 @tri
-def keywordparameter_list():
+def argument_list(separator):
     whitespace()
-    l = sep( keywordparameter, whitespace )
-    return l
+    l1 = optional( partial(sep1, parameter, separator), [])
+    if l1:
+        sep = optional( separator, None)
+        if sep is None:
+            return l1
 
-@tri
-def keywordparameter_list1():
-    whitespace()
-    l = keywordparameter_list()
-    return l
-
-@tri
-def argument_list_nokw():
-    whitespace()
-    l1 = sep1( parameter, whitespace )
-    sep = optional(whitespace1, None)
-    if sep is None:
-        fail()
-    not_followed_by(keywordparameter)
-    return l1 + [New(index=index())]
-
-@tri
-def argument_list1():
-    whitespace()
-    l1 = sep1( parameter, whitespace )
-    l2 = optional( keywordparameter_list1, [])
+    l2 = optional( partial(sep1, keywordparameter, separator), [New(index=index())])
     return l1+l2
 
+
 @tri
-def argument_list():
-    return optional( partial( choice, argument_list_nokw,
-                                      argument_list1,
-                                      keywordparameter_list), [])
+def macroCall():
+    whitespace()
+    idx = index()
+    special('%')
+    ident = optional( identifier, None)
+
+    if ident is None:
+        return MacroCall(index=idx, len=index()-idx, name="", values=[], opened=False, closed=False)
+
+    parameter = []
+    closed = False
+    opened = optspecial('(')
+    if opened:
+        parameter = argument_list(partial(special, ','))
+        closed = optspecial(')')
+        if not parameter and not closed:
+            parameter = [New(index=index())]
+        if parameter and closed and parameter[-1].get_type() == "New":
+            del parameter[-1]
+    return MacroCall(index=idx, len=index()-idx, name=ident.name, values=parameter, opened=opened, closed=closed)
 
 @tri
 def commandCall():
@@ -204,7 +199,7 @@ def commandCall():
     if not wp:
         return ident
 
-    parameter = argument_list()
+    parameter = argument_list(whitespace1)
 
     if not parameter:
         parameter = [New(index=index())]
@@ -231,6 +226,7 @@ def userCommand():
 def parse_input_text(text, forCompletion=True):
     from devparrot.core import session
     from devparrot.core.errors import InvalidSyntax
+   # import pdb; pdb.set_trace()
     session.logger.debug("parsing %s", repr(text))
     if not text:
         return New(index=0)

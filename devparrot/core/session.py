@@ -30,6 +30,7 @@ _workspace = None
 _globalContainer = None
 config = None
 commands = None
+macros = {}
 memories = {}
 bindings = None
 

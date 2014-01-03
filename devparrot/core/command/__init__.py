@@ -19,9 +19,9 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-__all__ = ['Command', 'Alias', 'MasterCommand', 'SubCommand']
+__all__ = ['Command', 'Alias', 'MasterCommand', 'SubCommand', 'Macro']
 
-from decorators import Command, Alias, MasterCommand, SubCommand
+from decorators import Command, Alias, MasterCommand, SubCommand, Macro
 
 def load():
     from pwd import getpwuid

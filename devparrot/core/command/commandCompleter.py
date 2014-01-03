@@ -29,6 +29,13 @@ class CommandCompletion(Completion):
     def __str__(self):
         return "%s "%self.value
 
+class MacroCompletion(Completion):
+    def __init__(self, *args, **kwords):
+        Completion.__init__(self, *args, **kwords)
+
+    def __str__(self):
+        return "%%%s("%self.value
+
 class DoubleStringCompletion(Completion):
     def __init__(self, *args, **kwords):
         Completion.__init__(self,*args, **kwords)
@@ -52,27 +59,41 @@ def get_command(commandName):
         return None
     return session.commands.get(commandName, None)
 
-def get_tokenCompletions(tokenName):
+def get_macro(macroName):
     from devparrot.core import session
+    if not macroName:
+        return None
+    return session.macros.get(macroName, None)
+
+def _get_callCompletions(list_,  name, CompletionType):
     ret = []
-    for command in session.commands:
-        if command.startswith(tokenName):
-            ret.append(CommandCompletion(value=command, final=True))
+    for command in list_:
+        if command.startswith(name):
+            ret.append(CompletionType(value=command, final=True))
     return ret
 
-def get_commandCompletions(functionCall):
-    command = get_command(str(functionCall.name))
-    if command is None:
+def get_commandCompletions(tokenName):
+    from devparrot.core import session
+    return _get_callCompletions(session.commands, tokenName, CommandCompletion)
+
+def get_macroCompletions(tokenName):
+    from devparrot.core import session
+    return _get_callCompletions(session.macros, tokenName, MacroCompletion)
+
+def get_argumentCompletions(callObject, argumentContainer):
+    if callObject is None:
         return (0, [])
 
-    for i, value in enumerate(functionCall.values[:-1]):
-        command.provide_value(i, value)
+    for i, value in enumerate(argumentContainer.values[:-1]):
+        callObject.provide_value(i, value)
 
     try:
-        constraint = command.get_constraint(len(functionCall.values)-1)
+        constraint = callObject.get_constraint(len(argumentContainer.values)-1)
     except IndexError:
         return (0, [])
-    return constraint.complete_context(functionCall.values[-1])
+    return constraint.complete_context(argumentContainer.values[-1])
+
+
     
 def get_completions(text):
     from devparrot.core.command.parserGrammar import parse_input_text
@@ -81,14 +102,32 @@ def get_completions(text):
         return (None, [])
 
     if pipe.get_type() == "New":
-        return (pipe.index, get_tokenCompletions(""))
+        return (pipe.index, get_commandCompletions(""))
 
     last = pipe.values[-1]
     if last.get_type() == "Identifier":
-        return (last.index, get_tokenCompletions(last.name))
+        return (last.index, get_commandCompletions(last.name))
     
     if last.get_type() == 'CommandCall':
-        return get_commandCompletions(last)
+        try:
+            lastArg = last
+            try:
+                while True:
+                    if lastArg.values[-1].get_type() == 'MacroCall':
+                        lastArg = lastArg.values[-1]
+                    else:
+                        break
+            except IndexError:
+                pass
+            if lastArg.get_type() == 'MacroCall':
+                if not lastArg.opened:
+                    return (lastArg.index, get_macroCompletions(lastArg.name))
+                else:
+                    return get_argumentCompletions(get_macro(str(lastArg.name)), lastArg)
+        except IndexError:
+            pass
+
+        return get_argumentCompletions(get_command(str(last.name)), last)
     return (None, [])
 
 class ControlerEntryCompletion(CompletionSystem):

@@ -203,3 +203,11 @@ class MasterCommandWrapper(object):
         return self._class.__name__
 
 
+
+class MacroWrapper(CommandWrapper):
+    def __init__(self, constraints):
+        CommandWrapper.__init__(self, constraints, None)
+
+    def resolve(self, *args, **kwords):
+        call_list, call_kwords = self._get_call_args(args, kwords)
+        return self.functionToCall(*call_list, **call_kwords)
