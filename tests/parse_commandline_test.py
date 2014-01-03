@@ -84,7 +84,7 @@ to_test = {
                                                                                           )
                                                                              ]
                                                                      ),
-                 "function (arg1 'arg2')"                      : Pipe(index=0,
+                 "function [arg1 'arg2']"                      : Pipe(index=0,
                                                                       len=22,
                                                                       values=[CommandCall(index=0,
                                                                                           len=22,
@@ -99,7 +99,7 @@ to_test = {
                                                                                           )
                                                                              ]
                                                                      ),
-                "function (arg1 'arg2'"                        : Pipe(index=0,
+                "function [arg1 'arg2'"                        : Pipe(index=0,
                                                                       len=21,
                                                                       values=[CommandCall(index=0,
                                                                                           len=21,
@@ -114,7 +114,7 @@ to_test = {
                                                                                           )
                                                                              ]
                                                                      ),
-                    "function ()"                              : Pipe(index=0,
+                    "function []"                              : Pipe(index=0,
                                                                       len=11,
                                                                       values=[CommandCall(index=0,
                                                                                           len=11,
@@ -124,7 +124,7 @@ to_test = {
                                                                                           )
                                                                              ]
                                                                      ),
-                    "function ("                               : Pipe(index=0,
+                    "function ["                               : Pipe(index=0,
                                                                       len=10,
                                                                       values=[CommandCall(index=0,
                                                                                           len=10,

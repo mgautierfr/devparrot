@@ -141,9 +141,9 @@ def identifier():
 def list_():
     whitespace()
     idx = index()
-    special('(')
+    special('[')
     st = many(string_literal)
-    closed=optspecial(')')
+    closed=optspecial(']')
     return List(index=idx, len=index()-idx, values=st, closed=closed )
     
 @tri
