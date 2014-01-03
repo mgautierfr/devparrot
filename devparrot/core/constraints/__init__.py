@@ -303,14 +303,6 @@ class OpenDocument(_Constraint):
         try:
             return True, session.get_documentManager().get_file_from_title(token)
         except KeyError:
-            # This should no be here (use some kind of macro)
-            if token.startswith("$"):
-                from devparrot.core.ui.viewContainer import get_neighbour
-                direction = token[1:]
-                neighbour = get_neighbour(session.get_currentContainer(), direction)
-                if neighbour:
-                    return True, neighbour.document
-                return True, None
             return False, None
 
     def complete(self, token):

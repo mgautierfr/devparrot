@@ -31,9 +31,9 @@ def switch(document):
     set_currentDocument(document)
 
 
-bindings["<Alt-Right>"] = "switch $right\n"
-bindings["<Alt-Left>"] = "switch $left\n"
-bindings["<Alt-Up>"] = "switch $top\n"
-bindings["<Alt-Down>"] = "switch $bottom\n"
-bindings["<Alt-Prior>"] = "switch $previous\n"
-bindings["<Alt-Next>"] = "switch $next\n"
+bindings["<Alt-Right>"] = "switch %right\n"
+bindings["<Alt-Left>"] = "switch %left\n"
+bindings["<Alt-Up>"] = "switch %top\n"
+bindings["<Alt-Down>"] = "switch %bottom\n"
+bindings["<Alt-Prior>"] = "switch %previous\n"
+bindings["<Alt-Next>"] = "switch %next\n"
