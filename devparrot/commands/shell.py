@@ -32,33 +32,40 @@ def shell(command, stdinput, *args):
     from subprocess import Popen, PIPE, STDOUT
     import pty, os, select
     master_fd, slave_fd = pty.openpty()
-    commands = [command]+list(args)
-    popen = Popen([command]+list(args), bufsize=1, shell=True, stdin=PIPE, stdout=slave_fd, stderr=STDOUT, universal_newlines=True)
-    outPipe = os.fdopen(master_fd)
-    inPipe = popen.stdin
+    commands = [command]+['"%s"'%arg for arg in args]
+    commands = ' '.join(commands)
+    popen = Popen(commands, bufsize=1024, shell=True, stdin=slave_fd, stdout=slave_fd, stderr=STDOUT, universal_newlines=False, close_fds=True)
 
     for line in stdinput:
-        print "inline", line
         line = "{}\n".format(line)
-        inPipe.write(line)
-    inPipe.close()
+        os.write(master_fd, line)
 
+
+    left = ""
+    closed = False
     while True:
         # master_fd will not be closed by itself.
         # If we try to read on it, it may (will) hang if subprocess has terminate.
         # So we need to read only if there is data.
         # We don't check subprocess termination first to avoid race condition when process terminate between the poll and the read.
-        ready, _, _ = select.select([master_fd], [], [], 0.01)
-        if ready:
-            line = outPipe.readline()
-            line = line.replace("\r\n", "\n")
-            line = line.replace("\r", "\n")
-            yield line
+        ready, _, _ = select.select([master_fd], [], [], 0.1)
+        while ready:
+            string = left + os.read(master_fd, 1024)
+            string = string.replace("\r\n", "\n")
+            string = string.replace("\r", "\n")
+            lines = string.split('\n')
+            for line in lines[:-1]:
+                yield line+'\n'
+            left = lines[-1]
+            ready, _, _ = select.select([master_fd], [], [], 0.1)
+        if closed:
+            break
         elif popen.poll() is not None:
             # Do not handle return code
-            break # proc exited
+            closed = True
 
     os.close(slave_fd)
-    outPipe.close()
-    popen.wait()
+    os.close(master_fd)
 
+    if left:
+        yield left
