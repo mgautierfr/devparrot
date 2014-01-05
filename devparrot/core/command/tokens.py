@@ -146,6 +146,7 @@ class MacroCall(CommandCall):
     opener, closer = "()"
     def __init__(self,  **kw):
         self.opened = kw['opened']
+        self.expanded = kw['expanded']
         super(MacroCall, self).__init__(**kw)
 
     def __eq__(self, other):
@@ -155,14 +156,16 @@ class MacroCall(CommandCall):
         return super(MacroCall, self).__str__()
 
     def rewrited(self):
-        return "_macros['%(name)s'].resolve%(parameters)s"%{
+        return "%(expanded)s_macros['%(name)s'].resolve%(parameters)s"%{
             'name' : self.name,
-            'parameters' : Section.rewrited(self)
+            'parameters' : Section.rewrited(self),
+            'expanded' : '*' if self.expanded else ''
           }
 
     def pprint(self, ident):
         super(MacroCall, self).pprint(ident)
         print ident, " - opened:", self.opened
+        print ident, " - expanded:", self.expanded
 
 class Pipe(Token):
     def __init__(self, **kw):

@@ -174,10 +174,11 @@ def macroCall():
     whitespace()
     idx = index()
     special('%')
+    expanded = optspecial('%')
     ident = optional( identifier, None)
 
     if ident is None:
-        return MacroCall(index=idx, len=index()-idx, name="", values=[], opened=False, closed=False)
+        return MacroCall(index=idx, len=index()-idx, name="", values=[], opened=False, closed=False, expanded=expanded)
 
     parameter = []
     closed = False
@@ -189,7 +190,7 @@ def macroCall():
             parameter = [New(index=index())]
         if parameter and closed and parameter[-1].get_type() == "New":
             del parameter[-1]
-    return MacroCall(index=idx, len=index()-idx, name=ident.name, values=parameter, opened=opened, closed=closed)
+    return MacroCall(index=idx, len=index()-idx, name=ident.name, values=parameter, opened=opened, closed=closed, expanded=expanded)
 
 @tri
 def commandCall():

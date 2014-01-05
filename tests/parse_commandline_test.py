@@ -275,6 +275,7 @@ to_test = {
                                                                                                             len=6,
                                                                                                             opened=False,
                                                                                                             closed=False,
+                                                                                                            expanded=False,
                                                                                                             name="macro",
                                                                                                             values=[])
                                                                                                  ]
@@ -290,6 +291,7 @@ to_test = {
                                                                                                             len=7,
                                                                                                             opened=True,
                                                                                                             closed=False,
+                                                                                                            expanded=False,
                                                                                                             name="macro",
                                                                                                             values=[New(index=16)])
                                                                                                  ]
@@ -305,6 +307,23 @@ to_test = {
                                                                                                             len=8,
                                                                                                             opened=True,
                                                                                                             closed=True,
+                                                                                                            expanded=False,
+                                                                                                            name="macro",
+                                                                                                            values=[])
+                                                                                                 ]
+                                                                                          )]
+                                                                     ),
+                      "function %%macro()"                     : Pipe(index=0,
+                                                                      len=18,
+                                                                      values=[CommandCall(index=0,
+                                                                                          len=18,
+                                                                                          name="function",
+                                                                                          closed=False,
+                                                                                          values=[MacroCall(index=9,
+                                                                                                            len=9,
+                                                                                                            opened=True,
+                                                                                                            closed=True,
+                                                                                                            expanded=True,
                                                                                                             name="macro",
                                                                                                             values=[])
                                                                                                  ]
@@ -320,6 +339,7 @@ to_test = {
                                                                                                             len=10,
                                                                                                             opened=True,
                                                                                                             closed=False,
+                                                                                                            expanded=False,
                                                                                                             name="macro",
                                                                                                             values=[UnquotedString(index=16, len=3, closed=False, values="arg")])
                                                                                                  ]
@@ -335,6 +355,7 @@ to_test = {
                                                                                                             len=11,
                                                                                                             opened=True,
                                                                                                             closed=True,
+                                                                                                            expanded=False,
                                                                                                             name="macro",
                                                                                                             values=[UnquotedString(index=16, len=3, closed=True, values="arg")])
                                                                                                  ]
@@ -350,6 +371,7 @@ to_test = {
                                                                                                             len=17,
                                                                                                             opened=True,
                                                                                                             closed=False,
+                                                                                                            expanded=False,
                                                                                                             name="macro",
                                                                                                             values=[UnquotedString(index=16,
                                                                                                                                    len=4,
@@ -373,6 +395,7 @@ to_test = {
                                                                                                             len=18,
                                                                                                             opened=True,
                                                                                                             closed=True,
+                                                                                                            expanded=False,
                                                                                                             name="macro",
                                                                                                             values=[UnquotedString(index=16,
                                                                                                                                    len=4,
@@ -400,6 +423,7 @@ to_test = {
                                                                                                             len=18,
                                                                                                             opened=True,
                                                                                                             closed=True,
+                                                                                                            expanded=False,
                                                                                                             name="macro",
                                                                                                             values=[UnquotedString(index=20,
                                                                                                                                    len=4,
@@ -413,9 +437,9 @@ to_test = {
                                                                                                  ]
                                                                                           )]
                                                                      ),
-          "function1 arg1 arg2 %macro1(arg1, %macro2, key='value ') key1=value1 | function2 arg3 %macro3(key2=%macro4 " :
+          "function1 arg1 arg2 %macro1(arg1, %macro2, key='value ') key1=value1 | function2 arg3 %macro3(key2=%%macro4 " :
                      Pipe(index=0,
-                          len=107,
+                          len=108,
                           values=[CommandCall(index=0,
                                               len=68,
                                               name="function1",
@@ -432,6 +456,7 @@ to_test = {
                                                                 len=36,
                                                                 opened=True,
                                                                 closed=True,
+                                                                expanded=False,
                                                                 name="macro1",
                                                                 values=[UnquotedString(index=28,
                                                                                        len=4,
@@ -441,6 +466,7 @@ to_test = {
                                                                                   len=7,
                                                                                   opened=False,
                                                                                   closed=False,
+                                                                                  expanded=False,
                                                                                   name="macro2",
                                                                                   values=[]),
                                                                         KeywordArg(index= 43,
@@ -456,7 +482,7 @@ to_test = {
                                                      ]
                                               ),
                                  CommandCall(index=71,
-                                             len=36,
+                                             len=37,
                                              name="function2",
                                              closed=False,
                                              values=[UnquotedString(index=81,
@@ -465,14 +491,16 @@ to_test = {
                                                                     values="arg3"
                                                                    ),
                                                      MacroCall(index=86,
-                                                               len=21,
+                                                               len=22,
                                                                opened=True,
                                                                closed=False,
+                                                               expanded=False,
                                                                name="macro3",
-                                                               values=[KeywordArg(index=94, len=13,
+                                                               values=[KeywordArg(index=94, len=14,
                                                                                   name=Identifier(index=94, len=4, name="key2"),
-                                                                                  value=MacroCall(index=99, len=8,
+                                                                                  value=MacroCall(index=99, len=9,
                                                                                                   opened=False, closed=False,
+                                                                                                  expanded=False,
                                                                                                   name="macro4", values=[])
                                                                                  )]
                                                               )
@@ -490,6 +518,7 @@ to_test = {
                                                                        len=17,
                                                                        opened=True,
                                                                        closed=True,
+                                                                       expanded=False,
                                                                        name="macro",
                                                                        values=[KeywordArg(index=16,
                                                                                           len=9,
@@ -512,6 +541,7 @@ to_test = {
                                                                        len=23,
                                                                        opened=True,
                                                                        closed=True,
+                                                                       expanded=False,
                                                                        name="macro",
                                                                        values=[UnquotedString(index=16,
                                                                                               len=3,
