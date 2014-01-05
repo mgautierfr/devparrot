@@ -26,15 +26,16 @@ class HelperContainer(object):
         self.notebook = None
         self.helpers = []
 
-    def add_helper(self, helper, name, notebookForced):
+    def add_helper(self, helper, name, notebookForced, middleClickCallback):
         import ttk
         if self.notebook is None:
             if not notebookForced and not self.helpers:
                 self.panned.insert(self.where, helper)
             else:
                 self.notebook = ttk.Notebook(self.panned)
+                self.notebook.bind("<Button-2>", self.on_middleClickButton)
                 try:
-                    oldHelper, oldName = self.helpers[0]
+                    oldHelper, oldName, _ = self.helpers[0]
                     self.panned.forget(oldHelper)
                     self.notebook.insert('end', oldHelper, text=oldName)
                 except IndexError:
@@ -44,7 +45,7 @@ class HelperContainer(object):
         if self.notebook:
             self.notebook.insert('end', helper, text=name)
             self.notebook.select(helper)
-        self.helpers.append((helper, name))
+        self.helpers.append((helper, name, middleClickCallback))
 
     def remove_helper(self, widget):
         index = (i for i, data in enumerate(self.helpers) if data[0] == widget).next()
@@ -55,6 +56,15 @@ class HelperContainer(object):
             self.notebook.destroy()
             self.notebook = None
 
+    def on_middleClickButton(self, event):
+        child = self.notebook.index("@%d,%d" % (event.x, event.y))
+        try:
+            _, _, callback = self.helpers[child]
+            callback()
+        except TypeError:
+            # child is a string if user doesn't click on a signet
+            pass
+
 
 class HelperManager(object):
     def __init__(self, window):
@@ -64,9 +74,9 @@ class HelperManager(object):
                            'top'   : HelperContainer(window.vpaned, 0),
                            'bottom': HelperContainer(window.vpaned, 'end')}
 
-    def add_helper(self, widget, name, pos, notebookForced = False):
+    def add_helper(self, widget, name, pos, notebookForced = False, middleClickCallback=None):
         helperContainer = self.containers[pos]
-        helperContainer.add_helper(widget, name, notebookForced)
+        helperContainer.add_helper(widget, name, notebookForced, middleClickCallback)
 
     def remove_helper(self, widget, pos):
         helperContainer = self.containers[pos]
