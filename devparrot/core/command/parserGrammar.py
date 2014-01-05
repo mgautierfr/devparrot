@@ -208,15 +208,17 @@ def commandCall():
 
 @tri
 def userCommand():
-    commands = [ commandCall() ]
     def inner():
         sep = choice(partial(special, "\n"), pipe_sep)
         if sep:
             commands[-1].closed = True
         if sep == "\n":
             commands.append("\n")
-        commands.append(commandCall())
+        whitespace()
+        command = optional(commandCall, None)
+        commands.append(command)
 
+    commands = [ commandCall() ]
     many(inner)
     
     pipe = Pipe(index=commands[0].index, len=index()-commands[0].index, values=commands)
@@ -229,12 +231,18 @@ def parse_input_text(text, forCompletion=True):
     from devparrot.core.errors import InvalidSyntax
    # import pdb; pdb.set_trace()
     session.logger.debug("parsing %s", repr(text))
-    if not text:
-        return New(index=0)
+    if not text.strip():
+        return Pipe(index=0, len=len(text), values=[New(index=len(text))])
     try:
         ret, _ = run_parser(userCommand, text)
-        if not forCompletion:
+        if forCompletion:
             lastCommand = ret.values[-1]
+            if lastCommand is None:
+                ret.values[-1] = New(index=len(text))
+        else:
+            lastCommand = ret.values[-1]
+            if lastCommand is None:
+                 raise InvalidSyntax("Can't parse %s", text)
             if lastCommand.get_type() == "Identifier":
                 ret.values[-1] = CommandCall(index=lastCommand.index, len=lastCommand.len, name=lastCommand.name, values=[], closed=False)
         return ret

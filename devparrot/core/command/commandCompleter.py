@@ -20,7 +20,7 @@
 
 
 from devparrot.core.completion import Completion, CompletionSystem
-
+from devparrot.core.errors import InvalidSyntax
 
 class CommandCompletion(Completion):
     def __init__(self, *args, **kwords):
@@ -97,16 +97,17 @@ def get_argumentCompletions(callObject, argumentContainer):
     
 def get_completions(text):
     from devparrot.core.command.parserGrammar import parse_input_text
-    pipe = parse_input_text(text)
-    if pipe is None:
+    try:
+        pipe = parse_input_text(text)
+    except InvalidSyntax:
         return (None, [])
-
-    if pipe.get_type() == "New":
-        return (pipe.index, get_commandCompletions(""))
 
     last = pipe.values[-1]
     if last.get_type() == "Identifier":
         return (last.index, get_commandCompletions(last.name))
+
+    if last.get_type() == "New":
+        return (last.index, get_commandCompletions(""))
     
     if last.get_type() == 'CommandCall':
         try:
