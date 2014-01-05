@@ -46,7 +46,17 @@ class HelperContainer(object):
             self.notebook.select(helper)
         self.helpers.append((helper, name))
 
- class HelperManager(object):
+    def remove_helper(self, widget):
+        index = (i for i, data in enumerate(self.helpers) if data[0] == widget).next()
+        self.notebook.forget(widget)
+        del self.helpers[index]
+        if not self.helpers:
+            self.panned.forget(self.notebook)
+            self.notebook.destroy()
+            self.notebook = None
+
+
+class HelperManager(object):
     def __init__(self, window):
         self.window = window
         self.containers = {'left'  : HelperContainer(window.hpaned, 0),
@@ -58,6 +68,9 @@ class HelperContainer(object):
         helperContainer = self.containers[pos]
         helperContainer.add_helper(widget, name, notebookForced)
 
+    def remove_helper(self, widget, pos):
+        helperContainer = self.containers[pos]
+        helperContainer.remove_helper(widget)
 
 def ask_questionYesNo(title, message):
     import tkMessageBox
