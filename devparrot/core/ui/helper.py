@@ -26,21 +26,27 @@ class HelperContainer(object):
         self.notebook = None
         self.helpers = []
 
-    def add_helper(self, helper, name):
+    def add_helper(self, helper, name, notebookForced):
         import ttk
-        if not len(self.helpers):
-            self.panned.insert(self.where, helper)
-            self.helpers.append((helper, name))
-            return
-        if len(self.helpers) == 1:
-            self.notebook = ttk.Notebook(self.panned)
-            oldHelper, oldName = self.helpers[0]
-            self.panned.forget(oldHelper)
-            self.panned.insert(self.where, self.notebook)
-            self.notebook.insert('end', oldHelper, text=oldName)
-        self.notebook.insert('end', helper, text=name)
+        if self.notebook is None:
+            if not notebookForced and not self.helpers:
+                self.panned.insert(self.where, helper)
+            else:
+                self.notebook = ttk.Notebook(self.panned)
+                try:
+                    oldHelper, oldName = self.helpers[0]
+                    self.panned.forget(oldHelper)
+                    self.notebook.insert('end', oldHelper, text=oldName)
+                except IndexError:
+                    pass
+                self.panned.insert(self.where, self.notebook)
 
-class HelperManager(object):
+        if self.notebook:
+            self.notebook.insert('end', helper, text=name)
+            self.notebook.select(helper)
+        self.helpers.append((helper, name))
+
+ class HelperManager(object):
     def __init__(self, window):
         self.window = window
         self.containers = {'left'  : HelperContainer(window.hpaned, 0),
@@ -48,10 +54,10 @@ class HelperManager(object):
                            'top'   : HelperContainer(window.vpaned, 0),
                            'bottom': HelperContainer(window.vpaned, 'end')}
 
-    def add_helper(self, widget, name, pos):
+    def add_helper(self, widget, name, pos, notebookForced = False):
         helperContainer = self.containers[pos]
-        helperContainer.add_helper(widget, name)                
-                
+        helperContainer.add_helper(widget, name, notebookForced)
+
 
 def ask_questionYesNo(title, message):
     import tkMessageBox
