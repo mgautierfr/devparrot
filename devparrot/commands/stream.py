@@ -29,6 +29,11 @@ def empty():
 def null():
     raise StopIteration
 
+def echo(*args):
+    for arg in args:
+        yield arg
+
 
 Command()(empty, create_section("stream"))
 Command()(null, create_section("stream"))
+Command()(echo, create_section("stream"))
