@@ -3,9 +3,13 @@ import pytest
 
 from devparrot.core.command.parserGrammar import parse_input_text as parser
 
+from devparrot.core.errors import InvalidSyntax
+
 from devparrot.core.command.tokens import *
 
 to_test = {
+            ""                                                 : Pipe(index=0, len=0, values=[New(index=0, len=0)]),
+            " "                                                : Pipe(index=0, len=1, values=[New(index=1, len=0)]),
             "token"                                            : Pipe(index=0,
                                                                       len=5,
                                                                       values=[CommandCall(index=0,
@@ -560,11 +564,37 @@ to_test = {
                                 ),
           }
 
+
+to_test_invalid = [
+    "|",
+    "||",
+    "token |",
+    "function [[]]",
+    "function [[",
+    "function(arg)",
+    "function(",
+    "function arg1, arg2",
+    "%macro()",
+    "'string'",
+    "1",
+    "1function",
+    "function %macro(arg1 arg2"
+]
+
 @pytest.fixture(params=to_test.keys())
 def string_to_test(request):
+    return request.param
+
+@pytest.fixture(params=to_test_invalid)
+def string_to_test_invalid(request):
     return request.param
 
 def test_parse_tokens(string_to_test):
     parsed = parser(string_to_test, forCompletion=False)
     parsed.pprint("")
     assert parsed == to_test[string_to_test]
+
+
+def test_parse_invalid(string_to_test_invalid):
+    with pytest.raises(InvalidSyntax):
+         parser(string_to_test_invalid, forCompletion=False)
