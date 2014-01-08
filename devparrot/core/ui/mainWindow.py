@@ -20,12 +20,18 @@
 
 
 import ttk
-from PIL.ImageTk import PhotoImage
+try:
+    from PIL.ImageTk import PhotoImage
+    from PIL import Image
+except ImportError:
+    PhotoImage = None
 from os.path import join
 
 from devparrot.core import popupMenu as popupMenuModule
 import controlerEntry
 import statusBar
+
+from pkg_resources import Requirement, resource_stream
 
 def quit():
     from devparrot.core import session
@@ -61,11 +67,11 @@ class MainWindow(ttk.Tkinter.Tk):
 
         self.protocol('WM_DELETE_WINDOW', quit)
 
-        # [TODO] Look in standard data directory ?
-        iconpath = session.config.get("devparrotPath")
-        iconpath = join(iconpath, "..", "resources", "icon48.png")
-        img = PhotoImage(file=iconpath)
-        self.tk.call('wm', 'iconphoto', self._w, img)
+        if PhotoImage:
+            resource = resource_stream(__name__, 'resources/icon48.png')
+            img = PhotoImage(Image.open(resource))
+            self.tk.call('wm', 'iconphoto', self._w, img)
+
 
         self._vbox = ttk.Tkinter.Frame(self)
         self._vbox.pack(expand=True, fill=ttk.Tkinter.BOTH)

@@ -23,4 +23,36 @@
 This is the main module of devparrot
 """
 
+import sys
+import os.path
+import argparse
+
 import core
+
+
+def parse_commandLine(args=sys.argv):
+    parser = argparse.ArgumentParser(description="The Devparrot IDE. The one")
+    parser.add_argument("call_name",
+                        type=os.path.basename,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--configrc",
+                        default=os.path.expanduser("~/.devparrotrc"),
+                        help="The rc file to load")
+    parser.add_argument("--no_configrc",
+                        dest="load_configrc",
+                        action='store_false',
+                        help="Do not load rc file")
+    parser.add_argument("ARGUMENTS", nargs="*")
+    return parser.parse_args(args)
+
+
+def main():
+    cmd_options = parse_commandLine()
+    config = core.configLoader.init(cmd_options)
+    core.session.init(config)
+    core.ui.init()
+    core.modules.load()
+    core.command.load()
+    core.configLoader.load(cmd_options)
+
+    core.ui.window.mainloop()

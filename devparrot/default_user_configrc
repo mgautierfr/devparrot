@@ -1,0 +1,3 @@
+
+# Open files given in the commandline
+open %%config(cmd.ARGUMENTS)

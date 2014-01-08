@@ -21,7 +21,7 @@
 
 
 from devparrot.core.utils.variable import CbCaller
-import re
+import re, os
 
 _config = None
 
@@ -153,14 +153,15 @@ def load(cmd_options):
     from devparrot.core import session
 
     if cmd_options.load_configrc:
-        for line in cmd_options.configrc:
-            line = line.strip()
-            match = comment_reg.match(line)
-            line  = match.group("line")
-            if not line:
-                continue
+        try:
+            with open(cmd_options.configrc) as f:
+                for line in f:
+                    line = line.strip()
+                    match = comment_reg.match(line)
+                    line  = match.group("line")
+                    if not line:
+                        continue
 
-            session.commandLauncher.run_command_nofail(line)
-
-    cmd_options.configrc.close()
-
+                    session.commandLauncher.run_command_nofail(line)
+        except IOError:
+            session.logger.warning("Cannot load %r config file", cmd_options.configrc)

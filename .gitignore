@@ -2,3 +2,5 @@
 *.pyo
 *.swp
 tags
+build
+devparrot.egg-info/*
