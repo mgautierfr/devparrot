@@ -148,7 +148,6 @@ def createSection(name, parent=None):
     parent.add_section(name, newSection)
     return newSection
 
-comment_reg = re.compile(r"(?P<line>[^#]*)(?P<comment>#.*)?")
 def load(cmd_options):
     from devparrot.core import session
 
@@ -157,9 +156,7 @@ def load(cmd_options):
             with open(cmd_options.configrc) as f:
                 for line in f:
                     line = line.strip()
-                    match = comment_reg.match(line)
-                    line  = match.group("line")
-                    if not line:
+                    if not line or line.startswith("#"):
                         continue
 
                     session.commandLauncher.run_command_nofail(line)
