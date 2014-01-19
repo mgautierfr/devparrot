@@ -70,3 +70,6 @@ class DocumentManager(utils.event.EventSource):
             'openfiles' : "\n".join([str(doc) for doc in self.documents])
         }
 
+    def __iter__(self):
+        return iter(self.documents)
+

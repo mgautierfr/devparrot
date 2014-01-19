@@ -27,7 +27,6 @@ from devparrot.core import session
 from devparrot.core.utils.posrange import Index, Index_
 
 from pygments.token import SyncPoint, Token
-from devparrot.core.utils.variable import fcb
 
 import Tkinter
 import weakref
@@ -60,11 +59,15 @@ def on_font_changed(var, old):
         return
     create_fonts()
     create_styles()
+    for document in session.get_documentManager():
+        create_style_table(document.model)
 
 def on_style_changed(var, old):
     if var.get() == old:
         return
     create_styles()
+    for document in session.get_documentManager():
+        create_style_table(document.model)
 
 def create_fonts():
     global _fonts
@@ -111,7 +114,6 @@ def create_styles():
 
     _styles.setdefault("DP::SH::Token.Error", {})['background'] = "red"
     _styles.setdefault("DP::SH::Token.Generic.Error", {})['background'] = "red"
-        
 
 def create_style_table(textWidget):
     textWidget.configure(background=_style.background_color,selectbackground=_style.highlight_color)
@@ -124,10 +126,10 @@ class HighlightContext(object):
         self.markNb=0
         self.idle_handle = None
 
+
 def on_new_document(document):
     create_style_table(document.model)
-    session.config.textView.font.register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
-    session.config.modules[_moduleName].hlstyle.register(fcb(lambda v, o, tw=weakref.proxy(document.model) : create_style_table(tw), weakref.ref(document)))
+
     document.connect('pathChanged', lambda document, oldPath: init_and_highlight(document))
     document.model._highlight = HighlightContext()
     init_and_highlight(document)
