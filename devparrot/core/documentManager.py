@@ -25,7 +25,6 @@ class DocumentManager(utils.event.EventSource):
     def __init__(self):
         utils.event.EventSource.__init__(self)
         self.documents = set()
-        self.signalConnections = {}
     
     def get_nbDocuments(self):
         return len(self.documents)

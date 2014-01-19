@@ -79,18 +79,6 @@ class MethodeCb(object):
         '''
         return not self.__eq__(other)
 
-class FunctionCb(object):
-    def __init__(self, function, refObj):
-        self.function = function
-        self.refObj = refObj
-    
-    def __call__(self, *args, **kwords):
-        obj = self.refObj()
-        if obj is not None:
-            return self.function(*args, **kwords)
-        raise ReferenceError
-fcb = FunctionCb
-
 class CbList(list):
     def __call__(self, *args, **kwords):
         to_remove = set()

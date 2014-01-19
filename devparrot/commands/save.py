@@ -32,7 +32,7 @@ def _get_default():
     raise NoDefault()
         
 @Command(
-fileName = constraints.File(mode=constraints.File.SAVE, default=lambda:_get_default())
+fileName = constraints.File(mode=constraints.File.SAVE, default=_get_default)
 )
 def save(fileName):
     """
