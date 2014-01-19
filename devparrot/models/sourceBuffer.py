@@ -127,6 +127,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
     # Overloads
     def mark_set( self, name, index ):
         Tkinter.Text.mark_set( self, name, index )
+        self.event('mark_set')(self, name, index)
         if name == 'insert':
             self.set_currentLineTag()
             try:
@@ -142,7 +143,7 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
                 self.tag_remove( 'sel', '1.0', 'end' )
                 self.tag_add( 'sel', 'sel.first', 'sel.last' )
             except TclError:
-                pass 
+                pass
         
     def insert(self, index, *args, **kword):
         insertPos = self.index(index)
