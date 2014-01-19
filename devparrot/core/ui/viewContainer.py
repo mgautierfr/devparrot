@@ -22,8 +22,8 @@
 import Tkinter, ttk, Tkdnd
 from devparrot.core import session
 from devparrot.core.errors import *
-from devparrot.core.utils.variable import fcb, ref
-from weakref import proxy
+
+from collections import OrderedDict
 
 class ContainerChild():
     def __init__(self):
@@ -182,7 +182,7 @@ def on_drag_begin_notebook(event):
     notebook = event.widget
     documentViewIndex = notebook.index("@%d,%d" % (event.x, event.y))
     if documentViewIndex != "":
-        documentView = notebook._children[documentViewIndex]
+        documentView = notebook._children.keys()[documentViewIndex]
         Tkdnd.dnd_start(documentView, event)
 
 def on_button_pressed(event):
@@ -202,7 +202,7 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
     def __init__(self):
         ContainerChild.__init__(self)
         ttk.Notebook.__init__(self, session.get_globalContainer(), padding=0)
-        self._children = []
+        self._children = OrderedDict()
         self.drag_handler = None
         if not NotebookContainer.initialized:
             self.bind_class("Drag", "<Button-1><Button1-Motion>", on_drag_begin_notebook)
@@ -233,9 +233,9 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
     
     def attach_child(self, child):
         child.set_parentContainer(self)
-        self._children.append(child)
+        handler = child.document.title_register(lambda v, o: self.change_title(child))
+        self._children[child] = handler
         self.add(child, text=child.document.title)
-        child.document.title_register(fcb(lambda v, o, s=proxy(self), child=proxy(child): s.change_title(child), ref(self)))
     
     def change_title(self, child):
         self.tab(child, text=child.document.title)
@@ -243,7 +243,8 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
     def detach_child(self, child):
         child.set_parentContainer(None)
         self.forget(child)
-        self._children.remove(child)
+        self._children[child].unregister()
+        del self._children[child]
     
     def set_documentView(self, documentView):
         if documentView:
@@ -280,7 +281,7 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
         documentViewIndex = self.index("@%d,%d" % (event.x, event.y))
         if documentViewIndex != "":
             from devparrot import capi
-            capi.close_document(self._children[documentViewIndex].document)
+            capi.close_document(self._children.keys()[documentViewIndex].document)
 
 def split(documentView, direction, first=True):
     notebook = documentView.get_parentContainer()
@@ -334,7 +335,7 @@ def unsplit_notebook(notebook):
     else:
         goodChild = parent.container1
 
-    for view in list(notebook._children):
+    for view in notebook._children.keys()():
         notebook.detach_child(view)
         leftnotebook.attach_child(view)
     
@@ -400,7 +401,7 @@ def get_neighbour(documentView, position):
             else:
                 index -= 1
             index %= len(documentView._children)
-            return documentView._children[index]
+            return documentView._children.keys()[index]
     horizontal = position in ("left", "right")
     first      = position in ("left", "top")
 
