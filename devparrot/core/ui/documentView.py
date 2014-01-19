@@ -21,7 +21,6 @@
 
 import ttk
 from viewContainer import NotebookContainer, ContainerChild
-from devparrot.core.utils.variable import mcb
 
 from devparrot.core import session
 
@@ -39,7 +38,7 @@ class DocumentView(ContainerChild, ttk.Frame):
         self.label['text'] = document.longTitle
         self.label['font'] = self.label.font
         self.label.pack()
-        document.longTitle_register(mcb(self.on_title_changed))
+        document.longTitle_register(self.on_title_changed)
 
         self.bind('<FocusIn>', self.on_focus)
         

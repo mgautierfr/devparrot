@@ -22,6 +22,7 @@
 import new
 
 from weakref import ref
+import inspect
 
 class MethodeCb(object):
     def __init__(self, mtd):
@@ -78,8 +79,6 @@ class MethodeCb(object):
         '''
         return not self.__eq__(other)
 
-mcb = MethodeCb
-
 class FunctionCb(object):
     def __init__(self, function, refObj):
         self.function = function
@@ -123,6 +122,8 @@ class CbCaller(object):
         self._callbacks(*args, **kwords)
     
     def register(self, callback):
+        if inspect.ismethod(callback):
+            callback = MethodeCb(callback)
         handler = CbHandler(ref(self), callback)
         self._callbacks.append(handler)
         return handler

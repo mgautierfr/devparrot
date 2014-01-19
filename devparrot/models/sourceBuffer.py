@@ -24,7 +24,6 @@ from ttk import Tkinter
 
 from devparrot.core import session, utils
 from devparrot.core.errors import *
-from devparrot.core.utils.variable import mcb
 
 
 def insert_char(event):
@@ -54,9 +53,9 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
         self.tag_raise("sel", "currentLine_tag")
         
         self.on_font_changed(None, None)
-        session.config.textView.font.register(mcb(self.on_font_changed))
-        session.config.textView.tab_width.register(mcb(self.on_tab_width_changed))
-        session.config.color.currentLine_tag_color.register(mcb(self.on_currentLine_color_changed))
+        session.config.textView.font.register(self.on_font_changed)
+        session.config.textView.tab_width.register(self.on_tab_width_changed)
+        session.config.color.currentLine_tag_color.register(self.on_currentLine_color_changed)
     
     def on_font_changed(self, var, old):
         self.config(font = session.config.get("textView.font"))
