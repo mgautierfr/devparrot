@@ -47,7 +47,6 @@ class Document(utils.event.EventSource):
         self.model.bind("<<Modified>>", self.on_modified_changed)
         self.currentView = None	
         self.set_view(TextView(self))
-        session.eventSystem.event("newDocument")(self)
     
     def __eq__(self, other):
         if other == None:
