@@ -36,12 +36,12 @@ import weakref
 _fonts = {}
 _styles = {}
 _tokens_name = {}
-_moduleName = None
+_configSection = None
 _lexers_cache = {}
 
 def init(configSection, name):
-    global _moduleName
-    _moduleName=name
+    global _configSection
+    _configSection=configSection
     configSection.add_variable("hlstyle", "default")
     configSection.active.register(activate)
 
@@ -50,7 +50,7 @@ def activate(var, old):
         create_fonts()
         create_styles()
         session.config.textView.font.register(on_font_changed)
-        session.config.modules[_moduleName].hlstyle.register(on_style_changed)
+        _configSection.hlstyle.register(on_style_changed)
         session.get_documentManager().connect("documentAdded",on_new_document)
     else:
         pass
@@ -83,7 +83,7 @@ def create_styles():
     global _style
     global _tokens_name
     
-    _style = get_style_by_name(session.config.get("modules.%s.hlstyle"%_moduleName))
+    _style = get_style_by_name(_configSection.get("hlstyle"))
     
     tkStyles = dict(_style)
     for token in sorted(tkStyles):
