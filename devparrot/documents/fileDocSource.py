@@ -60,8 +60,6 @@ class FileDocSource(object):
         text = ""
         with open(self.path, 'r') as fileIn:
             text = fileIn.read()
-        if text and text[-1] == '\n':
-            text = text[:-1]
         self.init_timestamp()
         return text
     
@@ -75,7 +73,7 @@ class FileDocSource(object):
     def set_content(self, content):
         """ set the content of the file (save it) """
         with open(self.path, 'w') as fileOut:
-            fileOut.write(content.encode('utf8'))
+            fileOut.write(content)
         self.init_timestamp()
     
     def need_reload(self):

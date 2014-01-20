@@ -22,6 +22,8 @@
 import ttk
 from ttk import Tkinter
 
+import re
+
 from devparrot.core import session, utils
 from devparrot.core.errors import *
 
@@ -188,10 +190,12 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
         self.sel_clear()
 
 
+coding_re = re.compile(r"coding[:=]\s*([-\w.]+)")
 
 class SourceBuffer(CodeText):
     def __init__(self, readOnly):
         CodeText.__init__(self, readOnly)
+        self._encoding = None
         self.highlight_tag_protected = False
         self.tag_configure("highlight_tag", background=session.config.get("color.highlight_tag_color"))
         self.tag_configure("search_tag", background=session.config.get("color.search_tag_color"))
@@ -201,15 +205,31 @@ class SourceBuffer(CodeText):
         self.tag_lower("search_tag", "sel")
         self.tag_raise("highlight_tag", "currentLine_tag")
         self.tag_raise("search_tag", "currentLine_tag")
+
+    @property
+    def encoding(self):
+        return self._encoding or session.config.get('encoding')
     
     def set_text(self, content):
+        # 256 should be far enought to correspond to "the begining of the file"
+        self._encoding = coding_re.search(content[:256])
+        if self._encoding :
+            self._encoding = self._encoding.group(1)
+
+        content = content.decode(self.encoding)
+
+        #remove last "\n" as tkText add one automaticaly
+        if content and content[-1] == '\n':
+            content = content[:-1]
+
         self.delete("0.1", "end")
         self.insert("end", content, forceUpdate=True)
         self.edit_reset()
         self.edit_modified(False)
     
     def get_text(self):
-        return self.get("0.1", "end")
+        content = self.get("0.1", "end").encode(self.encoding)
+        return content
 
     def on_selection_changed(self, event):
         if self.highlight_tag_protected:

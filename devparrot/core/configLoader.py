@@ -106,6 +106,7 @@ def init(cmd_options):
     global _config
     devparrotPath = os.path.dirname(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
     _config = Config()
+    _config.add_variable("encoding", "utf8")
     _config.add_variable("controller", DefaultControllerMode())
     _config.add_variable("ROcontroller", DefaultROControllerMode())
     _config.add_variable("devparrotPath", devparrotPath)
