@@ -335,7 +335,7 @@ def unsplit_notebook(notebook):
     else:
         goodChild = parent.container1
 
-    for view in notebook._children.keys()():
+    for view in notebook._children.keys():
         notebook.detach_child(view)
         leftnotebook.attach_child(view)
     

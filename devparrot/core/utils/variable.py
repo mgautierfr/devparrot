@@ -100,7 +100,7 @@ class CbHandler(object):
     def unregister(self):
         source = self.source()
         if source is not None:
-            self.source.unregister(self)
+            source.unregister(self)
 
 class CbCaller(object):
     def __init__(self):
