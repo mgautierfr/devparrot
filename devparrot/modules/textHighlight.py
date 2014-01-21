@@ -140,11 +140,10 @@ def on_new_document(document):
     Tkinter.Text.mark_gravity(document.model, "DP::SH::_synctx_START", "left")
 
 def init_and_highlight(document):
-    def find_lexer(filename):
+    def find_lexer(mimetype):
         from pygments.lexers import get_lexer_for_mimetype
         from pygments.util import ClassNotFound
-        from xdg import Mime
-        mime = str(Mime.get_type_by_name(filename))
+        mime = str(str(mimetype))
         lexer = None
         try:
             lexer = _lexers_cache[mime](noSyncPoint=False)
@@ -159,9 +158,9 @@ def init_and_highlight(document):
     if not document.has_a_path():
         return
 
-    filename = os.path.basename(document.get_path())
-    document.model._highlight.lexer = find_lexer(filename)
-    on_insert(document.model, "1.0", "end")
+    document.model._highlight.lexer = find_lexer(document.get_mimetype())
+    if document.model._highlight.lexer:
+        update_highlight(document.model, Index(document.model, "1.0"), document.model.tk.call(document.model._w, "count", "-chars", "1.0", "end"))
 
 def on_insert(model, insertMark, text):
     if model._highlight.lexer :

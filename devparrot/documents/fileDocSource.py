@@ -19,14 +19,24 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import os, sys
+import os, sys, magic
+
+from xdg import Mime
 
 class FileDocSource(object):
     """This class is used for document comming from a file (most of document)"""
     def __init__(self, path):
         self.path = os.path.abspath(path)
         self.timestamp = None
-        
+
+        self.mimetype = Mime.get_type_by_name(self.path)
+        if not self.mimetype:
+            try:
+                self.mimetype = Mime.lookup(*magic.from_file(self.path, mime=True).split("/"))
+            except IOError:
+                self.mimetype = Mime.lookup("text", "plain")
+
+
     def __getattr__(self, name):
         if name == "title":
             return os.path.basename(self.path)

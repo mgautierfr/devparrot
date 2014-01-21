@@ -62,6 +62,9 @@ class Document(utils.event.EventSource):
     def get_currentView(self):
         return self.currentView
 
+    def get_mimetype(self):
+        return self.documentSource.mimetype
+
     def get_model(self):
         return self.model
     
