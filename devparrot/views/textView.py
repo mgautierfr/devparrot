@@ -102,17 +102,15 @@ class TextView():
 
     def set_lineNumbers(self):
         self.lineNumbers.config(state='normal')
-
-        nbLine = self.view.nbLine
         
         firstLine = self.view.index('@0,0').line-1
+        firstLine = max(min(firstLine, self.firstLine), 1)
+
         lastIndex = self.view.index('@0,{}'.format(self.view.winfo_height()))
         lastLine = lastIndex.line+1
-        
-        firstLine = max(firstLine, 1)
-        lastLine = min(lastLine, nbLine)
+        lastLine = max(lastLine, self.lastLine)
 
-        for i in range( min(firstLine, self.firstLine) , max(lastLine, self.lastLine)+1 ):
+        for i in range( firstLine , lastLine+1 ):
             name = str(i)
             if not self.lineNumbers.gettags(name):
                 self._create_textLine(name)
