@@ -67,7 +67,6 @@ class TextView():
         
         self.firstLine = 1
         self.lastLine = 1
-        self.lastLineCreated = 0
         self.actualLineNumberWidth = 0
 
     def focus(self):
@@ -104,20 +103,19 @@ class TextView():
     def set_lineNumbers(self):
         self.lineNumbers.config(state='normal')
 
-        nbLine = int(self.view.index('end').split('.')[0])
-        if self.lastLineCreated < nbLine:
-            map(self._create_textLine, [str(i+1) for i in range(self.lastLineCreated, nbLine)])
-            self.lastLineCreated = nbLine
+        nbLine = self.view.nbLine
         
-        firstLine = int(self.view.index('@0,0').split('.')[0])-1
+        firstLine = self.view.index('@0,0').line-1
         lastIndex = self.view.index('@0,{}'.format(self.view.winfo_height()))
-        lastLine = int(lastIndex.split('.')[0])+1
+        lastLine = lastIndex.line+1
         
         firstLine = max(firstLine, 1)
         lastLine = min(lastLine, nbLine)
 
         for i in range( min(firstLine, self.firstLine) , max(lastLine, self.lastLine)+1 ):
             name = str(i)
+            if not self.lineNumbers.gettags(name):
+                self._create_textLine(name)
             pos = self.view.bbox("{}.0".format(i))
             if pos:
                 self.lineNumbers.coords(name, "0", str(pos[1]))

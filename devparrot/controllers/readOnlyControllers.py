@@ -43,7 +43,6 @@ class CarretController( Controller ):
         if modifiers.ctrl:
             newPos = '1.0'
         elif session.config.get("textView.smart_home_end"):
-            l, c = event.widget.index('insert').split('.')
             match_start = ttk.Tkinter.Text.search(event.widget, "[^ \t]" , 'insert linestart', stopindex='insert lineend', regexp=True)
             if match_start:
                 if event.widget.compare(match_start, '!=', 'insert'):
@@ -73,15 +72,15 @@ class CarretController( Controller ):
         if modifiers.ctrl:
             currentPos = event.widget.index( 'insert' )
             wordend    = event.widget.index( 'insert wordend' )
-            word = event.widget.get(currentPos, wordend)
+            word = event.widget.get(str(currentPos), str(wordend))
 
             while wordend != currentPos:
                 from devparrot.core import session
                 if len(set(word)&set(session.config.get("wchars"))) != 0:
                     break
                 currentPos = wordend
-                wordend = event.widget.index( '%s wordend'%currentPos )
-                word = event.widget.get(currentPos, wordend)
+                wordend = event.widget.index( '%s wordend'%str(currentPos) )
+                word = event.widget.get(str(currentPos), str(wordend))
 
             event.widget.mark_set( 'insert', wordend)
         else:
@@ -97,15 +96,15 @@ class CarretController( Controller ):
         if modifiers.ctrl:
             currentPos = event.widget.index( 'insert' )
             wordstart  = event.widget.index( 'insert -1c wordstart' )
-            word = event.widget.get(wordstart, currentPos)
+            word = event.widget.get(str(wordstart), str(currentPos))
 
             while wordstart != currentPos:
                 from devparrot.core import session
                 if len(set(word)&set(session.config.get("wchars"))) != 0:
                     break
                 currentPos = wordstart
-                wordstart = event.widget.index( '%s -1c wordstart'%currentPos )
-                word = event.widget.get(wordstart, currentPos)
+                wordstart = event.widget.index( '%s -1c wordstart'%str(currentPos))
+                word = event.widget.get(str(wordstart), str(currentPos))
 
 
             event.widget.mark_set( 'insert', wordstart)

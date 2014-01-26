@@ -21,6 +21,7 @@
 
 import ttk
 from devparrot.core.controller import Controller, bind
+from devparrot.core.utils.posrange import Index
 import readOnlyControllers
 
 from devparrot.core.errors import *
@@ -49,16 +50,16 @@ class KeyboardController(Controller):
         event.widget.sel_delete()
         count = ttk.Tkinter.IntVar()
         text = "\n"
-        l, c = event.widget.index('insert').split('.')
+        insert = event.widget.index('insert')
         if session.config.get("textView.remove_tail_space"):
-            match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*$", '%s.0'%l, regexp=True)
+            match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*$", '%s.0'%insert.line, regexp=True)
             if match_start:
-                event.widget.delete(match_start, '%s.0 lineend'%l)
+                event.widget.delete(match_start, event.widget.lineend(insert))
         if session.config.get("textView.auto_indent"):
-            match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*" , '%s.0'%l, stopindex=event.widget.index('insert'), regexp=True, count=count)
+            match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*" , '%s.0'%insert.line, stopindex=str(insert), regexp=True, count=count)
             if match_start:
-                match_end = "%s.%i" % (l, min(count.get(), int(c)))
-                text += event.widget.get(match_start, match_end)
+                match_end = Index(insert.line, min(count.get(), int(insert.col)))
+                text += event.widget.get(str(match_start), str(match_end))
         event.widget.insert( 'insert', text )
     
     @bind('<ISO_Left_Tab>')
@@ -69,10 +70,10 @@ class KeyboardController(Controller):
         if session.config.get("textView.space_indent"):
             tabs += [' '*i for i in xrange(session.config.get("textView.tab_width"), 0, -1)]
         try:
-            start = Index(event.widget, 'sel.first').line
-            stop = Index(event.widget, 'sel.last').line
+            start = event.widget.index('sel.first').line
+            stop = event.widget.index('sel.last').line
         except BadArgument:
-            start = Index(event.widget, 'insert').line
+            start = event.widget.index('insert').line
             stop = start
         for line in xrange(start, stop+1):
             for tab in tabs:
@@ -86,8 +87,8 @@ class KeyboardController(Controller):
         from devparrot.core import session
         tab = ' '*session.config.get("textView.tab_width") if session.config.get("textView.space_indent") else '\t'
         try:
-            start = Index(event.widget, 'sel.first')
-            stop = Index(event.widget, 'sel.last')
+            start = event.widget.index('sel.first')
+            stop = event.widget.index('sel.last')
         except BadArgument:
             # no selection
             event.widget.insert( 'insert', tab )
@@ -99,9 +100,10 @@ class KeyboardController(Controller):
     @bind('<BackSpace>')
     def on_backspace(self, event, modifiers):
         try:
+            # we want to catch the except here, so no call to sel_delete
             event.widget.delete( 'sel.first', 'sel.last' )
             event.widget.sel_clear()
-        except TclError:
+        except BadArgument:
             event.widget.delete( 'insert -1 chars', 'insert' )
     
     @bind('<Delete>', '<KP_Delete>')
@@ -109,9 +111,10 @@ class KeyboardController(Controller):
         if event.keysym == "KP_Delete" and len(event.char) > 0 :
             return self.on_key_pressed(event, modifiers)
         try:
+            # we want to catch the except here, so no call to sel_delete
             event.widget.delete( 'sel.first', 'sel.last' )
             event.widget.sel_clear()
-        except TclError:
+        except BadArgument:
             event.widget.delete( 'insert', 'insert +1 chars' )
     
     @bind('<Control-r>')

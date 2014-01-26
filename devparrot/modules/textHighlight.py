@@ -24,9 +24,9 @@ import os.path
 
 from devparrot.core import session
 
-from devparrot.core.utils.posrange import Index, Index_
+from devparrot.core.utils.posrange import Index, Start
 
-from pygments.token import SyncPoint, Token
+from pygments.token import Token
 
 import Tkinter
 import weakref
@@ -146,10 +146,10 @@ def init_and_highlight(document):
         mime = str(str(mimetype))
         lexer = None
         try:
-            lexer = _lexers_cache[mime](noSyncPoint=False)
+            lexer = _lexers_cache[mime]()
         except KeyError:
             try:
-                lexer = get_lexer_for_mimetype(mime, noSyncPoint=False)
+                lexer = get_lexer_for_mimetype(mime)
                 _lexers_cache[mime] = lexer.__class__
             except ClassNotFound:
                 pass
@@ -160,13 +160,13 @@ def init_and_highlight(document):
 
     document.model._highlight.lexer = find_lexer(document.get_mimetype())
     if document.model._highlight.lexer:
-        update_highlight(document.model, Index(document.model, "1.0"), document.model.tk.call(document.model._w, "count", "-chars", "1.0", "end"))
+        update_highlight(document.model, Start, document.model.calculate_distance(Start, document.model.index("end")))
 
 def on_insert(model, insertMark, text):
     if model._highlight.lexer :
         l = len(text)
-        start = Index(model, insertMark)
-        stop = Index(model, "%s + %d c"%(insertMark, l))
+        start = model.index(insertMark)
+        stop = model.addchar(start, l)
 
         for name in model.tag_names(str(start)):
             if not name.startswith("DP::SH::"):
@@ -187,122 +187,114 @@ def on_insert(model, insertMark, text):
 
 def on_delete(model, fromMark, toMark):
     if model._highlight.lexer :
-        update_highlight(model, Index(model, fromMark), 0)
+        update_highlight(model, model.index(fromMark), 0)
 
 def on_replace(model, fromMark, toMark, text):
     on_insert(model, fromMark, text)
 
-def update_highlight(textWidget, new_insertPoint, new_length):
-    if textWidget._highlight.idle_handle is None:
-        handle = textWidget.after_idle(lambda : _update_highlight(textWidget, new_insertPoint, new_length))
-        textWidget._highlight.idle_handle = (handle, new_insertPoint, new_length)
+def update_highlight(model, new_insertPoint, new_length):
+    if model._highlight.idle_handle is None:
+        handle = model.after_idle(lambda : _update_highlight(model, new_insertPoint, new_length))
+        model._highlight.idle_handle = (handle, new_insertPoint, new_length)
         return
 
-    idle_handle, old_insertPoint, old_length = textWidget._highlight.idle_handle
-    old_end = Index(textWidget, "%s + %d c"%(old_insertPoint, old_length))
-    new_end = Index(textWidget, "%s + %d c"%(new_insertPoint, new_length))
+    idle_handle, old_insertPoint, old_length = model._highlight.idle_handle
+    old_end = model.addchar(old_insertPoint, old_length)
+    new_end = model.addchar(new_insertPoint, new_length)
     insertPoint = min(new_insertPoint, old_insertPoint)
     stopPoint = max(new_end, old_end)
-    length = textWidget.tk.call(textWidget._w, "count", "-chars", str(insertPoint), str(stopPoint))
-    textWidget.after_cancel(textWidget._highlight.idle_handle[0])
-    handle = textWidget.after_idle(lambda : _update_highlight(textWidget, insertPoint, length))
-    textWidget._highlight.idle_handle = (handle, insertPoint, length)
+    length = model.calculate_distance(insertPoint, stopPoint)
+    model.after_cancel(model._highlight.idle_handle[0])
+    handle = model.after_idle(lambda : _update_highlight(model, insertPoint, length))
+    model._highlight.idle_handle = (handle, insertPoint, length)
 
-def _update_highlight(textWidget, insertPoint, length):
-    textWidget._highlight.idle_handle = None
-    start_name, start_pos = find_previous(textWidget,insertPoint)
-    content = textWidget.get(start_pos.text, "end")
-    tokens = textWidget._highlight.lexer.get_tokens_unprocessed(content)
-    tokens = append_lastSyncPoint(tokens, len(content))
-    update_tokens(textWidget, tokens, start_name, start_pos, insertPoint, length)
+def _update_highlight(model, insertPoint, length):
+    model._highlight.idle_handle = None
+    start_name, start_pos = find_previous(model,insertPoint)
+    content = model.get(str(start_pos), "end")
+    tokens = model._highlight.lexer.get_tokens_unprocessed(content)
+    update_tokens(model, tokens, start_name, start_pos, insertPoint, length)
 
-def find_next(textWidget, index, forceAfter=False):
-    next = textWidget.mark_next(str(index))
+def find_next(model, index, forceAfter=False):
+    next = model.mark_next(str(index))
     while next:
         if next.startswith("DP::SH::_synctx_"):
-            nextI = Index(textWidget, next, True)
+            nextI = model.index(next)
             if not forceAfter or nextI > index:
                 break
-        next = textWidget.mark_next(next)
+        next = model.mark_next(next)
     if next:
         return next, nextI
     return None, None
 
-def find_previous(textWidget, index):
-    previous = textWidget.mark_previous(str(index))
+def find_previous(model, index):
+    previous = model.mark_previous(str(index))
     while previous:
         if previous.startswith("DP::SH::_synctx_"):
-            previousI = Index(textWidget, previous, True)
+            previousI = model.index(previous)
             break
-        previous = textWidget.mark_previous(previous)
+        previous = model.mark_previous(previous)
     if previous:
         return previous, previousI
-    return "DP::SH::_synctx_START", Index(textWidget, "1.0")
+    return "DP::SH::_synctx_START", Start
 
-def append_lastSyncPoint(tokens, lenth):
-    last_is_syncPoint = True
-    for i in tokens:
-        if i[1] == SyncPoint:
-            if not last_is_syncPoint:
-                yield i
-                last_is_syncPoint = True
-        else:
-            yield i
-            last_is_syncPoint = False
-    if not last_is_syncPoint:
-        yield lenth, SyncPoint, ''
-
-def update_tokens(textWidget, tokens, startPoint_text, startPoint_pos, insertPoint, length):
+def update_tokens(model, tokens, startPoint_text, startPoint_pos, insertPoint, length):
     currentPos_buf = 0
     currentPos_wid = startPoint_pos
 
     # we must not stop before this point
-    _, SyncPointToReach = find_next(textWidget, insertPoint, forceAfter=True)
+    _, SyncPointToReach = find_next(model, insertPoint, forceAfter=True)
     if SyncPointToReach is None:
-        SyncPointToReach = Index(textWidget, "end", True)
+        SyncPointToReach = model.index("end")
 
     # the last syncPoint already in the buffer checked
     lastSyncPoint_text = startPoint_text
     lastSyncPoint_pos = startPoint_pos
 
-    currentLine_info_line = None
-
     tags_to_add = {}
 
-    markNb = textWidget._highlight.markNb
+    markNb = model._highlight.markNb
 
-    def is_in_safeZone(start, stop, nstart=insertPoint, nstop=Index(textWidget, "%s + %d c"%(insertPoint.text, length), True)):
-        return (start >= nstart and stop <= nstop)
+    noTagStart = insertPoint
+    noTagStop  = model.addchar(insertPoint,length)
 
     for i, t, v in tokens:
-        if t == SyncPoint:
-            if i==0:
-                continue
-            #update current pos
-            if i != currentPos_buf:
-                currentPos_buf = i
-                currentPos_wid = Index(textWidget, "%s + %d c"%(startPoint_pos.text,i), True)
+        if not v:
+            continue
+        l = len(v)
 
-            # no syncPoint so add it directly
-            if is_in_safeZone(lastSyncPoint_pos, currentPos_wid):
-                lastSyncPoint_text = "DP::SH::_synctx_%d"%markNb
-                lastSyncPoint_pos  = currentPos_wid
-                Tkinter.Text.mark_set(textWidget, lastSyncPoint_text, lastSyncPoint_pos.text)
-                Tkinter.Text.mark_gravity(textWidget, lastSyncPoint_text, "left")
-                markNb += 1
-                continue
+        # get start of the token.
+        start = currentPos_wid
 
-            # find next syncPoint after(or at) currentPos and remove all other between
-            # if there is no syncPoint => no need to clean
-            if lastSyncPoint_pos:
-                lastSyncPoint_text, lastSyncPoint_pos = find_next_and_clean_syncPoints(textWidget, lastSyncPoint_text, lastSyncPoint_pos, currentPos_wid)
+        #get end of the token.
+        currentPos_buf += l
+        currentPos_wid = model.addchar(currentPos_wid, l)
 
+        #get some info on the token.
+        list_for_token = tags_to_add.setdefault(t, [])
+        token_name = _tokens_name[t]
+
+        # do the job
+        if start<noTagStart or currentPos_wid > noTagStop:
+            clean_tokens(model, start.text, currentPos_wid.text, token_name)
+        list_for_token.extend((start.text, currentPos_wid.text))
+
+        # This a end of a line without any special Token => Add a syncPoint
+        if t is Token.Text and v == u"\n":
+
+            # we are not in the insert region. It may have some syncPoint in between
+            if lastSyncPoint_pos<noTagStart or currentPos_wid>noTagStop:
+                # find next syncPoint after(or at) currentPos and remove all other between
+                # if there is no syncPoint => no need to clean
+                if lastSyncPoint_pos is not None:
+                    lastSyncPoint_text, lastSyncPoint_pos = find_next_and_clean_syncPoints(model, lastSyncPoint_text, lastSyncPoint_pos, currentPos_wid)
+    
             # mark the new one if not already in the buffer
             if currentPos_wid != lastSyncPoint_pos:
                 lastSyncPoint_text = "DP::SH::_synctx_%d"%markNb
                 lastSyncPoint_pos  = currentPos_wid
-                Tkinter.Text.mark_set(textWidget, lastSyncPoint_text, lastSyncPoint_pos.text)
-                Tkinter.Text.mark_gravity(textWidget, lastSyncPoint_text, "left")
+                Tkinter.Text.mark_set(model, lastSyncPoint_text, lastSyncPoint_pos.text)
+                Tkinter.Text.mark_gravity(model, lastSyncPoint_text, "left")
                 markNb += 1
                 continue
 
@@ -310,61 +302,17 @@ def update_tokens(textWidget, tokens, startPoint_text, startPoint_pos, insertPoi
             if currentPos_wid >= SyncPointToReach:
                 break
 
-        else:
-            l = len(v)
-            if not l:
-                continue
-#			print v,
+    model._highlight.markNb = markNb
 
-            # get start of the token
-            if i == currentPos_buf:
-                start = currentPos_wid
-            else:
-                start = Index(textWidget, "%s + %d c"%(startPoint_pos.text,i), True)
-            
-            #get some info on the current line if this is a new one
-            if currentLine_info_line != start.line:
-                currentLine_info_line = start.line
-                currentLine_info_len = int(textWidget.index("%s lineend"%start.text).split('.')[1])
-                currentLine_text = "%d.%%d"%currentLine_info_line
-
-            #get end of the token. Try to find it without calling textWidget.index
-            currentPos_buf = i+l
-            if start.col==currentLine_info_len and v == "\n":
-                pos = currentLine_info_line+1
-                currentPos_wid = Index_(pos, 0, "%d.0"%pos)
-            elif start.col + l > currentLine_info_len:
-                currentPos_wid = Index(textWidget, "%s + %dc"%(start.text, l), True)
-            else:
-                col = start.col+l
-                currentPos_wid = Index_(currentLine_info_line, col, currentLine_text%col)
-
-            #get some info on the token
-            try:
-                list_for_token = tags_to_add[t]
-            except:
-                list_for_token = tags_to_add.setdefault(t, [])
-            try:
-                token_name = _tokens_name[t]
-            except:
-                token_name = _tokens_name.setdefault(token,"DP::SH::%s"%str(t))
-
-            # do the job
-            if not is_in_safeZone(start, currentPos_wid):
-                clean_tokens(textWidget, start.text, currentPos_wid.text, token_name)
-            list_for_token.extend((start.text, currentPos_wid.text))
-
-    textWidget._highlight.markNb = markNb
-
-    #really add the tags to the textWidget
+    #really add the tags to the model
     for token, positions in tags_to_add.items():
-        textWidget.tag_add(_tokens_name[token], *positions)
+        model.tag_add(_tokens_name[token], *positions)
 
-def find_next_and_clean_syncPoints(textWidget, currentSync_text, currentSync_pos, currentPos):
+def find_next_and_clean_syncPoints(model, currentSync_text, currentSync_pos, currentPos):
     # remove all syncPoint between lastSyncPoint and currentPos
 
     # currentSync_text in a mark name => will return different mark at same pos if exist else next mark. will not return currentSync_text
-    next = find_next(textWidget, currentSync_text)
+    next = find_next(model, currentSync_text)
 
     # no sync point
     if next[0] == None:
@@ -372,34 +320,34 @@ def find_next_and_clean_syncPoints(textWidget, currentSync_text, currentSync_pos
 
     #remove all duplicate at currentSync
     while currentSync_pos==next[1]:
-        textWidget.mark_unset(next[0])
-        next = find_next(textWidget, currentSync_text)
+        model.mark_unset(next[0])
+        next = find_next(model, currentSync_text)
 
     if next[1] <= currentPos:
         currentSync_text, currentSync_pos = next
         #remove all tag strictly before currentPos
         while currentSync_text and currentSync_pos<currentPos:
-            textWidget.mark_unset(currentSync_text)
-            currentSync_text, currentSync_pos = find_next(textWidget, currentSync_pos)
+            model.mark_unset(currentSync_text)
+            currentSync_text, currentSync_pos = find_next(model, currentSync_pos)
 
         #remove all duplicate at currentPos
         if currentSync_text and currentSync_pos == currentPos:
-            next = find_next(textWidget, currentSync_text)
+            next = find_next(model, currentSync_text)
             while next[0] and next[1]==currentPos:
-                textWidget.mark_unset(currentSync_text)
+                model.mark_unset(currentSync_text)
                 currentSync_text, currentSync_pos = next
-                next = find_next(textWidget, currentSync_text)
+                next = find_next(model, currentSync_text)
 
     return currentSync_text, currentSync_pos
 
 
 
-def clean_tokens(tw, start, end, token_name):
-    if tw.tag_nextrange(token_name, start, end) != (start, end):
+def clean_tokens(model, start, end, token_name):
+    if model.tag_nextrange(token_name, start, end) != (start, end):
     
         tags = set()
 
-        for n in tw.tag_names(start):
+        for n in model.tag_names(start):
             if not n.startswith("DP::SH::"):
                 continue
             if n != token_name:
@@ -417,6 +365,6 @@ def clean_tokens(tw, start, end, token_name):
             if key == 'tagoff' and pos != start:
                 tags.add(name)
 
-        tw.dump(start, end, command=process_dump, tag=True)
-        map(lambda n : tw.tag_remove(n, start, end), tags)
+        model.dump(start, end, command=process_dump, tag=True)
+        map(lambda n : model.tag_remove(n, start, end), tags)
 

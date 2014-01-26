@@ -41,32 +41,32 @@ def section(startIndex, endIndex, content):
 
     if startIndex == "standardInsert":
         try:
-            startIndex = Index(model, "sel.first")
-            endIndex = Index(model, "sel.last")
+            startIndex = model.index("sel.first")
+            endIndex = model.index("sel.last")
         except BadArgument:
-            startIndex = Index(model, "insert")
+            startIndex = model.index("insert")
             endIndex = startIndex
 
     elif endIndex is None:
         try:
-            startIndex = Index(model, startIndex)
+            startIndex = model.index(startIndex)
             endIndex = startIndex
         except BadArgument:
             startStr = startIndex
-            startIndex = Index(model, "{}.first".format(startStr))
-            endIndex = Index(model, "{}.last".format(startStr))
+            startIndex = model.index("{}.first".format(startStr))
+            endIndex = model.index("{}.last".format(startStr))
 
     else:
-        startIndex = Index(model, startIndex)
-        endIndex = Index(model, endIndex)
+        startIndex = model.index(startIndex)
+        endIndex = model.index(endIndex)
     
     insertionMode = False
 
     for line in content:
         if not insertionMode:
             insertionMode = True
-            model.delete(str(startIndex), str(endIndex))
-            model.mark_set("dp::section_insert", str(startIndex))
+            model.delete(startIndex, endIndex)
+            model.mark_set("dp::section_insert", startIndex)
             model.mark_gravity("dp::section_insert", 'right')
         model.insert("dp::section_insert", line)
 
@@ -79,9 +79,9 @@ def section(startIndex, endIndex, content):
         if startIndex.line == endIndex.line:
             yield model.get(str(startIndex), str(endIndex))
         else:
-            yield "{}\n".format(model.get(str(startIndex), "%s lineend"%str(startIndex)))
+            yield "{}\n".format(model.get(str(startIndex), str(model.lineend(startIndex))))
             for i in range(startIndex.line+1, endIndex.line):
                 yield "{}\n".format(model.get("%d.0"%i, "%d.0 lineend"%i))
-            yield model.get("%s linestart"%str(endIndex), str(endIndex))
+            yield model.get(str(model.linestart(endIndex)), str(endIndex))
 
     return gen()

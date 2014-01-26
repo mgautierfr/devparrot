@@ -22,9 +22,12 @@
 from collections import namedtuple
 from devparrot.core.errors import *
 
-Index_ = namedtuple('Index', "line col text")
+class Index(namedtuple('Index', "line col text")):
+    def __new__(cls, line, col, text = None):
+        if text is None:
+            text = "%d.%d"%(line, col)
+        return super(Index, cls).__new__(cls, line, col, text)
 
-class _Index(Index_):
     def __str__(self):
         return self.text
     
@@ -32,34 +35,10 @@ class _Index(Index_):
         return "<Index instance pos %s>"%str(self)
 
     def __eq__(self, other):
-        return self.text == other.text
+        return other and self.text == other.text
 
     def __ne__(self, other):
-        return not( self.text == other.text )
+        return not other or self.text != other.text
 
-def Index(textWidget, index, indexCallNeeded = False):
-    """
-    Construct an index.
-    @param textWidget the textWidget associated to the index. Used only to the construction of index. Not stored
-    @param index the index text we want to store
-    @param indexCallNeeded directly use textWidget.insert instead of try to split the text
-    """
-
-    if not indexCallNeeded:
-        try:
-            _split = index.split('.')
-            split = (int(_split[0]), int(_split[1]))
-        except ValueError:
-            indexCallNeeded = True
-        except IndexError:
-            raise BadArgument("{} is not a valid index".format(index))
-
-    if indexCallNeeded:
-        try:
-            index = textWidget.index(index)
-            _split = index.split('.')
-            split = (int(_split[0]), int(_split[1]))
-        except TclError:
-            raise BadArgument("{} is not a valid index".format(index))
-    return _Index(split[0], split[1], index)
-
+Start = Index(1, 0, "1.0")
+End   = Index(-1, -1, "end")

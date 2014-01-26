@@ -25,6 +25,7 @@ from ttk import Tkinter
 import re
 
 from devparrot.core import session, utils
+from devparrot.core.utils.posrange import Index, Start
 from devparrot.core.errors import *
 
 
@@ -32,148 +33,242 @@ def insert_char(event):
     if event.widget and event.char:
         event.widget.insert('insert', event.char)
 
+coding_re = re.compile(r"coding[:=]\s*([-\w.]+)")
 
-class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
-    def __init__(self, readOnly):
-        ttk.Tkinter.Text.__init__(self, session.get_globalContainer(),
+class LineInfo(object):
+    def __init__(self, lenght):
+        self.len = lenght
+
+    def __repr__(self):
+        return "<LineInfo, len=%d>"%self.len
+
+class ModelInfo(object):
+    def __init__(self):
+        self.reinit()
+
+    def reinit(self):
+        # Tkindex start line at 1, we add a empty element to simplify operation
+        self.lineInfos = [None, LineInfo(0)]
+        self.nbLine = 1
+
+    def insert(self, index, text):
+        if index.line > self.nbLine:
+            index = Index(self.nbLine, self.lineInfos[self.nbLine].len)
+        lines = text.split('\n')
+        if len(lines) == 1:
+            self.lineInfos[index.line].len += len(lines[0])
+        else:
+            linelen = self.lineInfos[index.line].len
+            # insert first line in the "currentline"
+            self.lineInfos[index.line].len = index.col +len(lines[0])
+            # insert last line after.
+            self.lineInfos[index.line+1:index.line+1] = [LineInfo(len(lines[-1])+linelen-index.col)]
+            # insert all in between lines
+            self.lineInfos[index.line+1:index.line+1] = [LineInfo(len(l)) for l in lines[1:-1]]
+        self.nbLine += len(lines)-1
+
+    def delete(self, index1, index2):
+        if index1.line == index2.line:
+            self.lineInfos[index1.line].len -= index2.col - index1.col
+        else:
+            # remove the left part of the first line
+            self.lineInfos[index1.line].len = index1.col
+            # remove in between line
+            del self.lineInfos[index1.line+1:index2.line]
+            # add left part of the last line in the firt line
+            self.lineInfos[index1.line].len += self.lineInfos[index1.line+1].len - index2.col
+            # remove the last line
+            del self.lineInfos[index1.line+1]
+        self.nbLine -= index2.line-index1.line
+
+    def addline(self, index, line = 1):
+        if line < 0:
+            return self.delline(index, -line)
+        newLine = min(self.nbLine, index.line+line)
+        newCol = min(self.lineInfos[newLine].len, index.col)
+        return Index(newLine, newCol)
+
+    def delline(self, index, line = 1):
+        if line < 0:
+            return self.addline(index, -line)
+        newLine = max(1, index.line-line)
+        newCol = min(self.lineInfos[newLine].len, index.col)
+        return Index(newLine, newCol)
+
+    def addchar(self, index, char = 1):
+        if char < 0:
+            return self.delchar(index, -char)
+        #import pdb; pdb.set_trace()
+        newCol = index.col + char
+        newLine = index.line
+        while newCol > self.lineInfos[newLine].len:
+            newCol -= self.lineInfos[newLine].len
+            if newCol:
+                newLine += 1
+                newCol -= 1
+                if newLine > self.nbLine:
+                    return Index(self.nbLine, self.lineInfos[self.nbLine].len)
+        return Index(newLine, newCol)
+
+    def delchar(self, index, char = 1):
+        if char < 0:
+            return self.delchar(index, -char)
+        if index.col >= char:
+            #everything nice
+            return Index(index.line, index.col-char)
+        char -= index.col
+        newCol = 0
+        newLine = index.line
+        while char:
+            newLine -= 1
+            if not newLine:
+                #No more to go back
+                return Start
+            char -= 1
+            if char <= self.lineInfos[newLine].len:
+                # found the right line
+                newCol = self.lineInfos[newLine].len - char
+                break
+            char -= self.lineInfos[newLine].len
+        return Index(newLine, newCol)
+
+    def linestart(self, index):
+        return Index(index.line, 0)
+
+    def lineend(self, index):
+        return Index(index.line, self.lineInfos[index.line].len)
+
+    def getend(self):
+        return Index(self.nbLine+1, 0)
+
+    def calculate_distance(self, first, second):
+        distance = second.col - first.col
+        for i in range(first.line, second.line):
+            distance += self.lineInfos[i].len + 1
+        return distance
+
+class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
+    def __init__(self):
+        utils.event.EventSource.__init__(self)
+        Tkinter.Text.__init__(self,session.get_globalContainer(),
                                   undo=True,
                                   autoseparators=False,
                                   tabstyle="wordprocessor")
-        utils.event.EventSource.__init__(self)
+        ModelInfo.__init__(self)
         bindtags = list(self.bindtags())
         bindtags.insert(1,"Command")
         bindtags = " ".join(bindtags)
         self.bindtags(bindtags)
 
-        if readOnly:
-            session.config.get("ROcontroller").install(self)
-        else:
-            session.config.get("controller").install( self )
-        
-        self.tag_configure('currentLine_tag', background=session.config.get("color.currentLine_tag_color"))
-        self.tag_raise("currentLine_tag")
-        self.tag_raise("sel", "currentLine_tag")
-        
-        self.on_font_changed(None, None)
-        session.config.textView.font.register(self.on_font_changed)
-        session.config.textView.tab_width.register(self.on_tab_width_changed)
-        session.config.color.currentLine_tag_color.register(self.on_currentLine_color_changed)
-    
-    def on_font_changed(self, var, old):
-        self.config(font = session.config.get("textView.font"))
-        self.on_tab_width_changed(None, None)
-    
-    def on_tab_width_changed(self, var, old):
-        import tkFont
-        self.config(tabs = session.config.get("textView.tab_width")*tkFont.Font(font=session.config.get("textView.font")).measure(" "))
+        self._encoding = None
 
-    def on_currentLine_color_changed(self, var, old):
-        self.tag_configure('currentLine_tag', background=var.get())
-    
     # Selection Operations
-    def sel_clear( self ):
+    def sel_clear(self):
+        """Remove any selection set on the text.
+           Do not delete the selected text.
+        """
         try:
-            self.tag_remove( 'sel', '1.0', 'end' )
+            self.tag_remove('sel', '1.0', 'end')
         except TclError:
             pass
       
         try:
-            self.mark_unset( 'sel.anchor', 'sel.first', 'sel.last' )
+            self.mark_unset('sel.anchor', 'sel.first', 'sel.last')
         except TclError:
             pass
    
-    def sel_setAnchor( self, index ):
-        self.mark_set( 'sel.anchor', index )
+    def sel_setAnchor(self, index):
+        self.mark_set('sel.anchor', str(index))
    
-    def sel_isAnchorSet( self ):
+    def sel_isAnchorSet(self):
         try:
-            self.index( 'sel.anchor' )
+            Tkinter.Text.index(self, 'sel.anchor')
             return True
         except TclError:
             return False
 
-    def sel_isSelection( self ):
+    def sel_isSelection(self):
         try:
-            self.index( 'sel.first' )
+            Tkinter.Text.index(self, 'sel.first')
             return True
         except TclError:
             return False
 
-    def sel_update( self ):
-        if self.compare( 'sel.anchor', '<', 'insert' ):
-            self.mark_set( 'sel.first', 'sel.anchor' )
-            self.mark_set( 'sel.last', 'insert' )
-        elif self.compare( 'sel.anchor', '>', 'insert' ):
-            self.mark_set( 'sel.first', 'insert' )
-            self.mark_set( 'sel.last', 'sel.anchor' )
-        else:
-            return
-      
-        self.tag_remove( 'sel', '1.0', 'end' )
-        self.tag_add( 'sel', 'sel.first', 'sel.last' )
-   
-    def sel_delete( self ):
+    def sel_update(self):
         try:
-            self.delete('sel.first', 'sel.last' )
-        except TclError:
+            if self.compare('sel.anchor', '<', 'insert'):
+                self.mark_set('sel.first', 'sel.anchor')
+                self.mark_set('sel.last', 'insert')
+            elif self.compare('sel.anchor', '>', 'insert'):
+                self.mark_set('sel.first', 'insert')
+                self.mark_set('sel.last', 'sel.anchor')
+            else:
+                return
+
+            self.tag_remove('sel', '1.0', 'end')
+            self.tag_add('sel', 'sel.first', 'sel.last')
+        except TclError as e:
             pass
-        
+   
+    def sel_delete(self):
+        """Delete the selected text."""
+        try:
+            self.delete('sel.first', 'sel.last')
+        except BadArgument:
+            pass
+
         self.sel_clear( )
-    
-    def set_currentLineTag(self):
-        self.tag_remove('currentLine_tag', '1.0', 'end')
-        if session.config.get("textView.highlight_current_line"):
-            self.tag_add( 'currentLine_tag', 'insert linestart', 'insert + 1l linestart')
+
+    def index(self, tkIndex):
+        """Return a Index from a tkIndex"""
+        if isinstance(tkIndex, Index):
+            return tkIndex
+        try:
+            _split = tkIndex.split('.')
+            split = (int(_split[0]), int(_split[1]))
+        except ValueError:
+            try:
+                index = Tkinter.Text.index(self, tkIndex)
+                _split = index.split('.')
+                split = (int(_split[0]), int(_split[1]))
+            except TclError:
+                raise BadArgument("{!r} is not a valid index".format(tkIndex))
+        except IndexError:
+            raise BadArgument("{!r} is not a valid index".format(tkIndex))
+        return Index(split[0], split[1])
 
     # Overloads
     def mark_set( self, name, index ):
-        Tkinter.Text.mark_set( self, name, index )
+        Tkinter.Text.mark_set(self, name, str(index) )
         self.event('mark_set')(self, name, index)
         if name == 'insert':
-            self.set_currentLineTag()
-            try:
-                if self.compare( 'sel.anchor', '<', 'insert' ):
-                    self.mark_set( 'sel.first', 'sel.anchor' )
-                    self.mark_set( 'sel.last', 'insert' )
-                elif self.compare( 'sel.anchor', '>', 'insert' ):
-                    self.mark_set( 'sel.first', 'insert' )
-                    self.mark_set( 'sel.last', 'sel.anchor' )
-                else:
-                    return
-            	
-                self.tag_remove( 'sel', '1.0', 'end' )
-                self.tag_add( 'sel', 'sel.first', 'sel.last' )
-            except TclError:
-                pass
+            self.sel_update()
         
-    def insert(self, index, *args, **kword):
-        insertPos = self.index(index)
-        ttk.Tkinter.Text.insert(self, index, *args)
+    def insert(self, index, text, *args, **kword):
+        index = self.index(index)
+        Tkinter.Text.insert(self, str(index), text, *args)
+        ModelInfo.insert(self, index, text)
         self.edit_separator()
-        self.set_currentLineTag()
         if kword.get('forceUpdate', False):
             self.update()
-        self.event('insert')(self, insertPos, args[0])
-        if index == 'insert':
-            self.see('insert')
-        
+        self.event('insert')(self, index, text)
     
     def delete(self, index1, index2):
         index1 = self.index(index1)
-        ttk.Tkinter.Text.delete(self, index1, index2)
+        index2 = self.index(index2)
+        ttk.Tkinter.Text.delete(self, str(index1), str(index2))
+        ModelInfo.delete(self, index1, index2)
         self.edit_separator()
-        self.set_currentLineTag()
         self.event('delete')(self, index1, index2)
 
     def replace(self, index1, index2, text):
         index1 = self.index(index1)
+        index2 = self.index(index2)
         self.tk.call((self._w, 'replace', str(index1), str(index2), text))
+        ModelInfo.delete(self, index1, index2)
+        ModelInfo.insert(self, index1, text)
         self.edit_separator()
-        self.set_currentLineTag()
         self.event('replace')(self, index1, index2, text)
-    
-    def calcule_distance(self, first, second):
-        return self.tk.call(self._w, "count", "-chars", first, second)
 
     def undo(self):
         try:
@@ -188,23 +283,6 @@ class CodeText(ttk.Tkinter.Text, utils.event.EventSource):
         except TclError:
             pass
         self.sel_clear()
-
-
-coding_re = re.compile(r"coding[:=]\s*([-\w.]+)")
-
-class SourceBuffer(CodeText):
-    def __init__(self, readOnly):
-        CodeText.__init__(self, readOnly)
-        self._encoding = None
-        self.highlight_tag_protected = False
-        self.tag_configure("highlight_tag", background=session.config.get("color.highlight_tag_color"))
-        self.tag_configure("search_tag", background=session.config.get("color.search_tag_color"))
-        self.bind("<<Selection>>", self.on_selection_changed)
-        self.hl_callId = None
-        self.tag_lower("highlight_tag", "sel")
-        self.tag_lower("search_tag", "sel")
-        self.tag_raise("highlight_tag", "currentLine_tag")
-        self.tag_raise("search_tag", "currentLine_tag")
 
     @property
     def encoding(self):
@@ -222,7 +300,8 @@ class SourceBuffer(CodeText):
         if content and content[-1] == '\n':
             content = content[:-1]
 
-        self.delete("0.1", "end")
+        Tkinter.Text.delete(self, "1.0", "end")
+        self.reinit()
         self.insert("end", content, forceUpdate=True)
         self.edit_reset()
         self.edit_modified(False)
@@ -230,6 +309,61 @@ class SourceBuffer(CodeText):
     def get_text(self):
         content = self.get("0.1", "end").encode(self.encoding)
         return content
+
+    def search(self, text, start_search="1.0", end_search="end"):
+        if not text:
+            return
+
+        count = ttk.Tkinter.IntVar()
+        match_start = Tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count) 
+        while match_start:
+            match_end = "{}+{}c".format(match_start, count.get())
+            yield match_start, match_end
+            match_start = Tkinter.Text.search(self, text, match_end, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count)
+
+class SourceBuffer(TextModel):
+    def __init__(self, readOnly):
+        TextModel.__init__(self)
+
+        if readOnly:
+            session.config.get("ROcontroller").install(self)
+        else:
+            session.config.get("controller").install(self)
+
+        self.tag_configure('currentLine_tag', background=session.config.get("color.currentLine_tag_color"))
+        self.tag_raise("currentLine_tag")
+        self.tag_raise("sel", "currentLine_tag")
+
+        self.on_font_changed(None, None)
+        session.config.textView.font.register(self.on_font_changed)
+        session.config.textView.tab_width.register(self.on_tab_width_changed)
+        session.config.color.currentLine_tag_color.register(self.on_currentLine_color_changed)
+
+        self.highlight_tag_protected = False
+        self.tag_configure("highlight_tag", background=session.config.get("color.highlight_tag_color"))
+        self.tag_configure("search_tag", background=session.config.get("color.search_tag_color"))
+        self.bind("<<Selection>>", self.on_selection_changed)
+        self.hl_callId = None
+        self.tag_lower("highlight_tag", "sel")
+        self.tag_lower("search_tag", "sel")
+        self.tag_raise("highlight_tag", "currentLine_tag")
+        self.tag_raise("search_tag", "currentLine_tag")
+
+    def on_font_changed(self, var, old):
+        self.config(font = session.config.get("textView.font"))
+        self.on_tab_width_changed(None, None)
+
+    def on_tab_width_changed(self, var, old):
+        import tkFont
+        self.config(tabs = session.config.get("textView.tab_width")*tkFont.Font(font=session.config.get("textView.font")).measure(" "))
+
+    def on_currentLine_color_changed(self, var, old):
+        self.tag_configure('currentLine_tag', background=var.get())
+
+    def set_currentLineTag(self):
+        self.tag_remove('currentLine_tag', '1.0', 'end')
+        if session.config.get("textView.highlight_current_line"):
+            self.tag_add( 'currentLine_tag', 'insert linestart', 'insert + 1l linestart')
 
     def on_selection_changed(self, event):
         if self.highlight_tag_protected:
@@ -241,7 +375,7 @@ class SourceBuffer(CodeText):
             if self.hl_callId:
                 self.after_cancel(self.hl_callId)
             self.hl_callId = self.after(300, self.hl_apply_tag, text)
-    
+
     def hl_apply_tag(self, text):
         if len(text)>1 :
             self.apply_tag_on_text("highlight_tag", text)
@@ -260,14 +394,22 @@ class SourceBuffer(CodeText):
                 self.tag_add(tag, match_start, match_end)
                 match_start = ttk.Tkinter.Text.search(self, text, match_end, stopindex="end", forwards=True, exact=False, count=count)
 
-    def search(self, text, start_search="1.0", end_search="end"):
-        if not text:
-            return
+    # Overloads
+    def mark_set( self, name, index ):
+        TextModel.mark_set( self,  name, index )
+        if name == 'insert':
+            self.set_currentLineTag()
 
-        count = ttk.Tkinter.IntVar()
-        match_start = ttk.Tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count) 
-        while match_start:
-            match_end = "{}+{}c".format(match_start, count.get())
-            yield match_start, match_end
-            match_start = ttk.Tkinter.Text.search(self, text, match_end, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count)
+    def insert(self, index, *args, **kword):
+        TextModel.insert(self, index, *args, **kword)
+        self.set_currentLineTag()
+        if index == 'insert':
+            self.see('insert')
 
+    def delete(self, index1, index2):
+        TextModel.delete(self, index1, index2)
+        self.set_currentLineTag()
+
+    def replace(self, index1, index2, text):
+        TextModel.replace(self, index1, index2, text)
+        self.set_currentLineTag()

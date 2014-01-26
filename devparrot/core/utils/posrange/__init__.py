@@ -19,7 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from index import Index, Index_
+from index import Index, Start, End
 from range import Range
 from mark import Mark
 from tag import Tag

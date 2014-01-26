@@ -109,9 +109,7 @@ class Document(utils.event.EventSource):
             answer = ui.helper.ask_questionYesNo("File content changed",
                  "The content of file %s has changed.\nDo you want to reload it?"%self.title)
             if answer:
-                #ctx = self.currentView.get_context()
                 self.load()
-                #glib.idle_add(self.currentView.set_context, ctx)
             self.documentSource.init_timestamp()
 
     def is_modified(self):
