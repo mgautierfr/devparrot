@@ -53,11 +53,6 @@ class DocumentView(ContainerChild, ttk.Frame):
         if self.currentView != None: 
             self.currentView.lift(self)
     
-    def on_modified(self, varname, value, mode):
-        var = ttk.Tkinter.BooleanVar(name=varname)
-        self.set_bold(var.get())		
-        return False
-    
     def on_title_changed(self, newtitle, oldTitle):
         self.label['text'] = self.document.longTitle
 

@@ -52,6 +52,7 @@ class ModelInfo(object):
         self.nbLine = 1
 
     def insert(self, index, text):
+        #import pdb; pdb.set_trace()
         if index.line > self.nbLine:
             index = Index(self.nbLine, self.lineInfos[self.nbLine].len)
         lines = text.split('\n')
@@ -68,6 +69,7 @@ class ModelInfo(object):
         self.nbLine += len(lines)-1
 
     def delete(self, index1, index2):
+        #import pdb; pdb.set_trace()
         if index1.line == index2.line:
             self.lineInfos[index1.line].len -= index2.col - index1.col
         else:
@@ -84,7 +86,9 @@ class ModelInfo(object):
     def addline(self, index, line = 1):
         if line < 0:
             return self.delline(index, -line)
-        newLine = min(self.nbLine, index.line+line)
+        newLine = index.line+line
+        if newLine > self.nbLine:
+            return Index(self.nbLine+1, 0)
         newCol = min(self.lineInfos[newLine].len, index.col)
         return Index(newLine, newCol)
 
@@ -107,10 +111,11 @@ class ModelInfo(object):
                 newLine += 1
                 newCol -= 1
                 if newLine > self.nbLine:
-                    return Index(self.nbLine, self.lineInfos[self.nbLine].len)
+                    return Index(newLine, 0)
         return Index(newLine, newCol)
 
     def delchar(self, index, char = 1):
+        #import pdb; pdb.set_trace()
         if char < 0:
             return self.delchar(index, -char)
         if index.col >= char:
@@ -151,8 +156,6 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
     def __init__(self):
         utils.event.EventSource.__init__(self)
         Tkinter.Text.__init__(self,session.get_globalContainer(),
-                                  undo=True,
-                                  autoseparators=False,
                                   tabstyle="wordprocessor")
         ModelInfo.__init__(self)
         bindtags = list(self.bindtags())
@@ -161,6 +164,33 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         self.bindtags(bindtags)
 
         self._encoding = None
+        self.undoredoStack = []
+        self._nbModif = 0
+        # if nbModifAtLastChange == nbModif => buffer not modified since last change
+        # if nbModifAtLastChange == -1 => There is no "saved state" in undoredoStack
+        self._nbModifAtLastChange = 0
+
+    @property
+    def nbModifAtLastChange(self):
+        return self._nbModifAtLastChange
+
+    @nbModifAtLastChange.setter
+    def nbModifAtLastChange(self, value):
+        modified = (self._nbModifAtLastChange != self.nbModif)
+        self._nbModifAtLastChange = value
+        if modified != (self._nbModifAtLastChange != self.nbModif):
+            self.event('modified')(not modified)
+
+    @property
+    def nbModif(self):
+        return self._nbModif
+
+    @nbModif.setter
+    def nbModif(self, value):
+        modified = (self._nbModifAtLastChange != self.nbModif)
+        self._nbModif = value
+        if modified != (self._nbModifAtLastChange != self.nbModif):
+            self.event('modified')(not modified)
 
     # Selection Operations
     def sel_clear(self):
@@ -248,41 +278,79 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         index = self.index(index)
         Tkinter.Text.insert(self, str(index), text, *args)
         ModelInfo.insert(self, index, text)
-        self.edit_separator()
+        if kword.get('updateUndo', True):
+            self.add_change(type='insert', index=index, text=text)
         if kword.get('forceUpdate', False):
             self.update()
         self.event('insert')(self, index, text)
     
-    def delete(self, index1, index2):
+    def delete(self, index1, index2, updateUndo=True):
         index1 = self.index(index1)
         index2 = self.index(index2)
+        text = self.get(str(index1), str(index2))
         ttk.Tkinter.Text.delete(self, str(index1), str(index2))
         ModelInfo.delete(self, index1, index2)
-        self.edit_separator()
+        if updateUndo:
+            self.add_change(type='delete', index=index1, oldText=text)
         self.event('delete')(self, index1, index2)
 
-    def replace(self, index1, index2, text):
+    def replace(self, index1, index2, text, updateUndo=True):
         index1 = self.index(index1)
         index2 = self.index(index2)
+        oldtext = self.get(str(index1), str(index2))
         self.tk.call((self._w, 'replace', str(index1), str(index2), text))
         ModelInfo.delete(self, index1, index2)
         ModelInfo.insert(self, index1, text)
-        self.edit_separator()
+        if updateUndo:
+            self.add_change(type='replace', index=index1, oldText=oldText, text=text)
         self.event('replace')(self, index1, index2, text)
 
     def undo(self):
-        try:
-            self.edit_undo()
-        except TclError:
-            pass
+        if self.nbModif and self.nbModif <= len(self.undoredoStack):
+            lastModif = self.undoredoStack[self.nbModif-1]
+            self.nbModif -= 1
+            if lastModif['type'] == 'insert':
+                lastIndex = self.addchar(lastModif['index'], len(lastModif['text']))
+                self.delete(lastModif['index'], lastIndex, updateUndo=False)
+            elif lastModif['type'] == 'delete':
+                self.insert(lastModif['index'], lastModif['oldText'], updateUndo=False)
+            elif lastModif['type'] == 'replace':
+                lastIndex = self.addchar(lastModif['index'], len(lastModif['text']))
+                self.replace(lastModif['index'], lastIndex, lastModif['oldText'], updateUndo=False)
         self.sel_clear()
 
     def redo(self):
-        try:
-            self.edit_redo()
-        except TclError:
-            pass
+        if self.undoredoStack and self.nbModif < len(self.undoredoStack):
+            lastModif = self.undoredoStack[self.nbModif]
+            self.nbModif += 1
+            if lastModif['type'] == 'insert':
+                self.insert(lastModif['index'], lastModif['text'], updateUndo=False)
+            elif lastModif['type'] == 'delete':
+                lastIndex = self.addchar(lastModif['index'], len(lastModif['oldText']))
+                self.delete(lastModif['index'], lastIndex, updateUndo=False)
+            elif lastModif['type'] == 'replace':
+                lastIndex = self.addchar(lastModif['index'], len(lastModif['oldText']))
+                self.replace(lastModif['index'], lastIndex, lastModif['text'], updateUndo=False)
         self.sel_clear()
+
+    def add_change(self, **kwords):
+        self.undoredoStack[self.nbModif:] = [kwords]
+        if self.nbModifAtLastChange > self.nbModif:
+            self.nbModifAtLastChange = -1
+        self.nbModif += 1
+
+    def edit_reset(self):
+        self.undoredoStack = []
+        if self.nbModif:
+            # We cannot go back to a saved state
+            self.nbModifAtLastChange = -1
+        self.nbModif = 0
+
+    def edit_modified(self, change=None):
+        if change is None:
+            return self.nbModifAtLastChange == self.nbModif
+        if change == False:
+            self.nbModifAtLastChange = self.nbModif
 
     @property
     def encoding(self):
@@ -302,7 +370,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
 
         Tkinter.Text.delete(self, "1.0", "end")
         self.reinit()
-        self.insert("end", content, forceUpdate=True)
+        self.insert("1.0", content, forceUpdate=True)
         self.edit_reset()
         self.edit_modified(False)
     
@@ -406,10 +474,10 @@ class SourceBuffer(TextModel):
         if index == 'insert':
             self.see('insert')
 
-    def delete(self, index1, index2):
-        TextModel.delete(self, index1, index2)
+    def delete(self, index1, index2, **kword):
+        TextModel.delete(self, index1, index2, **kword)
         self.set_currentLineTag()
 
-    def replace(self, index1, index2, text):
-        TextModel.replace(self, index1, index2, text)
+    def replace(self, index1, index2, text, **kword):
+        TextModel.replace(self, index1, index2, text, **kword)
         self.set_currentLineTag()
