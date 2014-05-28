@@ -49,12 +49,15 @@ class HelperContainer(object):
 
     def remove_helper(self, widget):
         index = (i for i, data in enumerate(self.helpers) if data[0] == widget).next()
-        self.notebook.forget(widget)
         del self.helpers[index]
-        if not self.helpers:
-            self.panned.forget(self.notebook)
-            self.notebook.destroy()
-            self.notebook = None
+        if self.notebook:
+            self.notebook.forget(widget)
+            if not self.helpers:
+                self.panned.forget(self.notebook)
+                self.notebook.destroy()
+                self.notebook = None
+        else:
+            self.panned.forget(widget)
 
     def on_middleClickButton(self, event):
         child = self.notebook.index("@%d,%d" % (event.x, event.y))
