@@ -35,7 +35,7 @@ def copy():
 @Alias()
 def paste():
     """paste clipboard content at "insert" mark"""
-    return "memory CLIPBOARD | section standardInsert"
+    return "memory CLIPBOARD | section sel"
 
 @Alias()
 def undo():

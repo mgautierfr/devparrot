@@ -24,11 +24,10 @@ from devparrot.core.errors import *
 from devparrot.core.utils.posrange import Index
 
 @Command(
-startIndex = constraints.Index(),
-endIndex = constraints.Index(default=lambda : None),
+range = constraints.Range(),
 content = constraints.Stream()
 )
-def section(startIndex, endIndex, content):
+def section(range, content):
     """
     represent a section of the current document starting from startIndex and ending at endIndex.
 
@@ -37,28 +36,10 @@ def section(startIndex, endIndex, content):
     If endIndex is not provided, startIndex must be a tag name.
     The special tag name "standardInsert" can be used to represent the insert mark or the sel tag depending of context
     """
-    model = get_currentDocument().get_model()
+    document, range = range
+    model = document.get_model()
 
-    if startIndex == "standardInsert":
-        try:
-            startIndex = model.index("sel.first")
-            endIndex = model.index("sel.last")
-        except BadArgument:
-            startIndex = model.index("insert")
-            endIndex = startIndex
-
-    elif endIndex is None:
-        try:
-            startIndex = model.index(startIndex)
-            endIndex = startIndex
-        except BadArgument:
-            startStr = startIndex
-            startIndex = model.index("{}.first".format(startStr))
-            endIndex = model.index("{}.last".format(startStr))
-
-    else:
-        startIndex = model.index(startIndex)
-        endIndex = model.index(endIndex)
+    startIndex, endIndex = range
     
     insertionMode = False
 
@@ -79,9 +60,10 @@ def section(startIndex, endIndex, content):
         if startIndex.line == endIndex.line:
             yield model.get(str(startIndex), str(endIndex))
         else:
-            yield "{}\n".format(model.get(str(startIndex), str(model.lineend(startIndex))))
+            yield u"{}\n".format(model.get(str(startIndex), str(model.lineend(startIndex))))
             for i in range(startIndex.line+1, endIndex.line):
-                yield "{}\n".format(model.get("%d.0"%i, "%d.0 lineend"%i))
+                yield u"{}\n".format(model.get("%d.0"%i, "%d.0 lineend"%i))
             yield model.get(str(model.linestart(endIndex)), str(endIndex))
 
     return gen()
+    

@@ -19,10 +19,12 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import Command, get_currentDocument
+from devparrot.capi import Command, set_currentDocument, constraints
 from devparrot.core import errors
 
-@Command()
+@Command(
+index = constraints.Index()
+)
 def goto(index):
     """
     goto to index
@@ -35,37 +37,7 @@ def goto(index):
         - a ex search syntax :
          . [?/]regex
     """
-    if index[0] in "?/":
-        model = get_currentDocument().model
-        backward = (index[0] == "?")
-        if backward:
-            start_search = "1.0"
-            stop_search = "insert"
-            get_search = -1
-        else:
-            start_search = "insert+1c"
-            stop_search = "end"
-            get_search = 0
-        select = model.tag_ranges("sel")
-        if select:
-            if backward:
-                stop_search = select[0]
-            else:
-                start_search = select[1]
-        indices = list(model.search(index[1:], start_search, stop_search))
-        if indices:
-            index = indices[get_search][0]
-        else:
-            index = None
-    else:
-        try:
-            line = int(index)
-            index = "{}.0".format(line)
-        except ValueError:
-            pass
-    if index is not None:
-        try:
-            get_currentDocument().goto_index(index)
-        except errors.TclError as err:
-            raise errors.InvalidArgument(str(err))
+    document, index = index
+    set_currentDocument(document)
+    document.goto_index(index)
 
