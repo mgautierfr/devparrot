@@ -50,7 +50,6 @@ class CarretController( Controller ):
 
         event.widget.mark_set( 'insert', newPos )
         event.widget.see('insert')
-        event.widget.update_idletasks()
     
     @bind("<End>", "<KP_End>",)
     def end(self, event, modifiers):
@@ -62,7 +61,6 @@ class CarretController( Controller ):
         else:
             event.widget.mark_set( 'insert', 'insert lineend' )
         event.widget.see( 'insert' )
-        event.widget.update_idletasks()
     
     @bind("<Right>", "<KP_Right>")
     def right(self, event, modifiers):
@@ -86,7 +84,6 @@ class CarretController( Controller ):
         else:
             event.widget.mark_set( 'insert', 'insert +1 chars' )
         event.widget.see( 'insert' )
-        event.widget.update_idletasks()
     
     @bind("<Left>", "<KP_Left>")
     def left(self, event, modifiers):
@@ -111,7 +108,6 @@ class CarretController( Controller ):
         else:
             event.widget.mark_set( 'insert', 'insert -1 chars' )
         event.widget.see( 'insert' )
-        event.widget.update_idletasks()
     
     @bind("<Down>", "<KP_Down>")
     def down(self, event, modifiers):
@@ -122,7 +118,6 @@ class CarretController( Controller ):
         self._handle_shift(modifiers.shift, event)
         event.widget.mark_set( 'insert', 'insert +1 lines' )
         event.widget.see( 'insert' )
-        event.widget.update_idletasks()
     
     @bind("<Up>", "<KP_Up>")
     def up(self, event, modifiers):
@@ -133,7 +128,6 @@ class CarretController( Controller ):
         self._handle_shift(modifiers.shift, event)
         event.widget.mark_set( 'insert', 'insert -1 lines' )
         event.widget.see( 'insert' )
-        event.widget.update_idletasks()
 
     @staticmethod
     def find_nbLine(widget):
@@ -150,7 +144,6 @@ class CarretController( Controller ):
         self._handle_shift(modifiers.shift, event)
         event.widget.mark_set('insert', 'insert -%d lines' % CarretController.find_nbLine(event.widget))
         event.widget.see( 'insert' )
-        event.widget.update_idletasks()
     
     @bind("<Next>", "<KP_Next>")
     def next(self, event, modifiers):
@@ -162,17 +155,14 @@ class CarretController( Controller ):
         self._handle_shift(modifiers.shift, event)
         event.widget.mark_set('insert', 'insert +%d lines' % CarretController.find_nbLine(event.widget))
         event.widget.see( 'insert' )
-        event.widget.update_idletasks()
 
     @bind("<Button-4>")
     def scroll_up(self, event, modifiers):
         event.widget.yview_scroll( -3, 'units' )
-        event.widget.update_idletasks()
 
     @bind("<Button-5>")
     def scroll_down(self, event, modifiers):
         event.widget.yview_scroll( 3, 'units' )
-        event.widget.update_idletasks()
     
     @bind('<Control-a>')
     def on_ctrl_a(self, event, modifiers):
