@@ -20,6 +20,7 @@
 
 
 from devparrot.capi import MasterCommand, SubCommand, constraints
+from ast import literal_eval
 
 class config(MasterCommand):
 
@@ -28,4 +29,8 @@ class config(MasterCommand):
     )
     def set(configEntry, value):
         """set a config entry to value"""
+        try:
+            value = literal_eval(value)
+        except (SyntaxError, ValueError):
+            pass
         configEntry.set(value)
