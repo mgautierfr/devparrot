@@ -22,23 +22,33 @@
 from collections import namedtuple
 from devparrot.core.errors import *
 
-class Index(namedtuple('Index', "line col text")):
-    def __new__(cls, line, col, text = None):
-        if text is None:
-            text = "%d.%d"%(line, col)
-        return super(Index, cls).__new__(cls, line, col, text)
+all = ["Index", "Start", "End"]
 
+class Index(namedtuple('Index', "line col")):
     def __str__(self):
-        return self.text
-    
+        global _str_cache
+        if self in _str_cache:
+            return _str_cache[self]
+        else:
+            return _str_cache.setdefault(self, "%d.%d"%(self.line, self.col))
+
     def __repr__(self):
         return "<Index instance pos %s>"%str(self)
 
-    def __eq__(self, other):
-        return other and self.text == other.text
+Start = Index(1, 0)
+End   = Index(-1, -1)
 
-    def __ne__(self, other):
-        return not other or self.text != other.text
+_str_cache = {End:"end"}
 
-Start = Index(1, 0, "1.0")
-End   = Index(-1, -1, "end")
+
+class Range(namedtuple('Range', "start stop")):
+    def __new__(cls, startIndex, stopIndex):
+        if startIndex > stopIndex:
+            raise BadArgument("{!r} is superior to {!r}".format(startIndex, endIndex))
+        super(Range, cls).__new__(cls, startIndex, stopIndex)
+
+    def __str__(self):
+        return "%s:%s" % (str(self.startIndex), str(self.endIndex))
+    
+    def __repr__(self):
+        return "<Range instance pos [%s:%s]>" % (str(self.startIndex), str(self.endIndex))
