@@ -104,7 +104,7 @@ class CharDelta(object):
 
 	def resolve(self, model):
 		idx = self.index.resolve(model)
-		return model.index("%s %+d c"%(str(idx), self.number))
+		return model.addchar(idx, self.number)
 
 	def __eq__(self, other):
 		return (self.__class__, self.index) == (other.__class__, other.index)
@@ -120,7 +120,7 @@ class LineDelta(object):
 
 	def resolve(self, model):
 		idx = self.index.resolve(model)
-		return model.index("%s %+d l"%(str(idx), self.number))
+		return model.addline(idx, self.number)
 
 	def __eq__(self, other):
 		return (self.__class__, self.index) == (other.__class__, other.index)
@@ -165,7 +165,7 @@ class LineStart(object):
 
 	def resolve(self, model):
 		idx = self.index.resolve(model)
-		return model.index("%s linestart"%str(idx))
+		return model.linestart(idx)
 
 	def __eq__(self, other):
 		return (self.__class__, self.index) == (other.__class__, other.index)
@@ -180,7 +180,7 @@ class LineEnd(object):
 
 	def resolve(self, model):
 		idx = self.index.resolve(model)
-		return model.index("%s lineend"%str(idx))
+		return model.lineend(idx)
 
 	def __eq__(self, other):
 		return (self.__class__, self.index) == (other.__class__, other.index)
