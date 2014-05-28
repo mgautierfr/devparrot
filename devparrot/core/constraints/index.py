@@ -9,238 +9,9 @@ from picoparse import partial, tri, commit, fail, eof
 
 from devparrot.core.errors import BadArgument
 
-class Mark(object):
-	is_index = True
-	_reduced = {"i":"insert", "c":"current"}
-	def __init__(self, markName):
-		self.markName = self._reduced.get(markName, markName)
+from devparrot.core.utils.posrange import *
 
-	def resolve(self, model):
-		if self.markName == "start":
-			return model.index("1.0")
-		return model.index(self.markName)
-
-	def __eq__(self, other):
-		return (self.__class__, self.markName) == (other.__class__, other.markName)
-
-	def __str__(self):
-		return "<MARK %s>"%self.markName
-
-class Range(object):
-	is_index = False
-	def __init__(self, start, end):
-		self.start = start
-		self.end = end
-
-	def resolve(self, model):
-		return self.start.resolve(model), self.end.resolve(model)
-
-	def __eq__(self, other):
-		return (self.__class__, self.start, self.end) == (other.__class__, other.start, other.end)
-
-	def __str__(self):
-		return "<RANGE %s %s>"%(self.start, self.end)
-
-class Tag(object):
-	is_index = False
-	_reduced = {"s":"sel", "selection":"sel"}
-	def __init__(self, tagName):
-		self.tagName = self._reduced.get(tagName, tagName)
-
-	def resolve(self, model):
-		if self.tagName == "all":
-			return model.index("1.0") , model.index("end")
-		try:
-		    return model.index("%s.first"%self.tagName) , model.index("%s.last"%self.tagName)
-		except BadArgument:
-		    if self.tagName == "sel":
-		        idx = model.index("insert")
-		        return (idx, idx)
-
-	def __eq__(self, other):
-		return (self.__class__, self.tagName) == (other.__class__, other.tagName)
-
-	def __str__(self):
-		return "<TAG %s>"%self.tagName
-
-class Line(object):
-	is_index = False
-	def __init__(self, index):
-		self.index = index
-
-	def resolve(self, model):
-		try:
-			idx = "%d.0"%self.index
-		except TypeError:
-			idx = self.index.resolve(model)
-		return model.index("%s linestart"%str(idx)), model.index("%s lineend"%str(idx))
-
-	def __eq__(self, other):
-		return (self.__class__, self.index) == (other.__class__, other.index)
-
-	def __str__(self):
-		return "<LINE %s>"%(self.index)
-
-class Word(object):
-	is_index = False
-	def __init__(self, index):
-		self.index = index
-
-	def resolve(self, model):
-		try:
-			idx = "%d.0"%self.index
-		except TypeError:
-			idx = self.index.resolve(model)
-		return model.index("%s wordstart"%str(idx)), model.index("%s wordend"%str(idx))
-
-	def __eq__(self, other):
-		return (self.__class__, self.index) == (other.__class__, other.index)
-
-class CharDelta(object):
-	is_index = True
-	def __init__(self, index, number):
-		self.index = index
-		self.number = number
-
-	def resolve(self, model):
-		idx = self.index.resolve(model)
-		return model.addchar(idx, self.number)
-
-	def __eq__(self, other):
-		return (self.__class__, self.index) == (other.__class__, other.index)
-
-	def __str__(self):
-		return "<CHARDELTA %s %d>"%(self.index, self.number)
-
-class LineDelta(object):
-	is_index = True
-	def __init__(self, index, number):
-		self.index = index
-		self.number = number
-
-	def resolve(self, model):
-		idx = self.index.resolve(model)
-		return model.addline(idx, self.number)
-
-	def __eq__(self, other):
-		return (self.__class__, self.index) == (other.__class__, other.index)
-
-	def __str__(self):
-		return "<LINEDELTA %s %d>"%(self.index, self.number)
-
-class WordStart(object):
-	is_index = True
-	def __init__(self, index):
-		self.index = index
-
-	def resolve(self, model):
-		idx = self.index.resolve(model)
-		return model.index("%s wordstart"%str(idx))
-
-	def __eq__(self, other):
-		return (self.__class__, self.index) == (other.__class__, other.index)
-
-	def __str__(self):
-		return "<WORDSTART %s>"%(self.index)
-
-class WordEnd(object):
-	is_index = True
-	def __init__(self, index):
-		self.index = index
-
-	def resolve(self, model):
-		idx = self.index.resolve(model)
-		return model.index("%s wordend"%str(idx))
-
-	def __eq__(self, other):
-		return (self.__class__, self.index) == (other.__class__, other.index)
-
-	def __str__(self):
-		return "<WORDEND %s>"%(self.index)
-
-class LineStart(object):
-	is_index = True
-	def __init__(self, index):
-		self.index = index
-
-	def resolve(self, model):
-		idx = self.index.resolve(model)
-		return model.linestart(idx)
-
-	def __eq__(self, other):
-		return (self.__class__, self.index) == (other.__class__, other.index)
-
-	def __str__(self):
-		return "<LINESTART %s>"%(self.index)
-
-class LineEnd(object):
-	is_index = True
-	def __init__(self, index):
-		self.index = index
-
-	def resolve(self, model):
-		idx = self.index.resolve(model)
-		return model.lineend(idx)
-
-	def __eq__(self, other):
-		return (self.__class__, self.index) == (other.__class__, other.index)
-
-	def __str__(self):
-		return "<LINEEND %s>"%(self.index)
-
-class RangePos(object):
-	is_index = True
-	def __init__(self, range, pos):
-		self.range = range
-		self.pos = pos
-
-	def resolve(self, model):
-		start, end = self.range.resolve(model)
-		if self.pos in ("start", 0):
-			return start
-		if self.pos == "end":
-			return end
-		if self.pos > 0:
-			return model.index("%s + %d c"%(start, self.pos))
-		else:
-			return model.index("%s - %d c"%(end, -self.pos))
-
-	def __eq__(self, other):
-		return (self.__class__, self.range, self.pos) == (other.__class__, other.range, other.pos)
-
-	def __str__(self):
-		return "<RANGEPOS %s %s>"%(self.range, self.pos)
-
-class RegexRange(object):
-	is_index = False
-	def __init__(self, index, forward, regex):
-		self.index = index
-		self.forward = forward
-		self.regex = regex
-
-	def resolve(self, model):
-		idx = self.index.resolve(model)
-		start_search = "1.0"
-		end_search = "end"
-		if self.index.is_index:
-			if self.forward:
-				start_search = "%s+1c"%str(idx)
-			else:
-				stop_search = str(idx)
-		else:
-			start_search = "%s+1c"%str(idx[0])
-			stop_search = str(idx[1])
-		get_search = 0 if self.forward else -1
-		indices = list(model.search(self.regex, start_search, stop_search))
-		return indices[get_search]
-
-	def __eq__(self, other):
-		return (self.__class__, self.index, self.forward, self.regex) == (other.__class__, other.index, other.forward, other.regex)
-
-	def __str__(self):
-		return "<REGEXRANGE %s %s %s>"%(self.index, self.forward, self.regex)
-
-_reserved_kw = {'insert', 'i', 'current', 'c', 'start', 'end', 's', 'sel', 'selection', 'all', 'ws', 'we', 'ls', 'le', 'line', 'word'}
+_reserved_kw = {'insert', 'i', 'current', 'c', 'start', 'end', 's', 'sel', 'selection', 'all', 'ws', 'we', 'ls', 'le', 'line', 'word', 'first', 'last'}
 
 @tri
 def identifier_char1():
@@ -358,7 +129,7 @@ def regexModifier(direction):
 	return lambda index : RegexRange(index, direction, regex)
 
 def rangePos():
-	what = choice( sinteger, lambda : u''.join(string("start")), lambda:u''.join(string("end")) )
+	what = choice( sinteger, lambda : u''.join(string("first")), lambda:u''.join(string("last")) )
 	return lambda index : RangePos(index, what)
 
 @tri
@@ -366,7 +137,7 @@ def rangeEndModifier(default, markSet, tagSet):
 	idx = something(default, markSet, tagSet)
 	if not idx.is_index:
 		fail()
-	return lambda base: Range(base, idx)
+	return lambda base: StartEndRange(base, idx)
 
 # modifier applied to a index
 def index_modifier(base, markSet, tagSet):

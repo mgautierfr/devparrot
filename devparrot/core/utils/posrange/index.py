@@ -41,14 +41,3 @@ End   = Index(-1, -1)
 _str_cache = {End:"end"}
 
 
-class Range(namedtuple('Range', "start stop")):
-    def __new__(cls, startIndex, stopIndex):
-        if startIndex > stopIndex:
-            raise BadArgument("{!r} is superior to {!r}".format(startIndex, endIndex))
-        super(Range, cls).__new__(cls, startIndex, stopIndex)
-
-    def __str__(self):
-        return "%s:%s" % (str(self.startIndex), str(self.endIndex))
-    
-    def __repr__(self):
-        return "<Range instance pos [%s:%s]>" % (str(self.startIndex), str(self.endIndex))

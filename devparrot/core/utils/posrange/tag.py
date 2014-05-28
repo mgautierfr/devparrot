@@ -18,10 +18,30 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
+from range import Range
+from index import Start, End
 
-class Tag:
-    def __init__(self, textWidget, name, start='insert', stop='insert'):
-        self.textWidget = textWidget
-        self.name = name
-        self.start = start
-        self.stop = stop
+
+class Tag(object):
+	is_index = False
+	_reduced = {"s":"sel", "selection":"sel"}
+	def __init__(self, tagName):
+		self.tagName = self._reduced.get(tagName, tagName)
+
+	def resolve(self, model):
+		if self.tagName == "all":
+			return Range(Start , End)
+		try:
+		    return Range(model.index("%s.first"%self.tagName) , model.index("%s.last"%self.tagName))
+		except BadArgument:
+		    if self.tagName == "sel":
+		        idx = model.index("insert")
+		        return Range(idx, idx)
+
+	def __eq__(self, other):
+		return (self.__class__, self.tagName) == (other.__class__, other.tagName)
+
+	def __str__(self):
+		return "<TAG %s>"%self.tagName
+
+

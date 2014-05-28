@@ -18,8 +18,23 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
+from index import Start
 
-class Mark:
-    def __init__(self, textWidget, name='insert'):
-        self.textWidget = textWidget
-        self.name = name
+class Mark(object):
+	is_index = True
+	_reduced = {"i":"insert", "c":"current"}
+	def __init__(self, markName):
+		self.markName = self._reduced.get(markName, markName)
+
+	def resolve(self, model):
+		if self.markName == "start":
+			return Start
+		return model.index(self.markName)
+
+	def __eq__(self, other):
+		return (self.__class__, self.markName) == (other.__class__, other.markName)
+
+	def __str__(self):
+		return "<MARK %s>"%self.markName
+
+
