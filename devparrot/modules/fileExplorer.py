@@ -31,6 +31,7 @@ fileExplorerView = None
 tkImages = {}
 configSection = None
 pending_filltree = None
+handlers = []
 
 def init(_configSection, name):
     global configSection
@@ -41,13 +42,17 @@ def init(_configSection, name):
     configSection.active.register(activate)
 
 def activate(var, old):
+    global fileExplorerView
     if var.get():
-        global fileExplorerView
         fileExplorerView = FileExplorerView(ui.window)
         ui.helperManager.add_helper(fileExplorerView, "fileExplorer", 'left')
-        configSection.iconTheme.register(on_iconTheme_changed)
-        configSection.showIcon.register(on_iconTheme_changed)
+        handlers.append(configSection.iconTheme.register(on_iconTheme_changed))
+        handlers.append(configSection.showIcon.register(on_iconTheme_changed))
     else:
+        [h.unregister() for h in handlers]
+        handlers[:] = []
+        ui.helperManager.remove_helper(fileExplorerView, 'left')
+        fileExplorerView = None
         pass
 
 def on_iconTheme_changed(var, old):
