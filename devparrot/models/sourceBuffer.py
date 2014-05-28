@@ -75,14 +75,27 @@ class ModelInfo(object):
         if index1.line == index2.line:
             self.lineInfos[index1.line].len -= index2.col - index1.col
         else:
-            # remove the left part of the first line
+            # remove the left part of the first line.
             self.lineInfos[index1.line].len = index1.col
-            # remove in between line
+
+            # remove in between line.
             del self.lineInfos[index1.line+1:index2.line]
-            # add left part of the last line in the firt line
-            self.lineInfos[index1.line].len += self.lineInfos[index1.line+1].len - index2.col
-            # remove the last line
-            del self.lineInfos[index1.line+1]
+            try:
+                # add left part of the last line in the firt line
+                self.lineInfos[index1.line].len += self.lineInfos[index1.line+1].len - index2.col
+                # remove the last line
+                del self.lineInfos[index1.line+1]
+            except IndexError:
+                #there is no (more) line after index1.
+                if index1.col == 0:
+                    #we remove all the content of the last line, delete it.
+                    del self.lineInfos[index1.line]
+                else:
+                    #we must not remove the line
+                    #increment nbLine to cancel futur decrementation
+                    self.nbLine += 1
+                # index2 was out of range (end), no pb.
+                pass
         self.nbLine -= index2.line-index1.line
 
     def addline(self, index, line = 1):
