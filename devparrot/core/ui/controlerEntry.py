@@ -60,7 +60,7 @@ class ControlerEntry(Tkinter.Text):
             else:
                 self.completionSystem.start_completion()
             return
-        if event.keysym == 'Return':
+        if event.keysym in ('Return', 'KP_Enter'):
             self.completionSystem.stop_completion()
             text = self.get("1.0", "end")
             try:
@@ -77,7 +77,7 @@ class ControlerEntry(Tkinter.Text):
                 if session.get_currentDocument():
                     session.get_currentDocument().get_currentView().focus()
             except Exception as err:
-                session.logger.error(err)
+                session.logger.exception(err)
             finally:
                 return "break"
         if event.keysym == 'Escape':
