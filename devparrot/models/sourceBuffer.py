@@ -28,6 +28,8 @@ from devparrot.core import session, utils
 from devparrot.core.utils.posrange import Index, Start
 from devparrot.core.errors import *
 
+#import rangeInfo
+
 
 def insert_char(event):
     if event.widget and event.char:
@@ -164,11 +166,16 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         self.bindtags(bindtags)
 
         self._encoding = None
+
+        # undo redo stuff
         self.undoredoStack = []
         self._nbModif = 0
         # if nbModifAtLastChange == nbModif => buffer not modified since last change
         # if nbModifAtLastChange == -1 => There is no "saved state" in undoredoStack
         self._nbModifAtLastChange = 0
+
+        # rangeInfo stuff
+        #self.rangeInfo = rangeInfo.Document()
 
     @property
     def nbModifAtLastChange(self):
@@ -282,6 +289,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
             self.add_change(type='insert', index=index, text=text)
         if kword.get('forceUpdate', False):
             self.update()
+        #self.rangeInfo.parse_text(self.get("0.1", "end"), self.calculate_distance(Start, index), len(text))
         self.event('insert')(self, index, text)
     
     def delete(self, index1, index2, updateUndo=True):
@@ -292,6 +300,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         ModelInfo.delete(self, index1, index2)
         if updateUndo:
             self.add_change(type='delete', index=index1, oldText=text)
+        #self.rangeInfo.parse_text(self.get("0.1", "end"), self.calculate_distance(Start, index1), -len(text))
         self.event('delete')(self, index1, index2)
 
     def replace(self, index1, index2, text, updateUndo=True):
@@ -303,6 +312,10 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         ModelInfo.insert(self, index1, text)
         if updateUndo:
             self.add_change(type='replace', index=index1, oldText=oldText, text=text)
+        #distance = self.calculate_distance(Start, index1)
+        #content  = self.get("0.1", "end")
+        #self.rangeInfo.parse_text(content, distance, -len(oldText))
+        #self.rangeInfo.parse_text(content, distance, len(text))
         self.event('replace')(self, index1, index2, text)
 
     def undo(self):
@@ -348,7 +361,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
 
     def edit_modified(self, change=None):
         if change is None:
-            return self.nbModifAtLastChange == self.nbModif
+            return self.nbModifAtLastChange != self.nbModif
         if change == False:
             self.nbModifAtLastChange = self.nbModif
 
@@ -386,7 +399,10 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         match_start = Tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count) 
         while match_start:
             match_end = "{}+{}c".format(match_start, count.get())
-            yield match_start, match_end
+            yield self.index(match_start), self.index(match_end)
+            if not count.get():
+                # avoid infinit loop if regex match 0 len text.
+                break
             match_start = Tkinter.Text.search(self, text, match_end, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count)
 
 class SourceBuffer(TextModel):
