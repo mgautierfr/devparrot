@@ -79,34 +79,56 @@ class LineDelta(object):
 		return "<LINEDELTA %s %d>"%(self.index, self.number)
 
 class WordStart(object):
-	is_index = True
-	def __init__(self, index):
-		self.index = index
+    is_index = True
+    def __init__(self, index):
+        self.index = index
 
-	def resolve(self, model):
-		idx = self.index.resolve(model)
-		return model.index("%s wordstart"%str(idx))
+    def resolve(self, model):
+        from devparrot.core import session
+        currentPos = self.index.resolve(model)
+        wordstart  = model.index("%s -1c wordstart"%str(currentPos) )
+        word = model.get(str(wordstart), str(currentPos))
 
-	def __eq__(self, other):
-		return (self.__class__, self.index) == (other.__class__, other.index)
+        while wordstart != currentPos:
+            if len(set(word)&set(session.config.get("wchars"))) != 0:
+                break
+            currentPos = wordstart
+            wordstart = model.index("%s -1c wordstart"%str(currentPos))
+            word = model.get(str(wordstart), str(currentPos))
 
-	def __str__(self):
-		return "<WORDSTART %s>"%(self.index)
+        return wordstart
+
+    def __eq__(self, other):
+        return (self.__class__, self.index) == (other.__class__, other.index)
+
+    def __str__(self):
+        return "<WORDSTART %s>"%(self.index)
 
 class WordEnd(object):
-	is_index = True
-	def __init__(self, index):
-		self.index = index
+    is_index = True
+    def __init__(self, index):
+        self.index = index
 
-	def resolve(self, model):
-		idx = self.index.resolve(model)
-		return model.index("%s wordend"%str(idx))
+    def resolve(self, model):
+        from devparrot.core import session
+        currentPos = self.index.resolve(model)
+        wordend    = model.index("%s wordend"%str(currentPos))
+        word = model.get(str(currentPos), str(wordend))
 
-	def __eq__(self, other):
-		return (self.__class__, self.index) == (other.__class__, other.index)
+        while wordend != currentPos:
+            if len(set(word)&set(session.config.get("wchars"))) != 0:
+                break
+            currentPos = wordend
+            wordend = model.index("%s wordend"%str(currentPos) )
+            word = model.get(str(currentPos), str(wordend))
 
-	def __str__(self):
-		return "<WORDEND %s>"%(self.index)
+        return wordend
+
+    def __eq__(self, other):
+        return (self.__class__, self.index) == (other.__class__, other.index)
+
+    def __str__(self):
+        return "<WORDEND %s>"%(self.index)
 
 class LineStart(object):
 	is_index = True

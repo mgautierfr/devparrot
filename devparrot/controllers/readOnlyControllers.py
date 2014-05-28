@@ -21,6 +21,7 @@
 
 import ttk
 from devparrot.core.controller import Controller, bind
+from devparrot.core.utils.posrange import WordStart, WordEnd, Mark
 
 class CarretController( Controller ):
     def __init__( self ):
@@ -68,19 +69,8 @@ class CarretController( Controller ):
             return
         self._handle_shift(modifiers.shift, event)
         if modifiers.ctrl:
-            currentPos = event.widget.index( 'insert' )
-            wordend    = event.widget.index( 'insert wordend' )
-            word = event.widget.get(str(currentPos), str(wordend))
-
-            while wordend != currentPos:
-                from devparrot.core import session
-                if len(set(word)&set(session.config.get("wchars"))) != 0:
-                    break
-                currentPos = wordend
-                wordend = event.widget.index( '%s wordend'%str(currentPos) )
-                word = event.widget.get(str(currentPos), str(wordend))
-
-            event.widget.mark_set( 'insert', wordend)
+            wordend = WordEnd(Mark('insert'))
+            event.widget.mark_set('insert', wordend.resolve(event.widget))
         else:
             event.widget.mark_set( 'insert', 'insert +1 chars' )
         event.widget.see( 'insert' )
@@ -91,20 +81,8 @@ class CarretController( Controller ):
             return
         self._handle_shift(modifiers.shift, event)
         if modifiers.ctrl:
-            currentPos = event.widget.index( 'insert' )
-            wordstart  = event.widget.index( 'insert -1c wordstart' )
-            word = event.widget.get(str(wordstart), str(currentPos))
-
-            while wordstart != currentPos:
-                from devparrot.core import session
-                if len(set(word)&set(session.config.get("wchars"))) != 0:
-                    break
-                currentPos = wordstart
-                wordstart = event.widget.index( '%s -1c wordstart'%str(currentPos))
-                word = event.widget.get(str(wordstart), str(currentPos))
-
-
-            event.widget.mark_set( 'insert', wordstart)
+            wordstart = WordStart(Mark('insert'))
+            event.widget.mark_set('insert', wordstart.resolve(event.widget))
         else:
             event.widget.mark_set( 'insert', 'insert -1 chars' )
         event.widget.see( 'insert' )
