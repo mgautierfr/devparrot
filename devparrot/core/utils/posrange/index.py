@@ -25,6 +25,9 @@ from devparrot.core.errors import *
 all = ["Index", "Start", "End"]
 
 class Index(namedtuple('Index', "line col")):
+    def resolve(self, model):
+        return self
+
     def __str__(self):
         global _str_cache
         if self in _str_cache:

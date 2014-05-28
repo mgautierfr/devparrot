@@ -25,7 +25,7 @@ class Range(namedtuple('Range', "first last")):
     def __new__(cls, firstIndex, lastIndex):
         if firstIndex > lastIndex:
             raise BadArgument("{!r} is superior to {!r}".format(firstIndex, lastIndex))
-        super(Range, cls).__new__(cls, firstIndex, lastIndex)
+        return super(Range, cls).__new__(cls, firstIndex, lastIndex)
 
     def __str__(self):
         return "%s:%s" % (str(self.first), str(self.last))

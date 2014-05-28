@@ -7,8 +7,6 @@ from picoparse import NoMatch
 from picoparse.text import quoted
 from picoparse import partial, tri, commit, fail, eof
 
-from devparrot.core.errors import BadArgument
-
 from devparrot.core.utils.posrange import *
 
 _reserved_kw = {'insert', 'i', 'current', 'c', 'start', 'end', 's', 'sel', 'selection', 'all', 'ws', 'we', 'ls', 'le', 'line', 'word', 'first', 'last'}
