@@ -30,6 +30,17 @@ import argparse
 import core
 
 
+def info(type, value, tb):
+    import traceback, pdb
+    traceback.print_exception(type, value, tb)
+    print
+    pdb.pm()
+
+def handle_pdb(sig, frame):
+    import pdb
+    pdb.Pdb().set_trace(frame)
+
+
 def parse_commandLine(args=sys.argv):
     parser = argparse.ArgumentParser(description="The Devparrot IDE. The one")
     parser.add_argument("call_name",
@@ -42,12 +53,21 @@ def parse_commandLine(args=sys.argv):
                         dest="load_configrc",
                         action='store_false',
                         help="Do not load rc file")
-    parser.add_argument("ARGUMENTS", nargs="*")
-    return parser.parse_args(args)
+    parser.add_argument("--debug",
+                        dest="debug",
+                        action='store_true',
+                        help="Run in debug mode")
+    options, args = parser.parse_known_args(args)
+    options.ARGUMENTS = args
+    return options
 
+def set_signal_handler():
+    import signal
+    print "running in debug mode"
+    sys.excepthook = info
+    signal.signal(signal.SIGUSR1, handle_pdb)
 
-def main():
-    cmd_options = parse_commandLine()
+def _main(cmd_options):
     config = core.configLoader.init(cmd_options)
     core.session.init(config)
     core.ui.init()
@@ -56,3 +76,10 @@ def main():
     core.configLoader.load(cmd_options)
 
     core.ui.window.mainloop()
+
+
+def main():
+    cmd_options = parse_commandLine()
+    if cmd_options.debug:
+        set_signal_handler()
+    return _main(cmd_options)
