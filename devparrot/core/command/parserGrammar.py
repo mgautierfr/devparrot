@@ -72,32 +72,33 @@ def special(name):
     string(name)
     return name
 
+_escaped = "nt\\"
+_special_escaped = {'n':'\n', 't':'\t'}
 @tri
-def string_char(quote):
+def quoted_string_char(quote):
     char = not_one_of(quote)
     if char == '\\':
-        char = optional(any_token, '\\')
+        char = optional(partial(one_of, _escaped+quote), '\\')
+        char = _special_escaped.get(char, char)
     return char
 
+_always_excluded = " |\n=,"
+# " ,()[]{}|%\n"
 @tri
-def unquoted_string_char1():
-    char = not_one_of(" ,()[]{}|%\n")
-    if char == '\\':
-        char = optional(any_token, '\\')
-    return char
+def unquoted_string_char1(excluded):
+	return not_one_of(_always_excluded+excluded+"%")
 
 @tri
-def unquoted_string_char():
-    char = not_one_of(" ,()[]{}|\n=")
-    if char == '\\':
-        char = optional(any_token, '\\')
-    return char
+# " ,()[]{}|\n="
+def unquoted_string_char(excluded):
+    return not_one_of(_always_excluded+excluded)
 
 @tri
-def unquoted_string():
+def unquoted_string(excluded):
     idx = index()
-    first = unquoted_string_char1()
-    rest = many(unquoted_string_char)
+    first = unquoted_string_char1(excluded)
+    rest = many(partial(unquoted_string_char, excluded))
+    #if there is a '=' this is not a string but a identifier => fail.
     not_followed_by(partial(one_of, "="))
     st = ''.join([first] + rest)
     end = index()
@@ -105,18 +106,18 @@ def unquoted_string():
     return UnquotedString(index=idx, len=end-idx, values=st, closed=(closed is not None))
     
 @tri
-def string_literal():
+def string_literal(excluded):
     whitespace()
     idx = index()
     quote = optional(partial(one_of,'\'"'), None)
     if quote:
-        st = ''.join(many(partial(string_char, quote)))
+        st = ''.join(many(partial(quoted_string_char, quote)))
         closed=optspecial(quote)
         if quote == "'":
             return SimpleString(index=idx, len=index()-idx, values=st, closed=closed)
         else:
             return DoubleString(index=idx, len=index()-idx, values=st, closed=closed)
-    return unquoted_string()
+    return unquoted_string(excluded)
 
 @tri
 def identifier1():
@@ -133,44 +134,44 @@ def identifier():
     return idt
     
 @tri
-def list_():
+def list_(excluded):
     whitespace()
     idx = index()
     special('[')
-    st = many(string_literal)
+    st = many(partial(string_literal, excluded+'[]'))
     closed=optspecial(']')
     return List(index=idx, len=index()-idx, values=st, closed=closed )
     
 @tri
-def keywordparameter():
+def keywordparameter(excluded):
     whitespace()
     idx = index()
     name = identifier1()
     whitespace()
     special("=")
     whitespace()
-    value = optional( parameter, "")
+    value = optional( partial(parameter, excluded), "")
     return KeywordArg(index=idx, len=index()-idx, name=name, value=value)
 
 @tri
-def parameter():
-    return choice(list_, string_literal, macroCall)
+def parameter(excluded):
+    return choice(partial(list_, excluded), partial(string_literal, excluded), partial(macroCall, excluded))
 
 @tri
-def argument_list(separator):
+def argument_list(separator, excluded):
     whitespace()
-    l1 = optional( partial(sep1, parameter, separator), [])
+    l1 = optional( partial(sep1, partial(parameter, excluded), separator), [])
     if l1:
         sep = optional( separator, None)
         if sep is None:
             return l1
 
-    l2 = optional( partial(sep1, keywordparameter, separator), [New(index=index())])
+    l2 = optional( partial(sep1, partial(keywordparameter, excluded), separator), [New(index=index())])
     return l1+l2
 
 
 @tri
-def macroCall():
+def macroCall(excluded):
     whitespace()
     idx = index()
     special('%')
@@ -184,7 +185,7 @@ def macroCall():
     closed = False
     opened = optspecial('(')
     if opened:
-        parameter = argument_list(partial(special, ','))
+        parameter = argument_list(partial(special, ','), excluded+")")
         closed = optspecial(')')
         if not parameter and not closed:
             parameter = [New(index=index())]
@@ -200,7 +201,7 @@ def commandCall():
     if not wp:
         return ident
 
-    parameter = argument_list(whitespace1)
+    parameter = argument_list(whitespace1, "")
 
     if not parameter:
         parameter = [New(index=index())]
