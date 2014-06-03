@@ -193,7 +193,7 @@ class RegexRange(object):
 	def resolve(self, model):
 		idx = self.index.resolve(model)
 		start_search = "1.0"
-		end_search = "end"
+		stop_search = "end"
 		if self.index.is_index:
 			if self.forward:
 				start_search = "%s+1c"%str(idx)
@@ -204,7 +204,7 @@ class RegexRange(object):
 			stop_search = str(idx.last)
 		get_search = 0 if self.forward else -1
 		indices = list(model.search(self.regex, start_search, stop_search))
-		return Range(indices[get_search])
+		return Range(*indices[get_search])
 
 	def __eq__(self, other):
 		return (self.__class__, self.index, self.forward, self.regex) == (other.__class__, other.index, other.forward, other.regex)
