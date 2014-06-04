@@ -19,6 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 from devparrot.core import session
+from devparrot.core.errors import ContextError
 
 def DefaultStreamEater(stream):
     try:
@@ -66,7 +67,10 @@ class StreamEater(object):
         call_list = [self.kwords[name] for name in self.argsorder]
         call_list.extend(self.args)
         session.eventSystem.event("{}-".format(self.functionName))()
-        stream_ = self.function(*call_list)
+        try:
+            stream_ = self.function(*call_list)
+        except Exception as err:
+            raise ContextError("Error in %s (%s) : %s"%(self.functionName, err.__class__.__name__,str(err)))
         session.eventSystem.event("{}=".format(self.functionName))()
         return Stream(self.functionName, stream_)
 
