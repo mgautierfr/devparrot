@@ -74,14 +74,14 @@ class CommandWrapper(object):
             if constraint.name in kwords:
                 valid, newVal = constraint.check_arg(kwords[constraint.name])
                 if not valid:
-                    raise InvalidArgument("{} is not valid for constraint {}".format(kwords[constraint.name], constraint))
+                    raise InvalidArgument("Command {} : {} is not valid for constraint {}".format(self.commandName, kwords[constraint.name], constraint))
                 call_kwords[constraint.name] = newVal
                 del kwords[constraint.name]
             else:
                 try:
                     valid, newVal = constraint.check_arg(args[0])
                     if not valid:
-                        raise InvalidArgument("{} is not valid for constraint {}".format(args[0], constraint))
+                        raise InvalidArgument("Command {} : {} is not valid for constraint {}".format(self.commandName, args[0], constraint))
                     call_kwords[constraint.name] = newVal
                     args = args[1:]
                 except IndexError:
@@ -92,7 +92,7 @@ class CommandWrapper(object):
                         if constraint.askUser:
                             call_kwords[constraint.name] = constraint.ask_user()
                         else:
-                            raise InvalidArgument("missing argument for constraint {}".format(constraint))
+                            raise InvalidArgument("Command {} : missing argument for constraint {}".format(self.commandName, constraint))
 
         # bind left positional arguments
         if self.argSpec.varargs and self.argSpec.varargs in self.constraints:
