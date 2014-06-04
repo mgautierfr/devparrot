@@ -23,6 +23,8 @@ from devparrot.capi import Command, Alias, create_section, get_currentDocument
 from devparrot.capi import constraints
 from devparrot.core.session import bindings
 
+from itertools import dropwhile, takewhile
+
 lastSearch = None
 capi_section = create_section("capi")
 
@@ -39,25 +41,39 @@ Command(
 )(inner.search, capi_section)
 
 
-@Alias(
+@Command(
     searchText = constraints.Default(default=lambda : lastSearch),
     backward = constraints.Boolean(default=lambda :False)
 )
 def search(searchText, backward):
     """search for searchText in currentDocument
     """
+    from devparrot.core import session
     searchChar = "?" if backward else "/"
 
     global lastSearch
     lastSearch = searchText
 
-    commands = [
-        "tag clean search_tag",
-        "capi.search {0!r} | tag set search_tag".format(searchText),
-        "goto {0}'{1}'".format(searchChar,searchText.replace("'", "\\'"))
-    ]
+    session.commands['tag'].subCommands['clean']('search_tag')
+    searches_results = list(session.commands['capi']['search'](searchText))
+    if searches_results:
+        session.commands['tag'].subCommands['set']('search_tag', searches_results)
 
-    return "\n".join(commands)
+        document = get_currentDocument()
+        insert = document.model.index('insert')
+
+        if backward:
+            try:
+                next_to_go = list(takewhile(lambda x: x[0] < insert, searches_results))[-1]
+            except IndexError:
+                next_to_go = searches_results[-1]
+        else:
+            try:
+                next_to_go = next(dropwhile(lambda x: x[0] <= insert, searches_results))
+            except StopIteration:
+                next_to_go = searches_results[0]
+
+        session.commands['goto']((document, next_to_go[0]))
 
 @Alias()
 def bsearch(searchText):

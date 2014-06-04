@@ -126,7 +126,7 @@ class CommandWrapper(object):
         return StreamEater(self.functionToCall, self.commandName, self.streamName, call_list, call_kwords, self.argSpec.args)
 
     def __call__(self, *args, **kwords):
-        self.functionToCall(*args, **kwords)
+        return self.functionToCall(*args, **kwords)
 
     def get_help(self):
         helps = []
