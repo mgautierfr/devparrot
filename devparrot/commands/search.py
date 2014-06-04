@@ -54,7 +54,7 @@ def search(searchText, backward):
     commands = [
         "tag clean search_tag",
         "capi.search {0!r} | tag set search_tag".format(searchText),
-        "goto {0!r}".format(searchChar+searchText)
+        "goto {0}'{1}'".format(searchChar,searchText.replace("'", "\\'"))
     ]
 
     return "\n".join(commands)
