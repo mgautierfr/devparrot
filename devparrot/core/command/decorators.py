@@ -23,7 +23,15 @@ from devparrot.core.constraints import Stream
 
 class Command(object):
     def __init__(self, **kwords):
+        self._section = None
+        self._name = None
         streamName = None
+        if '_section' in kwords:
+            self._section = kwords['_section']
+            del kwords['_section']
+        if '_name' in kwords:
+            self._name = kwords['_name']
+            del kwords['_name']
         for name, constraint in kwords.items():
             if isinstance(constraint, Stream):
                 if streamName is None:
@@ -32,16 +40,30 @@ class Command(object):
                     raise Exception("Function can have only one stream")
         self.wrapper = CommandWrapper(kwords, streamName)
 
-    def __call__(self, function, section=None):
+    def __call__(self, function, section=None, functionName=None):
         from devparrot.core.commandLauncher import add_command
+        if section is None:
+            section = self._section
+        if functionName is None:
+            functionName = self._name
+        if functionName is None:
+            functionName = function.__name__
         self.wrapper._set_section(section)
-        self.wrapper._set_function(function)
-        add_command(function.__name__, self.wrapper, section)
+        self.wrapper._set_function(function, functionName)
+        add_command(functionName, self.wrapper, section)
         return function
 
 
 class Alias(Command):
     def __init__(self, **kwords):
+        self._section = None
+        self._name = None
+        if '_section' in kwords:
+            self._section = kwords['_section']
+            del kwords['_section']
+        if '_name' in kwords:
+            self._name = kwords['_name']
+            del kwords['_name']
         self.wrapper = AliasWrapper(kwords)
 
 class MasterCommandMeta(type): 
@@ -71,17 +93,28 @@ class MasterCommand(object):
 
 class SubCommand(Command):
     def __call__(self, function):
-        self.wrapper._set_function(function)
+        functionName = self._name
+        if functionName is None:
+            functionName = function.__name__
+        self.wrapper._set_function(function, functionName)
         # return the wrapper to be able to do some isinstance in metaclass
         return self.wrapper
 
 class Macro(Command):
     def __init__(self, **kwords):
+        self._name = None
+        if '_name' in kwords:
+            self._name = kwords['_name']
+            del kwords['_name']
         self.wrapper = MacroWrapper(kwords)
 
-    def __call__(self, function):
+    def __call__(self, function, functionName=None):
         from devparrot.core.commandLauncher import add_macro
-        self.wrapper._set_function(function)
-        add_macro(function.__name__, self.wrapper)
+        if functionName is None:
+            functionName = self._name
+        if functionName is None:
+            functionName = function.__name__
+        self.wrapper._set_function(function, functionName)
+        add_macro(functionName, self.wrapper)
         return function
 

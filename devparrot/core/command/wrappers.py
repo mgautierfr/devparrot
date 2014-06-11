@@ -32,13 +32,13 @@ class CommandWrapper(object):
     def _set_section(self, section):
         self.section = section
 
-    def _set_function(self, function):
+    def _set_function(self, function, commandName):
         from inspect import getargspec
         self.functionToCall = function
         if self.section is not None:
-            self.commandName = "{}.{}".format(self.section.name, function.__name__)
+            self.commandName = "{}.{}".format(self.section.name, commandName)
         else:
-            self.commandName = function.__name__
+            self.commandName = commandName
         self.argSpec = getargspec(function)
         varargConstraint = self.constraints.get(self.argSpec.varargs, None)
         if varargConstraint:
