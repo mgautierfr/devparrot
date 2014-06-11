@@ -292,7 +292,7 @@ def split(documentView, direction, first=True):
     parent = notebook.get_parentContainer()
     parent.detach_child(notebook)
     
-    splitted = SplittedContainer(direction!=0)
+    splitted = SplittedContainer(direction)
     parent.attach_child(splitted)
     
     newNotebook = NotebookContainer()
