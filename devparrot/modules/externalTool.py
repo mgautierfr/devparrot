@@ -66,10 +66,21 @@ class CommandOutput(ttk.Frame):
         self.textView.tag_configure("error", foreground="red")
         self.textView.tag_configure("warning", foreground="purple")
         self.textView.tag_configure("note", foreground="blue")
+        self.textView.configure(state="disable")
+
+        self.set_normal_cursor()
+
+    def set_hand_cursor(self):
+        self.textView.configure(cursor="hand2")
+
+    def set_normal_cursor(self):
+        self.textView.configure(cursor="")
 
     def insert_line(self, line):
-        index = self.textView.index('insert')
-        self.textView.insert('insert', line)
+        index = self.textView.index('end - 1c')
+        self.textView.configure(state="normal")
+        self.textView.insert('end', line)
+        self.textView.configure(state="disable")
 
         fileMatch = None
         for reg in fileParsing:
@@ -87,10 +98,15 @@ class CommandOutput(ttk.Frame):
         except IndexError:
             pass
         def goto(event):
+            print "try to go to %s, %s"%(fileMatch.group('line'), pos)
+            #import pdb; pdb.set_trace()
             session.commandLauncher.run_command_nofail('open "{file}"\n goto {line}.{pos}'.format(file=fileMatch.group('file'), line=fileMatch.group('line'), pos=pos))
+            print "gone"
 
         tagName = "tag_{file}_{line}_{pos}".format(file=fileMatch.group('file'), line=fileMatch.group('line'), pos=pos)
         self.textView.tag_configure(tagName, foreground="blue", underline=True)
+        self.textView.tag_bind(tagName, "<Enter>", lambda e:self.set_hand_cursor())
+        self.textView.tag_bind(tagName, "<Leave>", lambda e:self.set_normal_cursor())
         self.textView.tag_bind(tagName, "<1>", goto)
 
         start = fileMatch.start()
