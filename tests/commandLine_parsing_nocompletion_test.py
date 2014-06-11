@@ -562,6 +562,25 @@ to_test = {
                                                     )
                                         ]
                                 ),
+              "section.function %macro 'string'" : Pipe(index=0,
+                                 len=32,
+                                 values=[CommandCall(index=0,
+                                                     len=32,
+                                                     name="section.function",
+                                                     closed=False,
+                                                     values=[MacroCall(index=9,
+                                                                       len=23,
+                                                                       opened=True,
+                                                                       closed=True,
+                                                                       expanded=False,
+                                                                       name="macro",
+                                                                       values=[]
+                                                                      ),
+                                                             SimpleString(index=14, len=6, values="string", closed=True)
+                                                             ]
+                                                    )
+                                        ]
+                                ),                  
           }
 
 

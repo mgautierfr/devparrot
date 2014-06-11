@@ -62,6 +62,8 @@ def test_insert_content(index, content, nbLine, lineLens):
 (Index(1, 0), Index(9,0), 2,  [                         7, 6]),
 (Index(2, 6), Index(3,0), 9,  [5, 13,   8, 9, 10, 9, 8, 7, 6]),
 (Index(2, 6), Index(4,0), 8,  [5, 14,      9, 10, 9, 8, 7, 6]),
+(Index(2, 6), Index(3,7), 9,  [5, 6,    8, 9, 10, 9, 8, 7, 6]),
+(Index(2, 6), Index(8,8), 4,  [5, 6,                    7, 6]),
 (Start,       Index(10, 6), 1,[0])
 
 ])
