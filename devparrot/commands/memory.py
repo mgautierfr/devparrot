@@ -33,7 +33,7 @@ def memory(name, content):
     if name is "PRIMARY" then system primary selection (middle click) is used
     """
 
-    if name in ('CLIPBOARD'):
+    if name in ('CLIPBOARD',):
         from devparrot.core import ui
         window = ui.window
         clear_function = window.clipboard_clear
