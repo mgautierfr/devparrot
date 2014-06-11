@@ -28,31 +28,37 @@ def load():
     import os
     from devparrot.core import session
     path = os.path.join(session.config.get('devparrotPath'), "commands")
-    moduleList = os.listdir(path)
-    for module in moduleList:
-        load_module(path, module)
+    load_directory(path)
 
     _homedir = getpwuid(os.getuid())[5]
     path = os.path.join(_homedir,'.devparrot', 'commands')
+    load_directory(path)
+
+def load_directory(path):
+    import os.path
     if os.path.exists(path):
         moduleList = os.listdir(path)
         for module in moduleList:
-            load_module(path, module)
+            if os.path.isdir(os.path.join(path, module)):
+                load_directory(os.path.join(path, module))
+            else:
+                load_module(path, module)
 
 def load_module(path, name):
     import imp, os
-    if name.endswith('.py'):
-        name = name[:-3]
-    elif not os.path.isdir(os.path.join(path,name)):
+    from devparrot.core import session
+    if not name.endswith('.py'):
         return
+    name = name[:-3]
 
     try:
         fp, pathname, description = imp.find_module(name, [path])
     except ImportError, err:
-        session.logger.error("can't import module named %s", name)
+        session.logger.error("can't import module named %s in dir %s", name, path)
         return
 
     with fp:
+        print "load module %s"%name
         return imp.load_module(name, fp, pathname, description)
 
 
