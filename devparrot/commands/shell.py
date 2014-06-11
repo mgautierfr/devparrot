@@ -48,7 +48,7 @@ def shell(command, stdinput, *args):
         # If we try to read on it, it may (will) hang if subprocess has terminate.
         # So we need to read only if there is data.
         # We don't check subprocess termination first to avoid race condition when process terminate between the poll and the read.
-        ready, _, _ = select.select([master_fd], [], [], 0.1)
+        ready, _, _ = select.select([master_fd], [], [], 0.01)
         while ready:
             string = left + os.read(master_fd, 1024)
             string = string.replace("\r\n", "\n")
@@ -57,12 +57,16 @@ def shell(command, stdinput, *args):
             for line in lines[:-1]:
                 yield line+'\n'
             left = lines[-1]
-            ready, _, _ = select.select([master_fd], [], [], 0.1)
+            ready, _, _ = select.select([master_fd], [], [], 0.01)
         if closed:
             break
         elif popen.poll() is not None:
             # Do not handle return code
             closed = True
+        else:
+            # we must not be blocking !
+            # yield some stuff te let the ui works
+            yield None
 
     os.close(slave_fd)
     os.close(master_fd)

@@ -128,12 +128,14 @@ def commandOutput(name, content):
     def read_line():
         try:
             line = content.next()
-            output.insert_line(line)
-            output.after_idle(read_line)
+            while line is not None:
+                output.insert_line(line)
+                line = content.next()
+            output.after(100, read_line)
         except StopIteration:
             pass
 
-    output.after_idle(read_line)
+    output.after(100, read_line)
 
 
 @Alias()
