@@ -107,7 +107,8 @@ class Boolean(_Constraint):
         _Constraint.__init__(self, *args, **kwords)
 
     def check(self, token):
-        return True, bool(token)
+        from ast import literal_eval
+        return True, bool(literal_eval(token))
             
 class File(_Constraint):
     """Must be a file path"""
