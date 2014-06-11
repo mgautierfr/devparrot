@@ -20,7 +20,7 @@
 
 
 from devparrot.core.command import Command
-from devparrto.core.constraints import Range, Stream
+from devparrot.core.constraints import Range, Stream
 from devparrot.core.errors import *
 from devparrot.core.utils.posrange import Index
 

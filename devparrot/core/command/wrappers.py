@@ -211,3 +211,14 @@ class MacroWrapper(CommandWrapper):
     def resolve(self, *args, **kwords):
         call_list, call_kwords = self._get_call_args(args, kwords)
         return self.functionToCall(*call_list, **call_kwords)
+
+
+class MacroResult(object):
+    def __init__(self, result):
+        self.result = result
+
+    def __str__(self):
+        return "<MacroResult %s>"%self.result
+
+    def __call__(self):
+        return self.result

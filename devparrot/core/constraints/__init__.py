@@ -48,6 +48,11 @@ class Keyword(_Constraint):
         _Constraint.__init__(self, *args, **kwords)
         self.keywords = keywords
 
+    def check(self, arg):
+        return arg in self.keywords, arg
+
+    check_direct = check
+
     def complete(self, token):
         tokenValue = None
         if token.get_type().endswith('String'):
@@ -101,6 +106,10 @@ class Command(_Constraint):
             return False, None
         return name in currentSection, currentSection.get(name)
 
+    def check_direct(self, arg):
+        from devparrot.core.command.wrappers import CommandWrapper
+        return isinstance(arg, CommandWrapper), arg
+
 class Boolean(_Constraint):
     """Must be a boolean"""
     def __init__(self, *args, **kwords):
@@ -130,6 +139,8 @@ class File(_Constraint):
         if not os.path.exists(d):
             return False, None
         return (File.SAVE in self.mode or File.NEW in self.mode), _file
+
+    check_direct = check
 
     def ask_user(self):
         from devparrot.core import session, ui
@@ -197,62 +208,86 @@ class File(_Constraint):
         return completions
 
 class Index(_Constraint):
-	"""Must be a index"""
-	def __init__(self, *args, **kwords):
-		_Constraint.__init__(self, *args, **kwords)
+    """Must be a index"""
+    def __init__(self, *args, **kwords):
+        _Constraint.__init__(self, *args, **kwords)
 
-	def check(self, text):
-		from devparrot.core.session import get_documentManager, get_currentDocument
-		from index import parse_something, NoMatch
-		splitted = text.split("@")
-		if len(splitted) > 1:
-			document = get_documentManager().get_file_from_title(splitted[0])
-			text = '@'.join(splitted[1:])
-		else:
-			document = get_currentDocument()
+    def check(self, text):
+        from devparrot.core.session import get_documentManager, get_currentDocument
+        from index import parse_something, NoMatch
+        splitted = text.split("@")
+        if len(splitted) > 1:
+            document = get_documentManager().get_file_from_title(splitted[0])
+            text = '@'.join(splitted[1:])
+        else:
+            document = get_currentDocument()
 
-		model = document.model
-		tags = set(model.tag_names())
-		marks = set(model.mark_names())
+        model = document.model
+        tags = set(model.tag_names())
+        marks = set(model.mark_names())
 
-		try:
-			unresolved_idx = parse_something(text, marks, tags)
-			idx = unresolved_idx.resolve(model)
-			if unresolved_idx.is_index:
-				return True, (document, idx)
-			else:
-				return True, (document, idx[0])
-		except NoMatch:
-			return False, None
+        try:
+            unresolved_idx = parse_something(text, marks, tags)
+            idx = unresolved_idx.resolve(model)
+            return self.check_direct((document, idx))
+        except NoMatch:
+            return False, None
+
+    def check_direct(self, arg):
+        from devparrot.core.utils.posrange import Range, Index
+        from devparrot.core.document import Document
+        try:
+            doc, stuff = arg
+            if not isinstance(doc, Document):
+                return False, None
+            if  isinstance(stuff, Range):
+                return True, (doc, stuff[0])
+            if isinstance(stuff, Index):
+                return True, (doc, stuff)
+            return False, None
+        except TypeError:
+            return False, None
 
 class Range(_Constraint):
-	"""Must be a range"""
-	def __init__(self, *args, **kwords):
-		_Constraint.__init__(self, *args, **kwords)
+    """Must be a range"""
+    def __init__(self, *args, **kwords):
+        _Constraint.__init__(self, *args, **kwords)
 
-	def check(self, text):
-		from devparrot.core.session import get_documentManager, get_currentDocument
-		from index import parse_something, NoMatch
-		splitted = text.split("@")
-		if len(splitted) > 1:
-			document = get_documentManager().get_file_from_title(splitted[0])
-			text = '@'.join(splitted[1:])
-		else:
-			document = get_currentDocument()
+    def check(self, text):
+        from devparrot.core.session import get_documentManager, get_currentDocument
+        from index import parse_something, NoMatch
+        splitted = text.split("@")
+        if len(splitted) > 1:
+            document = get_documentManager().get_file_from_title(splitted[0])
+            text = '@'.join(splitted[1:])
+        else:
+            document = get_currentDocument()
 
-		model = document.model
-		tags = set(model.tag_names())
-		marks = set(model.mark_names())
+        model = document.model
+        tags = set(model.tag_names())
+        marks = set(model.mark_names())
 
-		try:
-			unresolved_idx = parse_something(text, marks, tags)
-			idx = unresolved_idx.resolve(model)
-			if unresolved_idx.is_index:
-				return True, (document, (idx, idx))
-			else:
-				return True, (document, idx)
-		except NoMatch:
-			return False, None
+        try:
+            unresolved_idx = parse_something(text, marks, tags)
+            idx = unresolved_idx.resolve(model)
+            return self.check_direct((document, idx))
+        except NoMatch:
+            return False, None
+
+    def check_direct(self, arg):
+        from devparrot.core.utils.posrange import Range, Index
+        from devparrot.core.document import Document
+        try:
+            doc, stuff = arg
+            if not isinstance(doc, Document):
+                return False, None
+            if  isinstance(stuff, Range):
+                return True, (doc, stuff)
+            if isinstance(stuff, Index):
+                return True, (doc, Range(stuff, stuff))
+            return False, None
+        except TypeError:
+            return False, None
     
 class Integer(_Constraint):
     """Must be a integer"""
@@ -266,6 +301,9 @@ class Integer(_Constraint):
         except ValueError:
             return False, None
 
+    def check_direct(self, arg):
+        return isinstance(arg,int) , arg
+
 class OpenDocument(_Constraint):
     """Must be a open document"""
     def __init__(self, *args, **kwords):
@@ -277,6 +315,10 @@ class OpenDocument(_Constraint):
             return True, session.get_documentManager().get_file_from_title(token)
         except KeyError:
             return False, None
+
+    def check_direct(self, arg):
+        from devparrot.core.document import Document
+        return isinstance(arg,Document) , arg
 
     def complete(self, token):
         from devparrot.core import session
@@ -307,6 +349,10 @@ class ConfigEntry(_Constraint):
             except KeyError:
                 return False, None
         return True, currentSection
+
+    def check_direct(self, arg):
+        from devparrot.core.configLoader import Section
+        return isinstance(arg,Section) , arg
 
     def complete(self, token):
         from devparrot.core import session

@@ -58,7 +58,6 @@ def load_module(path, name):
         return
 
     with fp:
-        print "load module %s"%name
         return imp.load_module(name, fp, pathname, description)
 
 

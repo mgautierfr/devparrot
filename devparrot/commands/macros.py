@@ -6,11 +6,7 @@ from devparrot.core.ui.viewContainer import get_neighbour
 
 def _get_neighbour(direction):
     from devparrot.core import session
-    neighbour = get_neighbour(session.get_currentContainer(), direction)
-    if neighbour:
-        return neighbour.document.title
-    return ""
-
+    return get_neighbour(session.get_currentContainer(), direction)
 
 @Macro()
 def previous():
@@ -39,9 +35,9 @@ def bottom():
 @Macro()
 def current():
     from devparrot.core import session
-    return session.get_currentDocument().title
+    return session.get_currentDocument()
 
 @Macro()
 def all_document():
     from devparrot.core import session
-    return [d.title for d in session.get_documentManager()]
+    return list(session.get_documentManager())

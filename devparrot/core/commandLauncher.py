@@ -99,7 +99,7 @@ def expand_alias(commands, first=False):
     from devparrot.core import session
     from devparrot.core.errors import InvalidArgument
     from devparrot.core.command.parserGrammar import parse_input_text
-    from devparrot.core.command.wrappers import AliasWrapper
+    from devparrot.core.command.wrappers import AliasWrapper, MacroResult
     for command in commands:
         if command == "\n":
             yield command
@@ -117,6 +117,8 @@ def expand_alias(commands, first=False):
             try:
                 _globals = dict(session.commands)
                 _globals["_macros"] = dict(session.macros)
+                _globals["_MacroListResult"] = (lambda l : [MacroResult(i) for i in l])
+                _globals["_MacroResult"] = MacroResult
                 alias_expansion = eval(command.rewrited(), _globals, {})
             except TypeError as err:
                 raise InvalidArgument(err.message)
@@ -138,6 +140,7 @@ class CommandLauncher:
         from devparrot.core import session
         from devparrot.core.command.parserGrammar import parse_input_text
         from devparrot.core.command.stream import PseudoStream, DefaultStreamEater
+        from devparrot.core.command.wrappers import MacroResult
         session.logger.debug("running command %s", repr(text))
         pipe = parse_input_text(text, forCompletion=False)
         commands = expand_alias(pipe.values, True)
@@ -161,6 +164,8 @@ class CommandLauncher:
                     try:
                         _globals = dict(session.commands)
                         _globals["_macros"] = dict(session.macros)
+                        _globals["_MacroListResult"] = (lambda l : [MacroResult(i) for i in l])
+                        _globals["_MacroResult"] = MacroResult
                         streamEater = eval(command.rewrited(), _globals, {})
                         stream = streamEater(stream)
                     except UserCancel:

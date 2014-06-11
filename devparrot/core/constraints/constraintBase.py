@@ -34,13 +34,20 @@ class _Constraint(object):
 
     def check_arg(self, args):
         if self.multiple:
-            valids, args = zip(*[self.check(arg) for arg in args])
+            valids, args = zip(*[self._check(arg) for arg in args])
             valid = reduce(lambda x, y: x and y, valids)
             if not valid:
                 return False, None
             return True, args
         else:
-            return self.check(args)
+            return self._check(args)
+
+    def _check(self, arg):
+        from devparrot.core.command.wrappers import MacroResult
+        if isinstance(arg, MacroResult):
+            return self.check_direct(arg())
+        else:
+            return self.check(arg)
 
     def complete_context(self, context):
         if not self.multiple and context.get_type() == "List":
@@ -65,6 +72,8 @@ class _Constraint(object):
 
     def check(self, token):
         return True, token
+
+    check_direct = check
     
     def ask_user(self):
         raise UserCancel()

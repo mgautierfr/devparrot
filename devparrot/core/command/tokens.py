@@ -156,10 +156,10 @@ class MacroCall(CommandCall):
         return super(MacroCall, self).__str__()
 
     def rewrited(self):
-        return "%(expanded)s_macros['%(name)s'].resolve%(parameters)s"%{
+        return "%(expanded)s_macros['%(name)s'].resolve%(parameters)s)"%{
             'name' : self.name,
             'parameters' : Section.rewrited(self),
-            'expanded' : '*' if self.expanded else ''
+            'expanded' : '*_MacroListResult(' if self.expanded else '_MacroResult('
           }
 
     def pprint(self, ident):
