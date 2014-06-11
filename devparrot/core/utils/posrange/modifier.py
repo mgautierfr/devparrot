@@ -23,7 +23,7 @@ class Line(object):
 
 	def resolve(self, model):
 		try:
-			idx = "%d.0"%self.index
+			idx = model.index("%d.0"%self.index)
 		except TypeError:
 			idx = self.index.resolve(model)
 		return Range(model.linestart(idx), model.lineend(idx))
