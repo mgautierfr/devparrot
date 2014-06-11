@@ -19,14 +19,15 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import Command, Alias, create_section, get_currentDocument
-from devparrot.capi.constraints import Stream
+from devparrot.core.command import Command, Alias
+from devparrot.core.constraints import Stream
+from devparrot.core import session
 
 class inner:
     @staticmethod
     def replace(pattern, repl, ranges):
         import re
-        model = get_currentDocument().model
+        model = session.get_currentDocument().model
         for start, stop in ranges:
             text = model.get(str(start), str(stop))
             new = re.sub(pattern, repl, text)

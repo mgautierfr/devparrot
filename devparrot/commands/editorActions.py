@@ -19,8 +19,8 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import Command, Alias, get_currentDocument
-from devparrot.core.session import bindings
+from devparrot.core.command import Command, Alias
+from devparrot.core.session import bindings, get_currentDocument
 
 @Alias()
 def cut():

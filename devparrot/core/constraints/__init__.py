@@ -202,8 +202,7 @@ class Index(_Constraint):
 		_Constraint.__init__(self, *args, **kwords)
 
 	def check(self, text):
-		from devparrot.core.session import get_documentManager
-		from devparrot.capi import get_currentDocument
+		from devparrot.core.session import get_documentManager, get_currentDocument
 		from index import parse_something, NoMatch
 		splitted = text.split("@")
 		if len(splitted) > 1:
@@ -232,8 +231,7 @@ class Range(_Constraint):
 		_Constraint.__init__(self, *args, **kwords)
 
 	def check(self, text):
-		from devparrot.core.session import get_documentManager
-		from devparrot.capi import get_currentDocument
+		from devparrot.core.session import get_documentManager, get_currentDocument
 		from index import parse_something, NoMatch
 		splitted = text.split("@")
 		if len(splitted) > 1:

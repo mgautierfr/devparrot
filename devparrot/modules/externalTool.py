@@ -19,8 +19,8 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 import Tkinter, ttk
-from devparrot.capi import Command, Alias
-from devparrot.capi.constraints import Stream
+from devparrot.core.command import Command, Alias
+from devparrot.core.constraints import Stream
 
 from devparrot.core import ui, session
 

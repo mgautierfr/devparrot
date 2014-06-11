@@ -19,15 +19,16 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import MasterCommand, SubCommand, get_currentDocument
-from devparrot.capi.constraints import Stream
+from devparrot.core.command import MasterCommand, SubCommand
+from devparrot.core import session
+from devparrot.core.constraints import Stream
 
 class tag(MasterCommand):
     """ Tag help stuff"""
 
     @SubCommand()
     def clean(tagName):
-        get_currentDocument().model.tag_remove(tagName, "1.0", "end")
+        session.get_currentDocument().model.tag_remove(tagName, "1.0", "end")
 
     @SubCommand(
     tagList = Stream()
@@ -35,7 +36,7 @@ class tag(MasterCommand):
     def set(tagName, tagList):
         tgList = [ str(item) for tuple_ in tagList for item in tuple_]
         if len(tgList)>=2 and len(tgList)%2==0:
-            get_currentDocument().model.tag_add(tagName, *tgList)
+            session.get_currentDocument().model.tag_add(tagName, *tgList)
 
 
 

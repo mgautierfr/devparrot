@@ -19,10 +19,11 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import Command, constraints
+from devparrot.core.command import Command
+from devparrot.core.constraints import Stream
 
 @Command(
-content = constraints.Stream()
+content = Stream()
 )
 def memory(name, content):
     """

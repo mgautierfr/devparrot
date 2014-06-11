@@ -19,8 +19,8 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import Command, Alias, create_section
-from devparrot.capi.constraints import Command as CommandConstraint
+from devparrot.core.command import Command, Alias
+from devparrot.core.constraints import Command as CommandConstraint
 
 class inner:
     @staticmethod

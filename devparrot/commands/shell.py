@@ -19,8 +19,8 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import Command
-from devparrot.capi.constraints import Stream
+from devparrot.core.command import Command
+from devparrot.core.constraints import Stream
 
 @Command(
 stdinput = Stream()

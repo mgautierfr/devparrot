@@ -280,8 +280,7 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
     def on_middleClickButton(self, event):
         documentViewIndex = self.index("@%d,%d" % (event.x, event.y))
         if documentViewIndex != "":
-            from devparrot import capi
-            capi.close_document(self._children.keys()[documentViewIndex].document)
+            session.commands.close(self._children.keys()[documentViewIndex].document)
 
 def split(documentView, direction, first=True):
     notebook = documentView.get_parentContainer()

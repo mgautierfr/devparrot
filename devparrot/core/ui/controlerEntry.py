@@ -107,5 +107,3 @@ class ControlerEntry(Tkinter.Text):
             self.toClean = False
             self.delete("1.0",'end')
 
-
-

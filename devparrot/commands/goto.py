@@ -19,11 +19,12 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import Command, set_currentDocument, constraints
-from devparrot.core import errors
+from devparrot.core.command import Command
+from devparrot.core.constraints import Index
+from devparrot.core import session
 
 @Command(
-index = constraints.Index()
+index = Index()
 )
 def goto(index):
     """

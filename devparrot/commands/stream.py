@@ -19,7 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import Command, create_section
+from devparrot.core.command import Command
 
 
 @Command(_section='stream')

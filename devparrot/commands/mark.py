@@ -19,8 +19,8 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import MasterCommand, SubCommand
-from devparrot.capi.constraints import Index
+from devparrot.core.command import MasterCommand, SubCommand
+from devparrot.core.constraints import Index
 
 
 class mark(MasterCommand):

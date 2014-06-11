@@ -25,9 +25,6 @@ class Workspace(TopContainer):
     def __init__(self):
         TopContainer.__init__(self)
 
-    def set_currentDocument(self, document):
-        self.get_currentContainer().set_documentView(document.documentView)
-
     def get_currentDocument(self):
         try:
             return self.get_currentContainer().get_documentView().document

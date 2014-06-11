@@ -18,32 +18,33 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
-from devparrot import capi
 from devparrot.core.command import Command, Alias
 from devparrot.core.session import bindings
-from devparrot.capi.constraints import OpenDocument
+from devparrot.core.constraints import OpenDocument
 from devparrot.core.errors import UserCancel
 from devparrot.core import session
 
 
 def ask_save_question(document):
-    answer = capi.ui.helper.ask_questionYesNoCancel("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':document.title})
+    from devparrot.core import ui
+    answer = ui.helper.ask_questionYesNoCancel("Save document ?", "Document %(documentName)s is changed.\n Do you want to save it?"%{'documentName':document.title})
     if answer is None:
         raise UserCancel()
     return answer
 
 @Command(
-    documents = OpenDocument(default=capi.get_currentDocument, help="documents to close")
+    documents = OpenDocument(default=session.get_currentDocument, help="documents to close")
 )
 def close(*documents):
     "close one or several documents"
+    from devparrot.core import ui
     documents_modified = [d for d in documents if d.is_modified()]
     documents_must_save = [d for d in documents_modified if ask_save_question(d)]
     for document in documents_must_save:
         if document.has_a_path():
             session.commands.core.save(document)
         else:
-            answer = capi.ui.helper.ask_filenameSave()
+            answer = ui.helper.ask_filenameSave()
             if not answer:
                 raise UserCancel()
             session.commands.core.save(document, answer)
