@@ -62,8 +62,7 @@ def identifier_char():
 
 @tri
 def optspecial(name):
-    whitespace()
-    ret = optional(partial(string,name), None)
+    ret = optional(partial(special,name), None)
     return ret is not None
 
 @tri
@@ -230,7 +229,6 @@ def userCommand():
 def parse_input_text(text, forCompletion=True):
     from devparrot.core import session
     from devparrot.core.errors import InvalidSyntax
-   # import pdb; pdb.set_trace()
     session.logger.debug("parsing %s", repr(text))
     if not text.strip():
         return Pipe(index=0, len=len(text), values=[New(index=len(text))])
