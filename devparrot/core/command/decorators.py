@@ -41,9 +41,10 @@ class Command(object):
         self.wrapper = CommandWrapper(kwords, streamName)
 
     def __call__(self, function, section=None, functionName=None):
-        from devparrot.core.commandLauncher import add_command
+        from devparrot.core.commandLauncher import add_command, create_section
         if section is None:
             section = self._section
+        section = create_section(section)
         if functionName is None:
             functionName = self._name
         if functionName is None:

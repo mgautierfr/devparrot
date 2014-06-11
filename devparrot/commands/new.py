@@ -19,29 +19,24 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot import capi
-from devparrot.capi import Command
-from devparrot.capi import constraints
+from devparrot.core.command import Alias
+from devparrot.core.constraints import Default
 from devparrot.core.session import bindings
 
+newFileNumber = 0
 
-@Command(
-content = constraints.Stream()
-)
-def new(content):
+@Alias(
+name = Default(default=lambda:None))
+def new(name):
     """
     Create a new document
 
     Content is inserted in the document once created
     """
-    from devparrot.core.document import Document
-    from devparrot.documents.newDocSource import NewDocSource
-    document = Document(NewDocSource())
-    capi.add_file(document)
-    capi.set_currentDocument(document)
-    model = document.get_model()
-
-    for line in content:
-        model.insert("insert", line)
+    global newFileNumber
+    if name is None:
+        name = "NewFile{}".format(newFileNumber)
+        newFileNumber += 1
+    return "core.buffer {0!r} new".format(name)
 
 bindings["<Control-n>"] = "new\n"

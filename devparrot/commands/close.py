@@ -19,10 +19,11 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 from devparrot import capi
-from devparrot.capi import Command
+from devparrot.core.command import Command, Alias
 from devparrot.core.session import bindings
 from devparrot.capi.constraints import OpenDocument
 from devparrot.core.errors import UserCancel
+from devparrot.core import session
 
 
 def ask_save_question(document):
@@ -40,18 +41,18 @@ def close(*documents):
     documents_must_save = [d for d in documents_modified if ask_save_question(d)]
     for document in documents_must_save:
         if document.has_a_path():
-            capi.save_document(document, document.get_path())
+            session.commands.core.save(document)
         else:
             answer = capi.ui.helper.ask_filenameSave()
             if not answer:
                 raise UserCancel()
-            capi.save_document(document, answer)
+            session.commands.core.save(document, answer)
     for document in documents:
-        capi.close_document(document)
+        session.commands.core.close(document)
 
-@Command()
+@Alias()
 def closeall():
     """close all opened documents"""
-    close(*capi.documents)
+    return "close %%all_document"
 
 bindings["<Control-w>"] = "close\n"

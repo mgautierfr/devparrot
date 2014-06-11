@@ -18,41 +18,33 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
-
-from devparrot.core.command import Alias
+from devparrot.core.command import Command
 from devparrot.core.constraints import File
-from devparrot.core.session import bindings
-from devparrot.core.errors import FileAccessError
 
-@Alias(
-fileName = File(mode=File.SAVE, default=lambda:None)
+@Command(
+_section = 'core',
+files = File(mode=(File.OPEN, File.NEW), help="a list of file to open")
 )
-def save(fileName):
+def open(*files):
     """
-    Save current file.
+    Open a existing or new file
+    """
+    for fileToOpen in files:
+        _open_a_file(fileToOpen)
 
-    If fileName is provided, act as "saveas" command.
-    """
+def _open_a_file(fileToOpen):
     from devparrot.core import session
-    if fileName:
-        return "core.save %current {0!r}".format(fileName)
+    if not fileToOpen: return False
+    if session.get_documentManager().has_file(fileToOpen):
+        doc = session.get_documentManager().get_file(fileToOpen)
     else:
-        document = session.get_currentDocument()
-        if document.has_a_path():
-            return "core.save %current {0!r}".format(document.get_path())
-        else:
-            return "core.save %current"
-
-@Alias(
-fileName = File(mode=File.SAVE)
-)
-def saveas(fileName):
-    """
-    Save current file to fileName.
-
-    If fileName is not provided, the user is asked for it.
-    """
-    return "core.save %current {0!r}".format(fileName)
-
-bindings["<Control-s>"] = "save\n"
-bindings["<Control-Shift-S>"] = "saveas\n"
+        from devparrot.core.errors import FileAccessError
+        from devparrot.core.document import Document
+        from devparrot.documents.fileDocSource import FileDocSource
+        try:
+            doc = Document(FileDocSource(fileToOpen))
+            doc.load()
+            session.get_documentManager().add_file(doc)
+        except IOError:
+            raise FileAccessError(doc.get_path())
+    session.commands.core.switch(doc)

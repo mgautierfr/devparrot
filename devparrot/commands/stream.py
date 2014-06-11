@@ -22,18 +22,16 @@
 from devparrot.capi import Command, create_section
 
 
+@Command(_section='stream')
 def empty():
     yield ""
 
-
+@Command(_section='stream')
 def null():
     raise StopIteration
 
+@Command(_section='stream')
 def echo(*args):
     for arg in args:
         yield arg
 
-
-Command()(empty, create_section("stream"))
-Command()(null, create_section("stream"))
-Command()(echo, create_section("stream"))

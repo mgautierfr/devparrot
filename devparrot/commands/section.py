@@ -19,15 +19,16 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import Command, get_currentDocument, constraints
+from devparrot.core.command import Command
+from devparrto.core.constraints import Range, Stream
 from devparrot.core.errors import *
 from devparrot.core.utils.posrange import Index
 
 @Command(
-range = constraints.Range(),
-content = constraints.Stream()
+rge = Range(),
+content = Stream()
 )
-def section(range, content):
+def section(rge, content):
     """
     represent a section of the current document starting from startIndex and ending at endIndex.
 
@@ -36,10 +37,10 @@ def section(range, content):
     If endIndex is not provided, startIndex must be a tag name.
     The special tag name "standardInsert" can be used to represent the insert mark or the sel tag depending of context
     """
-    document, range = range
+    document, rge = rge
     model = document.get_model()
 
-    startIndex, endIndex = range
+    startIndex, endIndex = rge
     
     insertionMode = False
 
@@ -61,7 +62,7 @@ def section(range, content):
             yield model.get(str(startIndex), str(endIndex))
         else:
             yield u"{}\n".format(model.get(str(startIndex), str(model.lineend(startIndex))))
-            for i in range(startIndex.line+1, endIndex.line):
+            for i in xrange(startIndex.line+1, endIndex.line):
                 yield u"{}\n".format(model.get("%d.0"%i, "%d.0 lineend"%i))
             yield model.get(str(model.linestart(endIndex)), str(endIndex))
 

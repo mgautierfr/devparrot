@@ -19,16 +19,17 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot import capi
-from devparrot.capi import Command
+from devparrot.core.command import Command
 from devparrot.core.errors import UserCancel
+from devparrot.core import session
 
 
 @Command()
 def quit():
     """quit devparrot"""
-    documents_edited = [d for d in capi.documents if d.is_modified()]
+    from devparrot.core import ui
+    documents_edited = [d for d in session.get_documentManager() if d.is_modified()]
     if documents_edited:
-        if not capi.ui.helper.ask_questionYesNo("Quit ?", "Some files are modified, do you really want to quit ?"):
+        if not ui.helper.ask_questionYesNo("Quit ?", "Some files are modified, do you really want to quit ?"):
             raise UserCancel()
-    capi.quit()
+    session.commands.core.quit()

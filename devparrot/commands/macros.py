@@ -1,8 +1,6 @@
 
 
-from devparrot import capi
-from devparrot.capi import Command, constraints, Macro, Alias
-from functools import partial
+from devparrot.core.command import Command, Macro, Alias
 
 from devparrot.core.ui.viewContainer import get_neighbour
 
@@ -40,9 +38,10 @@ def bottom():
 
 @Macro()
 def current():
+    from devparrot.core import session
     return session.get_currentDocument().title
 
-
-@Macro(configEntry= constraints.ConfigEntry())
-def config(configEntry):
-    return configEntry.get()
+@Macro()
+def all_document():
+    from devparrot.core import session
+    return [d.title for d in session.get_documentManager()]

@@ -18,27 +18,13 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
+from devparrot.core.command import Command
+from devparrot.core.constraints import Index
 
-from devparrot.capi import Command, Alias, create_section, get_currentDocument
-from devparrot.capi.constraints import Stream
-
-class inner:
-    @staticmethod
-    def replace(pattern, repl, ranges):
-        import re
-        model = get_currentDocument().model
-        for start, stop in ranges:
-            text = model.get(str(start), str(stop))
-            new = re.sub(pattern, repl, text)
-            model.replace(str(start), str(stop), new)
-
-Command(
+@Command(
 _section='core',
-ranges=Stream()
-)(inner.replace)
-
-
-@Alias()
-def replace(regex, subst):
-    return "core.search {0!r} | core.replace {0!r} {1!r}".format(regex, subst)
-
+index = Index()
+)
+def see(index):
+    document, index = index
+    document.goto_index(index)

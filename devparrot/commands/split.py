@@ -19,19 +19,18 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot import capi
-from devparrot.capi import Command
-from devparrot.capi.constraints import Boolean
+from devparrot.core.command import Alias
+from devparrot.core.constraints import Boolean
 
-@Command(
+@Alias(
 vertical = Boolean(default= lambda : False)
 )
 def split(vertical):
-    """split the view it two separate panes"""
-    capi.split(vertical)
+    return "core.split %s"%vertical
 
-@Command()
+
+@Alias()
 def unsplit():
     """unsplit (merge) two separate panes"""
-    capi.unsplit()
+    return "core.unsplit"
 

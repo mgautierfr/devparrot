@@ -18,27 +18,19 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
+from devparrot.core.command import Command
+from devparrot.core.constraints import OpenDocument
+from devparrot.core import session
 
-from devparrot.capi import Command, Alias, create_section, get_currentDocument
-from devparrot.capi.constraints import Stream
-
-class inner:
-    @staticmethod
-    def replace(pattern, repl, ranges):
-        import re
-        model = get_currentDocument().model
-        for start, stop in ranges:
-            text = model.get(str(start), str(stop))
-            new = re.sub(pattern, repl, text)
-            model.replace(str(start), str(stop), new)
-
-Command(
+@Command(
 _section='core',
-ranges=Stream()
-)(inner.replace)
-
-
-@Alias()
-def replace(regex, subst):
-    return "core.search {0!r} | core.replace {0!r} {1!r}".format(regex, subst)
-
+document=OpenDocument(default=session.get_currentDocument, help="documents to close")
+)
+def close(document):
+    from devparrot.core.ui import viewContainer
+    if document.documentView.is_displayed():
+        parentContainer = document.documentView.get_parentContainer()
+        parentContainer.detach_child(document.documentView)
+        if parentContainer.get_nbChildren() == 0:
+            viewContainer.unsplit(parentContainer)
+    return session.get_documentManager().del_file(document)

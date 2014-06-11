@@ -18,27 +18,21 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
+from devparrot.core.command import Command
+from devparrot.core.constraints import OpenDocument
 
-from devparrot.capi import Command, Alias, create_section, get_currentDocument
-from devparrot.capi.constraints import Stream
-
-class inner:
-    @staticmethod
-    def replace(pattern, repl, ranges):
-        import re
-        model = get_currentDocument().model
-        for start, stop in ranges:
-            text = model.get(str(start), str(stop))
-            new = re.sub(pattern, repl, text)
-            model.replace(str(start), str(stop), new)
-
-Command(
+@Command(
 _section='core',
-ranges=Stream()
-)(inner.replace)
-
-
-@Alias()
-def replace(regex, subst):
-    return "core.search {0!r} | core.replace {0!r} {1!r}".format(regex, subst)
-
+document = OpenDocument()
+)
+def switch(document):
+    """set focus to document"""
+    from devparrot.core import session
+    if document == None:
+        session.get_currentContainer().set_documentView(None)
+    elif document.documentView.is_displayed():
+        document.documentView.parentContainer.select(document.documentView)
+        document.documentView.focus()
+    else:
+        session.get_currentContainer().set_documentView(document.documentView)
+        document.documentView.focus() 

@@ -33,20 +33,24 @@ def add_command(name, command, parentSection=None):
 
 def add_macro(name, command):
     import session
-    session.macros[name] = command
+    session.macros.add_command(name, command)
 
 
-def create_section(name=None, parentSection=None):
+def create_section(name=None):
     from devparrot.core.command.section import Section
     import session
-    if name is None:
-        session.commands = Section(None, None)
+    if not name:
+        if session.commands is None:
+            session.commands = Section(None, None)
         return session.commands
     else:
-        if parentSection is None:
-            return session.commands.setdefault(name, Section(name))
-        else:
-            return parentSection.setdefault(name,Section(name, parentSection))
+        spl = name.split('.')
+        name = spl[-1]
+        parentSection = create_section('.'.join(spl[:-1]))
+        try:
+            return parentSection[name]
+        except KeyError:
+            return parentSection.setdefault(name, Section(name, parentSection))
 
 
 class ListGenerator:

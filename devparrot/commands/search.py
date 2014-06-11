@@ -19,31 +19,28 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import Command, Alias, create_section, get_currentDocument
-from devparrot.capi import constraints
-from devparrot.core.session import bindings
+from devparrot.core.command import Command, Alias
+from devparrot.core.constraints import Boolean, Default
+from devparrot.core.session import bindings, get_currentDocument
 
 from itertools import dropwhile, takewhile
 
 lastSearch = None
-capi_section = create_section("capi")
 
-class inner:
-    @staticmethod
-    def search(searchText):
-        if not searchText:
-            return None
+@Command(
+_section='core',
+backward=Boolean(default=lambda : False)
+)
+def search(searchText):
+    if not searchText:
+        return None
 
-        return get_currentDocument().model.search(searchText)
-
-Command(
-    backward = constraints.Boolean(default=lambda : False)
-)(inner.search, capi_section)
+    return get_currentDocument().model.search(searchText)
 
 
 @Command(
-    searchText = constraints.Default(default=lambda : lastSearch),
-    backward = constraints.Boolean(default=lambda :False)
+    searchText = Default(default=lambda : lastSearch),
+    backward = Boolean(default=lambda :False)
 )
 def search(searchText, backward):
     """search for searchText in currentDocument
@@ -54,10 +51,10 @@ def search(searchText, backward):
     global lastSearch
     lastSearch = searchText
 
-    session.commands['tag'].subCommands['clean']('search_tag')
-    searches_results = list(session.commands['capi']['search'](searchText))
+    session.commands.tag.subCommands['clean']('search_tag')
+    searches_results = list(session.commands.core.search(searchText))
     if searches_results:
-        session.commands['tag'].subCommands['set']('search_tag', searches_results)
+        session.commands.tag.subCommands['set']('search_tag', searches_results)
 
         document = get_currentDocument()
         insert = document.model.index('insert')
@@ -73,7 +70,7 @@ def search(searchText, backward):
             except StopIteration:
                 next_to_go = searches_results[0]
 
-        session.commands['goto']((document, next_to_go[0]))
+        session.commands.goto((document, next_to_go[0]))
 
 @Alias()
 def bsearch(searchText):

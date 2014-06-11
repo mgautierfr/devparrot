@@ -45,10 +45,12 @@ class inner:
         for command in commands:
             yield " - {}\n".format(command)
 
-Command(command=CommandConstraint()
-)(inner.help, create_section("capi"))
+Command(
+_section='core',
+command=CommandConstraint()
+)(inner.help)
 
-Command()(inner.help_devparrot, create_section("capi"))
+Command(_section='core')(inner.help_devparrot)
 
 @Alias(
 command = CommandConstraint(default= lambda:None)
@@ -57,7 +59,7 @@ def help(command):
     """The help command"""
     if command:
         commandName = command.get_name()
-        line = "capi.help {0!r} | capi.buffer 'help {0}'".format(commandName)
+        line = "core.help {0!r} | core.buffer 'help {0}'".format(commandName)
         return line
     else:
-        return "capi.help_devparrot | capi.buffer 'help devparrot'"
+        return "core.help_devparrot | core.buffer 'help devparrot'"

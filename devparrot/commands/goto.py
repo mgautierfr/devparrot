@@ -37,7 +37,7 @@ def goto(index):
         - a ex search syntax :
          . [?/]regex
     """
-    document, index = index
-    set_currentDocument(document)
-    document.goto_index(index)
+    document, _ = index
+    session.commands.core.switch(document)
+    session.commands.core.see(index)
 

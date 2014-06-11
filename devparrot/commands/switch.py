@@ -18,22 +18,11 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
-
-from devparrot.capi import Command, set_currentDocument
-from devparrot.capi.constraints import OpenDocument
 from devparrot.core.session import bindings
 
-@Command(
-document = OpenDocument()
-)
-def switch(document):
-    """set focus to document"""
-    set_currentDocument(document)
-
-
-bindings["<Alt-Right>"] = "switch %right\n"
-bindings["<Alt-Left>"] = "switch %left\n"
-bindings["<Alt-Up>"] = "switch %top\n"
-bindings["<Alt-Down>"] = "switch %bottom\n"
-bindings["<Alt-Prior>"] = "switch %previous\n"
-bindings["<Alt-Next>"] = "switch %next\n"
+bindings["<Alt-Right>"] = "core.switch %right\n"
+bindings["<Alt-Left>"] = "core.switch %left\n"
+bindings["<Alt-Up>"] = "core.switch %top\n"
+bindings["<Alt-Down>"] = "core.switch %bottom\n"
+bindings["<Alt-Prior>"] = "core.switch %previous\n"
+bindings["<Alt-Next>"] = "core.switch %next\n"

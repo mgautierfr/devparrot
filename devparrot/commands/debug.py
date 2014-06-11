@@ -19,18 +19,19 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.capi import MasterCommand, SubCommand, constraints
-from ast import literal_eval
+from devparrot.core.command import MasterCommand, SubCommand
+from devparrot.core.constraints import File
+from devparrot.core.session import get_currentDocument
 
-class config(MasterCommand):
+class debug(MasterCommand):
 
     @SubCommand(
-        configEntry = constraints.ConfigEntry()
+       ofile= File(mode=File.SAVE, default=lambda: "dump.txt")
     )
-    def set(configEntry, value):
+    def dump_buffer(ofile):
         """set a config entry to value"""
-        try:
-            value = literal_eval(value)
-        except (SyntaxError, ValueError):
-            pass
-        configEntry.set(value)
+        content = get_currentDocument().model.dump("1.0", "end", all=True)
+        with open(ofile, "w") as f:
+            import pprint
+            printer = pprint.PrettyPrinter(stream=f)
+            printer.pprint(content)

@@ -18,31 +18,40 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
-
-from devparrot import capi
-from devparrot.capi import Command, create_section
-from devparrot.capi.constraints import Stream
+from devparrot.core.command import Command
+from devparrot.core.constraints import Keyword, Stream
 
 
-def buffer(name, content):
+@Command(
+_section='core',
+type=Keyword(('new','buffer'), default=lambda:'buffer'),
+content=Stream()
+)
+def buffer(name, type, content):
     """Open a buffer and fill it with comment
 
 A buffer is not attach to any file and can't be modified"""
+    from devparrot.core import session
     from devparrot.core.document import Document
     from devparrot.documents.bufferSource import BufferSource
-    document = Document(BufferSource(name))
-    capi.add_file(document)
-    capi.set_currentDocument(document)
+    from devparrot.documents.newDocSource import NewDocSource
+    if type == 'buffer':
+        document = Document(BufferSource(name))
+    else:
+        document = Document(NewDocSource(name))
+    session.get_documentManager().add_file(document)
+    session.commands.core.switch(document)
     model = document.get_model()
 
     def read_line():
         try:
             line = content.next()
-            model.insert("insert", line)
-            model.after_idle(read_line)
+            while line is not None:
+                model.insert("insert", line)
+                line = content.next()
+            model.after(100, read_line)
         except StopIteration:
             pass
 
-    model.after_idle(read_line)
+    model.after(100, read_line)
 
-Command(content=Stream())(buffer, create_section("capi"))
