@@ -153,12 +153,14 @@ class CommandLauncher:
                     if command == "\n":
                         DefaultStreamEater(stream)
                         break # one pipe, start a new line (pipe)
+                    # check that command really exists
                     l = command.name.split('.')
                     sections, commandName = l[:-1], l[-1]
                     try:
                         lastSection = session.commands
                         for section in sections:
-                                    lastSection = lastSection[section]
+                            lastSection = lastSection[section]
+                        lastSection[commandName]
                     except KeyError:
                          raise InvalidName("{0} is not a valid command name".format(command.name))
                     try:
