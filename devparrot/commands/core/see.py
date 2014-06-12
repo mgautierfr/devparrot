@@ -27,4 +27,4 @@ index = Index()
 )
 def see(index):
     document, index = index
-    document.goto_index(index)
+    document.get_model().after(300, lambda : document.goto_index(index))
