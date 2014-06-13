@@ -28,7 +28,7 @@ from devparrot.core import session, utils
 from devparrot.core.utils.posrange import Index, Start
 from devparrot.core.errors import *
 
-#import rangeInfo
+import rangeInfo
 
 
 def insert_char(event):
@@ -188,7 +188,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         self._nbModifAtLastChange = 0
 
         # rangeInfo stuff
-        #self.rangeInfo = rangeInfo.Document()
+        self.rangeInfo = rangeInfo.Document()
 
     @property
     def nbModifAtLastChange(self):
@@ -302,7 +302,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
             self.add_change(type='insert', index=index, text=text)
         if kword.get('forceUpdate', False):
             self.update()
-        #self.rangeInfo.parse_text(self.get("0.1", "end"), self.calculate_distance(Start, index), len(text))
+        self.rangeInfo.parse_text(self.get("0.1", "end"), self.calculate_distance(Start, index), len(text))
         self.event('insert')(self, index, text)
     
     def delete(self, index1, index2, updateUndo=True):
@@ -313,7 +313,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         ModelInfo.delete(self, index1, index2)
         if updateUndo:
             self.add_change(type='delete', index=index1, oldText=text)
-        #self.rangeInfo.parse_text(self.get("0.1", "end"), self.calculate_distance(Start, index1), -len(text))
+        self.rangeInfo.parse_text(self.get("0.1", "end"), self.calculate_distance(Start, index1), -len(text))
         self.event('delete')(self, index1, index2)
 
     def replace(self, index1, index2, text, updateUndo=True):
@@ -325,10 +325,10 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         ModelInfo.insert(self, index1, text)
         if updateUndo:
             self.add_change(type='replace', index=index1, oldText=oldText, text=text)
-        #distance = self.calculate_distance(Start, index1)
-        #content  = self.get("0.1", "end")
-        #self.rangeInfo.parse_text(content, distance, -len(oldText))
-        #self.rangeInfo.parse_text(content, distance, len(text))
+        distance = self.calculate_distance(Start, index1)
+        content  = self.get("0.1", "end")
+        self.rangeInfo.parse_text(content, distance, -len(oldText))
+        self.rangeInfo.parse_text(content, distance, len(text))
         self.event('replace')(self, index1, index2, text)
 
     def undo(self):

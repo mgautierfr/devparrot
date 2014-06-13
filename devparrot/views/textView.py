@@ -20,7 +20,21 @@
 
 
 from devparrot.core import session
+from devparrot.core.utils.posrange import Start
+from itertools import dropwhile, takewhile
 import ttk, Tkinter
+
+class DisplayedRange(object):
+    def __init__(self, view, lineId):
+        self.view = view
+        self.lineId = lineId
+        self.subRange = set()
+
+    def destroy(self):
+        self.view.sectionInfo.itemconfig(self.lineId, state="hidden")
+        self.view.freeLines.add(self.lineId)
+        [s.destroy() for s in self.subRange]
+        self.subRange.clear()
 
 class TextView():
     def __init__(self, document):
@@ -37,7 +51,7 @@ class TextView():
 
         self.vScrollbar = ttk.Scrollbar(session.get_globalContainer(),
                                         orient=ttk.Tkinter.VERTICAL)
-        self.vScrollbar.grid(column=10,
+        self.vScrollbar.grid(column=100,
                              row=0,
                              in_=self.uiContainer,
                              sticky="nsew")
@@ -54,9 +68,21 @@ class TextView():
                               in_=self.uiContainer,
                               sticky="nsw")
 
+        self.sectionInfo = ttk.Tkinter.Canvas(session.get_globalContainer(),
+                                              highlightthickness = 0,
+                                              takefocus = 0,
+                                              bd=0,
+                                              background = 'lightgrey',
+                                              state='disable')
+        self.sectionInfo.grid(column=1,
+                              row=0,
+                              in_=self.uiContainer,
+                              sticky="nsw")
+
         self.uiContainer.columnconfigure(0, weight=0)
-        self.uiContainer.columnconfigure(1, weight=1)
-        self.uiContainer.columnconfigure(10, weight=0)
+        self.uiContainer.columnconfigure(1, weight=0)
+        self.uiContainer.columnconfigure(10, weight=1)
+        self.uiContainer.columnconfigure(100, weight=0)
         self.uiContainer.rowconfigure(0, weight=1)
         self.uiContainer.rowconfigure(1, weight=0)
         
@@ -68,6 +94,9 @@ class TextView():
         self.firstLine = 1
         self.lastLine = 1
         self.actualLineNumberWidth = 0
+        self.maxDepth = 0
+        self.knownSection = set()
+        self.freeLines = set()
 
     def focus(self):
         return self.view.focus()
@@ -103,12 +132,12 @@ class TextView():
     def set_lineNumbers(self):
         self.lineNumbers.config(state='normal')
         
-        firstLine = self.view.index('@0,0').line-1
-        firstLine = max(min(firstLine, self.firstLine), 1)
+        _firstLine = self.view.index('@0,0').line-1
+        firstLine = max(min(_firstLine, self.firstLine), 1)
 
         lastIndex = self.view.index('@0,{}'.format(self.view.winfo_height()))
-        lastLine = lastIndex.line+1
-        lastLine = max(lastLine, self.lastLine)
+        _lastLine = lastIndex.line+1
+        lastLine = max(_lastLine, self.lastLine)
 
         for i in range( firstLine , lastLine+1 ):
             name = str(i)
@@ -132,6 +161,55 @@ class TextView():
                 self.lineNumbers.config(width=self.actualLineNumberWidth)
 
         self.lineNumbers.config(state='disable')
+
+        firstIndex = self.view.calculate_distance(Start, self.view.index("%d.0"%_firstLine))
+        lastIndex = self.view.calculate_distance(Start, self.view.index("%d.0 lineend"%_lastLine))
+        for displayed in self.knownSection:
+            displayed.destroy()
+        self.knownSection.clear()
+        self.set_rangeInfo(Start, firstIndex, lastIndex, _firstLine+1, _lastLine-1, self.view.rangeInfo.innerSections, 0, self.knownSection)
+        self.sectionInfo.config(width=self.maxDepth+2)
+
+    def set_rangeInfo(self, start, firstIndex, lastIndex, firstLine, lastLine, sections, depth, container):
+        pixelDepth = 4*depth
+
+        _sections = dropwhile(lambda s: s.length is not None and s.startIndex+s.length <= firstIndex, sections)
+        _sections = takewhile(lambda s: s.startIndex <= lastIndex, _sections)
+
+        for section in _sections:
+            newStartIndex = max(section.startIndex, firstIndex) - section.startIndex
+            startIndex = self.view.addchar(start, section.startIndex)
+            if section.length is not None:
+                endIndex = self.view.addchar(startIndex, section.length)
+                if endIndex.line <= firstLine or startIndex.line >= lastLine:
+                    continue
+                if endIndex.line == startIndex.line:
+                    continue
+                self.maxDepth = max(self.maxDepth, pixelDepth)
+
+                startPos =  self.view.dlineinfo("%d.0"%startIndex.line)
+                endPos   =  self.view.dlineinfo("%d.0"%endIndex.line)
+                startPos = startPos or [0, 0, 0, 0, 0]
+                endPos = endPos or [0, self.view.winfo_height(), 0, 0, 0]
+                startPos = int(startPos[1]) + int(startPos[3])/2
+                endPos = int(endPos[1]) + int(endPos[3])/2
+                try:
+                    lineId = self.freeLines.pop()
+                    self.sectionInfo.itemconfig(lineId, state="disable")
+                    self.sectionInfo.coords(lineId, pixelDepth, startPos, pixelDepth, endPos)
+                except KeyError:
+                    lineId = self.sectionInfo.create_line(pixelDepth, startPos, pixelDepth, endPos)
+                drange = DisplayedRange(self, lineId)
+                container.add(drange)
+                newLastIndex = min(section.startIndex+section.length, lastIndex) - section.startIndex
+                subContainer = drange.subRange
+                depth += 1
+            else:
+                newLastIndex = lastIndex - section.startIndex
+                subContainer = container
+            self.set_rangeInfo(startIndex, newStartIndex, newLastIndex, firstLine, lastLine, section.innerSections, depth, subContainer)
+
+
     
     def on_event_lineChanged(self, *args):
         self.set_lineNumbers()
@@ -142,7 +220,7 @@ class TextView():
         self.view['yscrollcommand'] = self.proxy_yscrollcommand
         self.view['xscrollcommand'] = self.proxy_xscrollcommand
         self.hScrollbar['command'] = self.view.xview
-        self.view.grid(column=1, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
+        self.view.grid(column=10, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
         self.view.lift(self.uiContainer)
         self.view.connect('insert', self.on_event_lineChanged)
         self.view.connect('delete', self.on_event_lineChanged)
