@@ -24,7 +24,7 @@ This is the main module of devparrot
 """
 
 import sys
-import os.path
+import os
 import argparse
 
 import core
@@ -68,6 +68,7 @@ def set_signal_handler():
     signal.signal(signal.SIGUSR1, handle_pdb)
 
 def _main(cmd_options):
+    os.environ['XMODIFIERS'] = "@im=none"
     config = core.configLoader.init(cmd_options)
     core.session.init(config)
     core.ui.init()
