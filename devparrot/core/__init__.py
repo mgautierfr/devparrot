@@ -24,3 +24,4 @@ import session
 import ui
 import command
 import modules
+import controller

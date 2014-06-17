@@ -93,11 +93,11 @@ class MainWindow(ttk.Tkinter.Tk):
 
         self.popupMenu = popupMenuModule.Menu()
 
-        self.bind_class("Command", "<Control-Return>", self.focus_and_break)
+        self.bind_class("devparrot", "<Control-Return>", self.focus_and_break)
         self.bind('<ButtonRelease>', lambda e: self.popupMenu.unpost() )
         self.bind('<Configure>', lambda e: self.popupMenu.unpost() )
         bindtags = list(self.bindtags())
-        bindtags.insert(1,"Command")
+        bindtags.insert(1,"devparrot")
         bindtags = " ".join(bindtags)
         self.bindtags(bindtags)
 

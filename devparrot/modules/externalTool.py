@@ -59,7 +59,7 @@ class CommandOutput(ttk.Frame):
         self.textView['yscrollcommand'] = self.vScrollbar.set
 
         bindtags = list(self.textView.bindtags())
-        bindtags.insert(1,"Command")
+        bindtags.insert(1,"devparrot")
         bindtags = " ".join(bindtags)
         self.textView.bindtags(bindtags)
 

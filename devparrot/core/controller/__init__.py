@@ -44,47 +44,69 @@ class Modifiers(object):
     def __getattr__(self, name):
         level = getattr(self, "_"+name)
         return level in self.modifiers
+
+class MetaController(type):
+    def __new__(cls, name, bases, dct):
+        _class = type.__new__(cls, name, bases, dct)
+        if name != "Controller":
+            from devparrot.core import session
+            ctrl = _class()
+            session.add_controller(name, ctrl)
+        return _class
             
 
 class Controller(object):
-    def __init__(self):
-        self.tag = PREFIX + str(id(self))
-    
-    def configure(self, master):
-        def bind(event, handler):
-            master.bind_class(self.tag, event, handler)
-        self.create(bind)
+    __metaclass__ = MetaController
 
-    def create(self, handle):
+    def __init__(self):
+        self.tag = str(self.__class__.__name__)
+        self.configure()
+    
+    def configure(self):
+        def bind(event, handler):
+            Tkinter._default_root.bind_class(self.tag, event, handler)
         for key in dir(self):
             method = getattr(self, key)
             if hasattr(method, "tkevent") and callable(method):
                 for eventSequence in method.tkevent:
-                    handle(eventSequence,
+                    bind(eventSequence,
                            lambda event, method=method: method(event, Modifiers(event))
                           )
 
-class ControllerMode:
-    def __init__(self):
-        self.subControllers = []
-        self.configured = False
-    
-    def set_subControllers(self, *controllers):
-        self.subControllers.extend(controllers)
-    
-    def install(self, widget):
-        if not self.configured:
-            self.configure()
-        widgetclass = widget.winfo_class()
-        # remove widget class bindings and other controllers
-        tags = list(widget.bindtags())
-        i = tags.index(widgetclass)
-        tags[i:i+1] = [c.tag for c in self.subControllers]
-        widget.bindtags(tuple(tags))
-    
-    def configure(self, master=None):
-        if master is None:
-            master = Tkinter._default_root
-        assert master is not None
-        for controller in self.subControllers:
-            controller.configure(master)
+
+def load():
+    from pwd import getpwuid
+    import os
+    from devparrot.core import session
+    path = os.path.join(session.config.get('devparrotPath'), "controllers")
+    load_directory(path)
+
+    _homedir = getpwuid(os.getuid())[5]
+    path = os.path.join(_homedir,'.devparrot', 'controllers')
+    load_directory(path)
+
+def load_directory(path):
+    import os.path
+    if os.path.exists(path):
+        moduleList = os.listdir(path)
+        for module in moduleList:
+            if os.path.isdir(os.path.join(path, module)):
+                load_directory(os.path.join(path, module))
+            else:
+                load_module(path, module)
+
+def load_module(path, name):
+    import imp, os
+    from devparrot.core import session
+    if not name.endswith('.py'):
+        return
+    name = name[:-3]
+
+    try:
+        fp, pathname, description = imp.find_module(name, [path])
+    except ImportError, err:
+        session.logger.error("can't import module named %s in dir %s", name, path)
+        return
+
+    with fp:
+        return imp.load_module(name, fp, pathname, description)

@@ -101,20 +101,20 @@ class Config(Section):
         setattr(self, name, value)
 
 def init(cmd_options):
-    from devparrot.controllers.defaultControllerMode import DefaultControllerMode, DefaultROControllerMode
     import os
     global _config
     devparrotPath = os.path.dirname(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
     _config = Config()
     _config.add_variable("encoding", "utf8")
-    _config.add_variable("controller", DefaultControllerMode())
-    _config.add_variable("ROcontroller", DefaultROControllerMode())
     _config.add_variable("devparrotPath", devparrotPath)
     _config.add_variable("wchars", u"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ€")
     _config.add_variable("spacechars", u" \t")
     _config.add_variable("puncchars", u"!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿×÷")
     section = createSection("cmd")
     section.add_variable("ARGUMENTS", cmd_options.ARGUMENTS)
+
+    section = createSection("controllers")
+    section.add_variable("default", [ 'CarretController', 'KeyboardController', 'MouseController' ])
 
     section = createSection("window")
     section.add_variable("height", 600)

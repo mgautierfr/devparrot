@@ -71,7 +71,7 @@ class DocumentListView(ttk.Treeview):
         self['selectmode'] =(Tkinter.BROWSE)
         self.bind('<Double-Button-1>', self.on_double_click)
         bindtags = list(self.bindtags())
-        bindtags.insert(1,"Command")
+        bindtags.insert(1,"devparrot")
         bindtags = " ".join(bindtags)
         self.bindtags(bindtags)
         nb_doc = session.get_documentManager().get_nbDocuments()

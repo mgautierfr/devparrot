@@ -153,7 +153,7 @@ class FileExplorerView(ttk.Frame):
         self.treeView['yscrollcommand'] = self.vScrollbar.set
 
         bindtags = list(self.treeView.bindtags())
-        bindtags.insert(1,"Command")
+        bindtags.insert(1,"devparrot")
         bindtags = " ".join(bindtags)
         self.treeView.bindtags(bindtags)
         self.currentPath = os.getcwd()

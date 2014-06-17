@@ -74,6 +74,7 @@ def _main(cmd_options):
     core.ui.init()
     core.modules.load()
     core.command.load()
+    core.controller.load()
     core.configLoader.load(cmd_options)
 
     core.ui.window.mainloop()

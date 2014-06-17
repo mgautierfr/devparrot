@@ -173,10 +173,6 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         Tkinter.Text.__init__(self,session.get_globalContainer(),
                                   tabstyle="wordprocessor")
         ModelInfo.__init__(self)
-        bindtags = list(self.bindtags())
-        bindtags.insert(1,"Command")
-        bindtags = " ".join(bindtags)
-        self.bindtags(bindtags)
 
         self._encoding = None
 
@@ -422,10 +418,10 @@ class SourceBuffer(TextModel):
     def __init__(self, readOnly):
         TextModel.__init__(self)
 
-        if readOnly:
-            session.config.get("ROcontroller").install(self)
-        else:
-            session.config.get("controller").install(self)
+        tags = ['.', 'devparrot'] + session.config.get('controllers.default')
+        self.bindtags(tuple(tags))
+
+        self.readOnly = readOnly
 
         self.tag_configure('currentLine_tag', background=session.config.get("color.currentLine_tag_color"))
         self.tag_raise("currentLine_tag")

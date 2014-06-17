@@ -32,6 +32,7 @@ config = None
 commands = None
 macros = None
 memories = {}
+controllers = {}
 bindings = None
 
 eventSystem = utils.event.EventSource()
@@ -85,4 +86,7 @@ def get_globalContainer():
 
 def get_currentContainer():
     return _workspace.get_currentContainer()
+
+def add_controller(name, contr):
+    controllers[name] = contr
 

@@ -39,7 +39,7 @@ class ControlerEntry(Tkinter.Text):
         self.bind('<Control-Return>', lambda e: "continue")
 
         bindtags = list(self.bindtags())
-        bindtags.insert(1,"Command")
+        bindtags.insert(1,"devparrot")
         bindtags = " ".join(bindtags)
         self.bindtags(bindtags)
     

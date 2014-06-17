@@ -57,7 +57,7 @@ class Binder(object):
         if TkEventMatcher.match(accel):
             from devparrot.core import ui
             if ui.window:
-                ui.window.bind_class("Command", accel, bindLauncher)
+                ui.window.bind_class("devparrot", accel, bindLauncher)
             else:
                 self.tkBinds[accel] = bindLauncher
         else:
@@ -70,7 +70,7 @@ class Binder(object):
             window = ui.window
         if window:
             for accel, func in self.tkBinds.items():
-                window.bind_class("Command", accel, func)
+                window.bind_class("devparrot", accel, func)
             self.tkBinds = []
 
     def __delitem__(self, accel):
@@ -78,7 +78,7 @@ class Binder(object):
         if TkEventMatcher.match(accel):
             from devparrot.core import ui
             if ui.window:
-                ui.window.unbind_class("Command", accel)
+                ui.window.unbind_class("devparrot", accel)
             del self.tkBinds[accel]
         else:
             for bind in self.binds.get(accel, []):

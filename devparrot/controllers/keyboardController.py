@@ -22,7 +22,6 @@
 import ttk
 from devparrot.core.controller import Controller, bind
 from devparrot.core.utils.posrange import Index, Tag, Mark, LineStart, LineEnd
-import readOnlyControllers
 
 from devparrot.core.errors import *
 
@@ -34,6 +33,8 @@ class KeyboardController(Controller):
     @bind('<KeyPress>')
     def on_key_pressed(self, event, modifiers):
         from devparrot.core import session
+        if event.widget.readOnly:
+            return
         if event.keysym in ( 'Return', 'Enter', 'KP_Enter', 'BackSpace', 'Delete', 'Insert' ):
             event.widget.sel_clear()
             return "break"
@@ -47,6 +48,8 @@ class KeyboardController(Controller):
     @bind('<Return>', '<KP_Enter>')
     def on_return(self, event, modifiers):
         from devparrot.core import session
+        if event.widget.readOnly:
+            return
         event.widget.sel_delete()
         count = ttk.Tkinter.IntVar()
         text = "\n"
@@ -67,6 +70,8 @@ class KeyboardController(Controller):
     def on_back_tab(self, event, modifier):
         from devparrot.core import session
         from devparrot.core.utils.posrange import Index
+        if event.widget.readOnly:
+            return
         tabs = ['\t'] + [' '*i for i in xrange(session.config.get("textView.tab_width"), 0, -1)]
         start, stop = Tag('sel').resolve(event.widget)
         for line in xrange(start.line, stop.line+1):
@@ -79,6 +84,8 @@ class KeyboardController(Controller):
     def on_tab(self, event, modifier):
         from devparrot.core.utils.posrange import Index
         from devparrot.core import session
+        if event.widget.readOnly:
+            return
         tab = ' '*session.config.get("textView.tab_width") if session.config.get("textView.space_indent") else '\t'
         start, stop = Tag('sel').resolve(event.widget)
         if start == stop:
@@ -91,6 +98,8 @@ class KeyboardController(Controller):
     
     @bind('<BackSpace>')
     def on_backspace(self, event, modifiers):
+        if event.widget.readOnly:
+            return
         try:
             # we want to catch the except here, so no call to sel_delete
             event.widget.delete( 'sel.first', 'sel.last' )
@@ -100,6 +109,8 @@ class KeyboardController(Controller):
     
     @bind('<Delete>', '<KP_Delete>')
     def on_delete(self, event, modifiers):
+        if event.widget.readOnly:
+            return
         if event.keysym == "KP_Delete" and len(event.char) > 0 :
             return self.on_key_pressed(event, modifiers)
         try:
@@ -111,24 +122,14 @@ class KeyboardController(Controller):
     
     @bind('<Control-r>')
     def on_ctrl_r(self, event, modifiers):
+        if event.widget.readOnly:
+            return
         event.widget.redo()
         return "break"
     
     @bind('<Control-z>')
     def on_ctrl_z(self, event, modifiers):
+        if event.widget.readOnly:
+            return
         event.widget.undo()
         return "break"
-
-class MouseController(readOnlyControllers.MouseController):
-    def __init__(self):
-        readOnlyControllers.MouseController.__init__(self)
-
-    @bind( '<ButtonPress-2>' )
-    def middle_click( self, event, modifiers):
-        self.set_current(event)
-        try:
-            event.widget.insert( 'current', event.widget.selection_get() )
-            event.widget.edit_separator()
-        except TclError:
-            pass
-
