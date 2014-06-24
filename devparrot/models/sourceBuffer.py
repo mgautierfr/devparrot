@@ -418,7 +418,7 @@ class SourceBuffer(TextModel):
     def __init__(self, readOnly):
         TextModel.__init__(self)
 
-        tags = ['.', 'devparrot'] + session.config.get('controllers.default')
+        tags = [str(self._w), 'devparrot'] + session.config.get('controllers.default')
         self.bindtags(tuple(tags))
 
         self.readOnly = readOnly
