@@ -222,6 +222,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
             self.mark_unset('sel.anchor', 'sel.first', 'sel.last')
         except TclError:
             pass
+        session.eventSystem.event('selection')(self)
    
     def sel_setAnchor(self, index):
         self.mark_set('sel.anchor', str(index))
@@ -253,6 +254,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
 
             self.tag_remove('sel', '1.0', 'end')
             self.tag_add('sel', 'sel.first', 'sel.last')
+            session.eventSystem.event('selection')(self)
         except TclError as e:
             pass
    
@@ -459,6 +461,7 @@ class SourceBuffer(TextModel):
             self.tag_add( 'currentLine_tag', 'insert linestart', 'insert + 1l linestart')
 
     def on_selection_changed(self, event):
+        session.eventSystem.event('selection')(self)
         if self.highlight_tag_protected:
             return
         select = self.tag_ranges("sel")
