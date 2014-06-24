@@ -27,7 +27,7 @@ except ImportError:
     PhotoImage = None
 from os.path import join
 
-from devparrot.core import popupMenu as popupMenuModule
+import menu
 import controlerEntry
 import statusBar
 
@@ -91,11 +91,13 @@ class MainWindow(ttk.Tkinter.Tk):
 
         self.statusBar = statusBar.StatusBar(self._vbox)
 
-        self.popupMenu = popupMenuModule.Menu()
+        self.popupMenu = menu.PopupMenu()
+        self.menuBar = menu.MenuBar()
+        self['menu'] = self.menuBar
 
         self.bind_class("devparrot", "<Control-Return>", self.focus_and_break)
-        self.bind('<ButtonRelease>', lambda e: self.popupMenu.unpost() )
-        self.bind('<Configure>', lambda e: self.popupMenu.unpost() )
+        self.bind_class("devparrot", '<ButtonRelease>', lambda e: self.popupMenu.unpost() )
+        self.bind_class("devparrot", '<Configure>', lambda e: self.popupMenu.unpost() )
         bindtags = list(self.bindtags())
         bindtags.insert(1,"devparrot")
         bindtags = " ".join(bindtags)

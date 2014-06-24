@@ -139,7 +139,33 @@ def init(cmd_options):
     section.add_variable("highlight_tag_color", "#FFFFBB")
     section.add_variable("search_tag_color", "#FFAAAA")
     section.add_variable("currentLine_tag_color", "#EEEEEE")
+
+    section = createSection("ui")
+    section.add_variable("menuBar", [("File", [ ("New", "new"),
+                                                ("Open", "open"),
+                                                "---",
+                                                ("Save", "save"),
+                                                ("Save as", "saveas")
+                                              ]),
+                                     ("Edit", [ ("Undo", "undo"),
+                                                ("Redo", "redo"),
+                                                "---",
+                                                ("Copy", "copy"),
+                                                ("Cut", "cut"),
+                                                ("Paste", "paste")
+                                              ]),
+                                     ("Help", "help")
+                                    ])
+    section.add_variable("popupMenu", [ ("Undo", "undo"),
+                                        ("Redo", "redo"),
+                                        "---",
+                                        ("Copy", "copy"),
+                                        ("Cut", "cut"),
+                                        ("Paste", "paste")
+                                      ])
+
     section = createSection("modules")
+
     return _config
 
 def createSection(name, parent=None):
