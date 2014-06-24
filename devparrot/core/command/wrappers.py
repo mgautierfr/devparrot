@@ -202,6 +202,9 @@ class MasterCommandWrapper(object):
     def get_name(self):
         return self._class.__name__
 
+    def __getitem__(self, name):
+        return self.subCommands[name]
+
 
 
 class MacroWrapper(CommandWrapper):
