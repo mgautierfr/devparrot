@@ -90,13 +90,12 @@ class TextView():
 
         self.document = document
         self.view = None
-        
-        self.firstLine = 1
-        self.lastLine = 1
+
         self.actualLineNumberWidth = 0
         self.maxDepth = 0
         self.knownSection = set()
         self.freeLines = set()
+        self.createdLabels = 0
 
     def focus(self):
         return self.view.focus()
@@ -133,25 +132,28 @@ class TextView():
         self.lineNumbers.config(state='normal')
         
         _firstLine = self.view.index('@0,0').line-1
-        firstLine = max(min(_firstLine, self.firstLine), 1)
+        firstLine = max(_firstLine, 1)
 
         lastIndex = self.view.index('@0,{}'.format(self.view.winfo_height()))
-        _lastLine = lastIndex.line+1
-        lastLine = max(_lastLine, self.lastLine)
+        _lastLine = lastIndex.line
+        lastLine = _lastLine
 
-        for i in range( firstLine , lastLine+1 ):
-            name = str(i)
-            if not self.lineNumbers.gettags(name):
-                self._create_textLine(name)
+        ilabel = 1
+        for i in xrange( firstLine , lastLine+1 ):
             pos = self.view.bbox("{}.0".format(i))
-            if pos:
-                self.lineNumbers.coords(name, "0", str(pos[1]))
-                self.lineNumbers.itemconfig(name, state="disable")
-            else:
-                self.lineNumbers.itemconfig(name, state="hidden")
+            if not pos:
+                continue
+            label = "t%d"%ilabel
+            if ilabel > self.createdLabels:
+                self.lineNumbers.create_text("0", "0", anchor="nw", tags=[label], state="hidden")
+                self.createdLabels += 1
 
-        self.firstLine = firstLine
-        self.lastLine = lastLine
+            self.lineNumbers.coords(label, "0", str(pos[1]))
+            self.lineNumbers.itemconfig(label, state="disable", text=str(i))
+            ilabel += 1
+
+        for i in xrange(ilabel, self.createdLabels+1):
+            self.lineNumbers.itemconfig("t%d"%i, state="hidden")
 
         bbox = self.lineNumbers.bbox('all')
         if bbox:
