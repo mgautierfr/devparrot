@@ -21,20 +21,8 @@
 
 from devparrot.core import session
 from devparrot.core.utils.posrange import Start
-from itertools import dropwhile, takewhile
+from itertools import islice
 import ttk, Tkinter
-
-class DisplayedRange(object):
-    def __init__(self, view, lineId):
-        self.view = view
-        self.lineId = lineId
-        self.subRange = set()
-
-    def destroy(self):
-        self.view.sectionInfo.itemconfig(self.lineId, state="hidden")
-        self.view.freeLines.add(self.lineId)
-        [s.destroy() for s in self.subRange]
-        self.subRange.clear()
 
 class TextView():
     def __init__(self, document):
@@ -93,9 +81,9 @@ class TextView():
 
         self.actualLineNumberWidth = 0
         self.maxDepth = 0
-        self.knownSection = set()
-        self.freeLines = set()
+        self.createdLines = 0
         self.createdLabels = 0
+        self.idle_handle = None
 
     def focus(self):
         return self.view.focus()
@@ -103,7 +91,7 @@ class TextView():
     def proxy_yview(self, *args, **kwords):
         if self.view:
             self.view.yview(*args, **kwords)
-            self.set_lineNumbers()
+            self.update_infos()
 
     def proxy_yscrollcommand(self, *args, **kwords):
         if args == ('0.0' , '1.0'):
@@ -111,7 +99,7 @@ class TextView():
         else:
             self.vScrollbar.grid_configure()
         self.vScrollbar.set(*args, **kwords)
-        self.set_lineNumbers()
+        self.update_infos()
 
     def proxy_xscrollcommand(self, *args, **kwords):
         if args == ('0.0' , '1.0'):
@@ -127,16 +115,29 @@ class TextView():
                                      tags=name,
                                      state="hidden")
 
+    def update_infos(self):
+        if self.idle_handle:
+            self.view.after_cancel(self.idle_handle)
 
-    def set_lineNumbers(self):
-        self.lineNumbers.config(state='normal')
-        
-        _firstLine = self.view.index('@0,0').line-1
-        firstLine = max(_firstLine, 1)
+        self.idle_handle = self.view.after(0, self._update_infos)
+
+    def _update_infos(self):
+        self.idle_handle = None
+        firstLine = self.view.index('@0,0').line
+        firstLine = max(firstLine, 1)
 
         lastIndex = self.view.index('@0,{}'.format(self.view.winfo_height()))
-        _lastLine = lastIndex.line
-        lastLine = _lastLine
+        lastLine = lastIndex.line
+
+        firstIndex = self.view.calculate_distance(Start, self.view.index("%d.0"%firstLine))
+        lastIndex = self.view.calculate_distance(Start, self.view.index("%d.0 lineend"%lastLine))
+
+        self.set_lineNumbers(firstLine, lastLine)
+        self.set_rangeInfo(firstIndex, lastIndex)
+
+
+    def set_lineNumbers(self, firstLine, lastLine):
+        self.lineNumbers.config(state='normal')
 
         ilabel = 1
         for i in xrange( firstLine , lastLine+1 ):
@@ -147,10 +148,10 @@ class TextView():
             if ilabel > self.createdLabels:
                 self.lineNumbers.create_text("0", "0", anchor="nw", tags=[label], state="hidden")
                 self.createdLabels += 1
+            ilabel += 1
 
             self.lineNumbers.coords(label, "0", str(pos[1]))
             self.lineNumbers.itemconfig(label, state="disable", text=str(i))
-            ilabel += 1
 
         for i in xrange(ilabel, self.createdLabels+1):
             self.lineNumbers.itemconfig("t%d"%i, state="hidden")
@@ -164,57 +165,120 @@ class TextView():
 
         self.lineNumbers.config(state='disable')
 
-        firstIndex = self.view.calculate_distance(Start, self.view.index("%d.0"%_firstLine))
-        lastIndex = self.view.calculate_distance(Start, self.view.index("%d.0 lineend"%_lastLine))
-        for displayed in self.knownSection:
-            displayed.destroy()
-        self.knownSection.clear()
-        self.set_rangeInfo(Start, firstIndex, lastIndex, _firstLine+1, _lastLine-1, self.view.rangeInfo.innerSections, 0, self.knownSection)
+    def set_rangeInfo(self, firstIndex, lastIndex):
+        class NonLocal: pass
+        nonlocal = NonLocal()
+        nonlocal.ilabel = 1
+        nonlocal.loopCounter = 0
+
+        def inner(sectionStart, visibleStart, visibleStop, sections, depth):
+            pixelDepth = 4*depth
+
+            if not sections:
+                return
+
+            start, end = 0, len(sections)
+            middle = None
+
+            startSectionIndex = None
+            needBreak = False
+            #import pdb; pdb.set_trace()
+            while True:
+                if needBreak:
+                    break
+                nonlocal.loopCounter += 1
+                middle = (start+end)/2
+                #print " "*depth, visibleIndex[1], start, middle, end
+                # we need to stop
+                if middle == start:
+                    needBreak = True
+
+                section = sections[middle]
+
+                if section.startIndex >= visibleStop:
+                    # this section start after being visible
+                    end = middle
+                    continue
+
+                if section.length is not None and section.startIndex + section.length <= visibleStart:
+                    # this section finish before being visible, 
+                    start = middle
+                    continue
+
+                # From here, this section is visible. It start before, finish after or is fully visible.
+                # As it may be the one so :
+                startSectionIndex = middle
+
+                if section.startIndex < visibleStart:
+                    # This section start befoer and is visible. We have found the good one.
+                    break
+
+                # Test if sections before the current one are visible (and so the current one is not the good)
+                end = middle
+
+            if startSectionIndex is None:
+                #we do not have any section visible:
+                return
+
+            #print " "*depth, "startIndex is", startSectionIndex
+
+            for section in islice(sections, startSectionIndex, None):
+                if section.startIndex >= visibleStop:
+                    # we arrive to a section no more visible => stop
+                    break
+
+                # update start indices accordingly to the current section
+                newVisibleStart = visibleStart - section.startIndex
+                newVisibleStop = visibleStop - section.startIndex
+                startIndex = self.view.addchar(sectionStart, section.startIndex)
+
+                if section.length is not None:
+                    endIndex = self.view.addchar(startIndex, section.length)
+
+                    if endIndex.line == startIndex.line:
+                        # section start and stop on same line, do no display it
+                        continue
+
+                    self.maxDepth = max(self.maxDepth, pixelDepth)
+                    endPos   =  self.view.dlineinfo("%d.0"%endIndex.line)
+                    endPos = endPos or [0, self.view.winfo_height(), 0, 0, 0]
+                    endPos = int(endPos[1]) + int(endPos[3])/2
+                else:
+                    endPos = self.view.winfo_height()
+
+                # Try to get the coordinates of the line to display.
+                # If we can get them, this is cause they are out of the screen so get limite values.
+                startPos =  self.view.dlineinfo("%d.0"%startIndex.line)
+                startPos = startPos or [0, 0, 0, 0, 0]
+                startPos = int(startPos[1]) + int(startPos[3])/2
+                #print " "*depth, "visibleIndex %s | sectionStart %s | sectionEnd %s | startIndex %s | endIndex %s | startPos %s | endPos %s"%(visibleIndex, section.startIndex, section.startIndex+section.length, startIndex, endIndex, startPos, endPos)
+
+                # Now get the tag corresponding to a available line else create a line.
+                label = "t%d"%nonlocal.ilabel
+                if nonlocal.ilabel > self.createdLines:
+                    self.sectionInfo.create_line(pixelDepth, startPos, pixelDepth, endPos, tags=[label])
+                    self.createdLines += 1
+                nonlocal.ilabel += 1
+
+                # Display the lines where we need to.
+                self.sectionInfo.itemconfig(label, state="disable")
+                self.sectionInfo.coords(label, pixelDepth, startPos, pixelDepth, endPos)
+
+                # update end index and start again with children
+                inner(startIndex, newVisibleStart, newVisibleStop, section.innerSections, depth+1)
+
+            #print " "*depth, "checked for %s depth %s"%(visibleIndex, depth)
+
+        inner(Start, firstIndex, lastIndex, self.view.rangeInfo.innerSections, 0)
+
+        for i in xrange(nonlocal.ilabel, self.createdLines+1):
+            self.sectionInfo.itemconfig("t%d"%i, state="hidden")
         self.sectionInfo.config(width=self.maxDepth+2)
 
-    def set_rangeInfo(self, start, firstIndex, lastIndex, firstLine, lastLine, sections, depth, container):
-        pixelDepth = 4*depth
-
-        _sections = dropwhile(lambda s: s.length is not None and s.startIndex+s.length <= firstIndex, sections)
-        _sections = takewhile(lambda s: s.startIndex <= lastIndex, _sections)
-
-        for section in _sections:
-            newStartIndex = max(section.startIndex, firstIndex) - section.startIndex
-            startIndex = self.view.addchar(start, section.startIndex)
-            if section.length is not None:
-                endIndex = self.view.addchar(startIndex, section.length)
-                if endIndex.line <= firstLine or startIndex.line >= lastLine:
-                    continue
-                if endIndex.line == startIndex.line:
-                    continue
-                self.maxDepth = max(self.maxDepth, pixelDepth)
-
-                startPos =  self.view.dlineinfo("%d.0"%startIndex.line)
-                endPos   =  self.view.dlineinfo("%d.0"%endIndex.line)
-                startPos = startPos or [0, 0, 0, 0, 0]
-                endPos = endPos or [0, self.view.winfo_height(), 0, 0, 0]
-                startPos = int(startPos[1]) + int(startPos[3])/2
-                endPos = int(endPos[1]) + int(endPos[3])/2
-                try:
-                    lineId = self.freeLines.pop()
-                    self.sectionInfo.itemconfig(lineId, state="disable")
-                    self.sectionInfo.coords(lineId, pixelDepth, startPos, pixelDepth, endPos)
-                except KeyError:
-                    lineId = self.sectionInfo.create_line(pixelDepth, startPos, pixelDepth, endPos)
-                drange = DisplayedRange(self, lineId)
-                container.add(drange)
-                newLastIndex = min(section.startIndex+section.length, lastIndex) - section.startIndex
-                subContainer = drange.subRange
-                depth += 1
-            else:
-                newLastIndex = lastIndex - section.startIndex
-                subContainer = container
-            self.set_rangeInfo(startIndex, newStartIndex, newLastIndex, firstLine, lastLine, section.innerSections, depth, subContainer)
-
-
+        #print "loopCounter %s | ilabel %s"%(nonlocal.loopCounter, nonlocal.ilabel)
     
     def on_event_lineChanged(self, *args):
-        self.set_lineNumbers()
+        self.update_infos()
 
 
     def set_model(self, model):
