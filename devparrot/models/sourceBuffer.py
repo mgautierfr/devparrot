@@ -283,6 +283,19 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
             raise BadArgument("{!r} is not a valid index".format(tkIndex))
         return Index(split[0], split[1])
 
+    def addchar(self, index, char = 1):
+        if char > 0:
+            return self.index("%s + %s c"%(index, char))
+        return self.index("%s - %s c"%(index, -char))
+
+    def delchar(self, index, char = 1):
+        return self.addchar(index, -char)
+
+    def calculate_distance(self, first, second):
+        if first.line == second.line:
+            return second.col - first.col
+        return self.tk.call(self._w, "count", "-chars", str(first), str(second))
+
     # Overloads
     def mark_set( self, name, index ):
         Tkinter.Text.mark_set(self, name, str(index) )
