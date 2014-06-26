@@ -157,7 +157,7 @@ class ModelInfo(object):
         return Index(index.line, self.lineInfos[index.line].len)
 
     def getend(self):
-        return Index(self.nbLine+1, 0)
+        return Index(self.nbLine, self.lineInfos[self.nbLine].len)
 
     def calculate_distance(self, first, second):
         distance = second.col - first.col
@@ -267,6 +267,8 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         """Return a Index from a tkIndex"""
         if isinstance(tkIndex, Index):
             return tkIndex
+        if tkIndex == "end":
+            return self.getend()
         try:
             _split = tkIndex.split('.')
             split = (int(_split[0]), int(_split[1]))
