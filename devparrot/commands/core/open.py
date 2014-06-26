@@ -46,5 +46,5 @@ def _open_a_file(fileToOpen):
             session.get_documentManager().add_file(doc)
             doc.load()
         except IOError:
-            raise FileAccessError(doc.get_path())
+            raise FileAccessError(fileToOpen)
     session.commands.core.switch(doc)

@@ -19,6 +19,10 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
+from contextlib import contextmanager
+from devparrot.core import session
+
+
 class NewDocSource(object):
     """ This class is used for new document """
     def __init__(self, name):
@@ -43,10 +47,15 @@ class NewDocSource(object):
         Always False for newDocSource
         """
         return False
-        
+
+    @property
+    def encoding(self):
+        return session.config.get('encoding')
+
+    @contextmanager
     def get_content(self):
         """ return the content of the file """
-        return ""
+        yield [u""]
     
     def set_content(self):
         """ set the contente of the file """

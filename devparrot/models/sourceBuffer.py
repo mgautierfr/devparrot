@@ -35,8 +35,6 @@ def insert_char(event):
     if event.widget and event.char:
         event.widget.insert('insert', event.char)
 
-coding_re = re.compile(r"coding[:=]\s*([-\w.]+)")
-
 class LineInfo(object):
     def __init__(self, lenght):
         self.len = lenght
@@ -173,8 +171,6 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         Tkinter.Text.__init__(self,session.get_globalContainer(),
                                   tabstyle="wordprocessor")
         ModelInfo.__init__(self)
-
-        self._encoding = None
 
         # undo redo stuff
         self.undoredoStack = []
@@ -376,31 +372,27 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         if change == False:
             self.nbModifAtLastChange = self.nbModif
 
-    @property
-    def encoding(self):
-        return self._encoding or session.config.get('encoding')
-    
     def set_text(self, content):
-        # 256 should be far enought to correspond to "the begining of the file"
-        self._encoding = coding_re.search(content[:256])
-        if self._encoding :
-            self._encoding = self._encoding.group(1)
-
-        content = content.decode(self.encoding)
-
-        #remove last "\n" as tkText add one automaticaly
-        if content and content[-1] == '\n':
-            content = content[:-1]
-
+        def fast_insert(text):
+            Tkinter.Text.insert(self, "end", text)
+            ModelInfo.insert(self, self.getend(), text)
         Tkinter.Text.delete(self, "1.0", "end")
         self.reinit()
-        self.insert("1.0", content, forceUpdate=True)
+
+        line = ""
+        for line in content:
+            fast_insert(line)
+        #remove last "\n" as tkText add one automaticaly
+        if line == "\n":
+            ttk.Tkinter.Text.delete(self, "end -1c", "end")
+            ModelInfo.delete(self, self.index("end -1c"), self.index("end"))
+
+        self.rangeInfo.parse_text(self.get("1.0", "end"))
         self.edit_reset()
         self.edit_modified(False)
     
     def get_text(self):
-        content = self.get("0.1", "end").encode(self.encoding)
-        return content
+        return self.get("1.0", "end")
 
     def search(self, text, start_search="1.0", end_search="end"):
         if not text:

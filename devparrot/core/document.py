@@ -45,7 +45,7 @@ class Document(utils.event.EventSource):
         self.documentView = DocumentView(self)
         self.model = SourceBuffer(self.documentSource.is_readonly())
         self.model.connect("modified", self.on_modified_changed)
-        self.currentView = None	
+        self.currentView = None
         self.set_view(TextView(self))
     
     def __eq__(self, other):
@@ -90,8 +90,9 @@ class Document(utils.event.EventSource):
         return self.documentSource.is_readonly()
         
     def load(self):
-        self.model.set_text(self.documentSource.get_content())
-        self.currentView.set_lineNumbers()
+        with self.documentSource.get_content() as content:
+            self.model.set_text(content)
+        self.currentView.update_infos()
         self.event('textSet')(self)
     
     def write(self):

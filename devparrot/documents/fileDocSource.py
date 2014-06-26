@@ -19,9 +19,14 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import os, sys, magic
+import os, sys, magic, re
 
 from xdg import Mime
+import codecs
+from contextlib import contextmanager
+from devparrot.core import session
+
+coding_re = re.compile(r"coding[:=]\s*([-\w.]+)")
 
 class FileDocSource(object):
     """This class is used for document comming from a file (most of document)"""
@@ -36,6 +41,11 @@ class FileDocSource(object):
             except IOError:
                 self.mimetype = Mime.lookup("text", "plain")
 
+        self._encoding = None
+        try:
+            self.guess_encoding()
+        except IOError:
+            pass
 
     def __getattr__(self, name):
         if name == "title":
@@ -59,19 +69,41 @@ class FileDocSource(object):
         Always True for fileDocSource
         """
         return True
-    
+
+    @property
+    def encoding(self):
+        return self._encoding or session.config.get('encoding')
+
+    def guess_encoding(self):
+        from chardet.universaldetector import UniversalDetector
+        detector = UniversalDetector()
+        i = 0
+        with open(self.path, 'r') as fileIn:
+            for line in fileIn:
+                if i < 5:
+                    encoding = coding_re.search(line)
+                    if encoding:
+                        self._encoding = self._encoding.group(1)
+                        return
+                    i += 1
+                detector.feed(line)
+                if i >= 5:
+                    if detector.done:
+                        break
+            detector.close()
+            self._encoding = detector.result['encoding']
+
+    @contextmanager
     def get_content(self):
         """
         return the content of the file
         """
         if not os.path.exists(self.path):
-            return ""
-
-        text = ""
-        with open(self.path, 'r') as fileIn:
-            text = fileIn.read()
-        self.init_timestamp()
-        return text
+            yield [u""]
+        else:
+            with codecs.open(self.path, 'r', self.encoding) as fileIn:
+                yield fileIn
+            self.init_timestamp()
     
     def init_timestamp(self):
         """ reinit the timestamp saved from the file """
@@ -82,7 +114,7 @@ class FileDocSource(object):
 
     def set_content(self, content):
         """ set the content of the file (save it) """
-        with open(self.path, 'w') as fileOut:
+        with codecs.open(self.path, 'w', self.encoding) as fileOut:
             fileOut.write(content)
         self.init_timestamp()
     
