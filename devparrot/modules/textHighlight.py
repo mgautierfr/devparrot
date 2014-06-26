@@ -131,12 +131,13 @@ def on_new_document(document):
 
     document.connect('pathChanged', lambda document, oldPath: init_and_highlight(document))
     document.model._highlight = HighlightContext()
-    init_and_highlight(document)
+    init_doc(document)
+    document.connect('textSet', on_textSet)
     document.model.connect('insert', on_insert)
     document.model.connect('delete', on_delete)
     document.model.connect('replace', on_replace)
 
-def init_and_highlight(document):
+def init_doc(document):
     def find_lexer(mimetype):
         from pygments.lexers import get_lexer_for_mimetype
         from pygments.util import ClassNotFound
@@ -156,8 +157,16 @@ def init_and_highlight(document):
         return
 
     document.model._highlight.lexer = find_lexer(document.get_mimetype())
+
+def init_and_highlight(document):
+    init_doc(document)
     if document.model._highlight.lexer:
         update_highlight(document.model, Start, document.model.getend())
+
+def on_textSet(document):
+    if document.model._highlight.lexer :
+        update_highlight(document.model, Start, document.model.getend())
+
 
 def on_insert(model, insertMark, text):
     if model._highlight.lexer :
