@@ -55,22 +55,6 @@ class SectionDef(object):
         self.innerGhosts = []
         self.lengthGhost = None
 
-    def get_regex(self):
-        exclude = getattr(self, 'exclude', None)
-        contains = getattr(self, 'contains', [])
-        end = getattr(self, 'end', None)
-        regs = []
-        if exclude:
-            regs.append("(?P<exclude>%s)"%re.escape(exclude))
-
-        if end:
-            regs.append("(?P<end>%s)"%re.escape(end))
-            
-        if contains:
-            regs.append("(?P<start>%s)"%("|".join(set(re.escape(sectionsDef[sect].start) for sect in contains if sectionsDef[sect].start))))
-
-        return "(%s)"%("|".join(regs))
-
     def close(self, length):
         if self.length == length:
             # Everything is good
@@ -140,21 +124,78 @@ class SectionDef(object):
             if section.startIndex > changeIndex+changeLen:
                 section.startIndex -= changeLen
 
-    def parse_text(self, content, changeIndex=0, changeLen=None, debug=False):
+    def fast_parse_text(self, content, contentStart=0):
+        """
+        parse a new content
+
+        @param content             The content to parse
+        @param contentStart        From where to start to parse content
+        @return                    How many char have beend consumed
+        """
+        #remove our start token
+        index = len(self.start)
+
+        contentStart += index
+
+        # then parse the text to see if we've got some changes
+        while True:
+            resultats = {'exclude':None, 'end':None, 'start':None}
+            match = self.regex.search(content, contentStart)
+            if match is None:
+                self.length = None
+                return index
+
+            localStart = match.start()-contentStart
+            localEnd   = match.end()-contentStart
+
+            resultats.update(match.groupdict())
+
+            if resultats['exclude']:
+                # we found our exclude, skip it
+                index += localEnd
+                contentStart = match.end()
+                continue
+
+            if resultats['end']:
+                # we found our end, close ourself
+                index += localEnd
+                self.length = index
+                return index
+
+            # we found a start of a section
+            index += localStart
+            contentStart = match.start()
+            section = next(sectionsDef[name] for name in self.contains if sectionsDef[name].start == match.group())(index)
+            eated = section.fast_parse_text(content, contentStart)
+
+            contentStart += eated
+            index   += eated
+            self.innerSections.append(section)
+
+            if section.length is None:
+                # inner section is not closed, we can't be closed ourself
+                #self.ghost_section(index_)
+                self.length = None
+                return index
+
+        return index
+
+    def parse_text(self, content, contentStart=0, changeIndex=0, changeLen=None, debug=False):
         """
         parse a content to update ourselves
 
         @param content             The content to parse
-        @param changeIndex         Where the change append (default to 0)
+        @param contentStart        From where to start to parse content
+        @param changeIndex         Where the change append relative to contentStart (default to 0)
         @param changeLen           How many char have been added (deleted if <0), if None (default), equal to len(content)
         @return (changed, eated)   changed  : True if section has changed. (index update doesn't count)
                                    eated    : How many char have beend consumed
         """
-        #print self.__class__.__name__, ": parse_text", repr(content), "changeIndex=", changeIndex, "changeLen=", changeLen
+        #print self.__class__.__name__, ": parse_text", len(content), "contentStart=", contentStart, "changeIndex=", changeIndex, "changeLen=", changeLen
         if debug:
             import pdb; pdb.set_trace()
         if changeLen is None:
-            changeLen = len(content)
+            changeLen = len(content)-contentStart
         changed = False
 
         if not changeLen:
@@ -173,8 +214,8 @@ class SectionDef(object):
 
         section_index, section = self.get_section(filter_enclosing(changeIndex))
         if section:
-            #print "matching section" ,section
-            changed, index = section.parse_text(content[section.startIndex:], changeIndex-section.startIndex, changeLen)
+            #print self.__class__.__name__, "matching section" ,section
+            changed, index = section.parse_text(content, contentStart+section.startIndex, changeIndex-section.startIndex, changeLen)
             index += section.startIndex
             if not changed:
                 # the parse of the subsection doesn't change what we already know, just return False
@@ -192,34 +233,35 @@ class SectionDef(object):
             self.ghost_section_after(section.startIndex)
         else:
             index = max(index, changeIndex)
-            
 
-        content = content[index:]
+        contentStart += index
         
         # then parse the text to see if we've got some changes
         while True:
             resultats = {'exclude':None, 'end':None, 'start':None}
-            regex = self.get_regex()
-            #print "search for", regex #, "in", repr(content),
-            match = re.search(regex, content)
+            #print self.__class__.__name__, "search for", regex, "in", repr(content[contentStart:])
+            match = self.regex.search(content, contentStart)
             if match is None:
                 #print "=> None"
                 changed |= self.close(None)
                 return changed, index
 
+            localStart = match.start()-contentStart
+            localEnd   = match.end()-contentStart
 
-            self.clean_section(index, index+match.start())
+
+            self.clean_section(index, index+localStart)
             resultats.update(match.groupdict())
-            #print "=>", resultats, match.start(), match.end()
+            #print "=>", resultats, match.start(), match.end(), localStart, localEnd
 
             if resultats['exclude']:
                 # we found our exclude, skip it
-                index += match.end()
-                content = content[match.end():]
+                index += localEnd
+                contentStart = match.end()
 
             elif resultats['end']:
                 # we found our end, close ourself
-                index += match.end()
+                index += localEnd
                 changed |= self.close(index)
                 self.ghost_section_after(index)
                 break
@@ -229,16 +271,16 @@ class SectionDef(object):
                 # it is a new one ?
                 new = False
                 try:
-                    section_index, section = next((idx, section) for idx, section in enumerate(self.innerSections) if (section.startIndex == index+match.start() and section.start == resultats['start']))
+                    section_index, section = next((idx, section) for idx, section in enumerate(self.innerSections) if (section.startIndex == index+localStart and section.start == resultats['start']))
                     if section.startIndex >= changeIndex+changeLen:
                         #we have found an already known section after the modif. Just finish
                         return changed, index
                     self.ghost_section(section_index)
                 except StopIteration:
                     # Do we have ghosts sections corresponding ?
-                    if self.innerGhosts and index+match.start() >= changeIndex+changeLen:
+                    if self.innerGhosts and index+localStart >= changeIndex+changeLen:
                         # we are after the changes
-                        if self.innerGhosts[0].startIndex == index+match.start() and self.innerGhosts[0].start == resultats['start']:
+                        if self.innerGhosts[0].startIndex == index+localStart and self.innerGhosts[0].start == resultats['start']:
                             self.innerSections.extend(self.innerGhosts)
                             self.close(self.lengthGhost)
                             self.lengthGhost = None
@@ -248,18 +290,18 @@ class SectionDef(object):
                         self.innerGhosts = []
 
                     # no section, create a new one and insert it
-                    section = next(sectionsDef[name] for name in self.contains if sectionsDef[name].start == match.group())(index+match.start())
+                    section = next(sectionsDef[name] for name in self.contains if sectionsDef[name].start == match.group())(index+localStart)
                     new = True
                     changed = True
 
-                index += match.start()
-                content = content[match.start():]
-                changed_ , index_ = section.parse_text(content)
+                index += localStart
+                contentStart = match.start()
+                changed_ , index_ = section.parse_text(content, contentStart)
+
+                contentStart += index_
 
                 self.clean_section(index, index+index_)
                 if new:
-                    #self.ghost_section(index_)
-                    
                     self.insert_section(section)
                 changed |= changed_
                 index   += index_
@@ -268,8 +310,6 @@ class SectionDef(object):
                     #self.ghost_section(index_)
                     changed |= self.close(None)
                     return changed, index
-                content = content[index_:]
-            #print self.innerSections
 
         return changed, index
 
@@ -314,6 +354,29 @@ class Document(SectionDef):
     contains = expression
     def __init__(self):
         SectionDef.__init__(self, 0)
+
+
+def build_regex():
+    for section in sectionsDef.values():
+        exclude = getattr(section, 'exclude', None)
+        contains = getattr(section, 'contains', [])
+        end = getattr(section, 'end', None)
+        regs = []
+        if exclude:
+            regs.append("(?P<exclude>%s)"%re.escape(exclude))
+
+        if end:
+            regs.append("(?P<end>%s)"%re.escape(end))
+
+        if contains:
+            regs.append("(?P<start>%s)"%("|".join(set(re.escape(sectionsDef[sect].start) for sect in contains if sectionsDef[sect].start))))
+
+        _regex = "(%s)"%("|".join(regs))
+        section.regex = re.compile(_regex)
+
+build_regex()
+
+
 
 def parse_text(content):
     document = Document()

@@ -290,13 +290,14 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         
     def insert(self, index, text, *args, **kword):
         index = self.index(index)
+        orig_len = self.calculate_distance(Start, index)
         Tkinter.Text.insert(self, str(index), text, *args)
         ModelInfo.insert(self, index, text)
         if kword.get('updateUndo', True):
             self.add_change(type='insert', index=index, text=text)
         if kword.get('forceUpdate', False):
             self.update()
-        self.rangeInfo.parse_text(self.get("0.1", "end"), self.calculate_distance(Start, index), len(text))
+        self.rangeInfo.parse_text(self.get("1.0", "end"), changeIndex=orig_len, changeLen=len(text))
         self.event('insert')(self, index, text)
     
     def delete(self, index1, index2, updateUndo=True):
@@ -307,7 +308,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         ModelInfo.delete(self, index1, index2)
         if updateUndo:
             self.add_change(type='delete', index=index1, oldText=text)
-        self.rangeInfo.parse_text(self.get("0.1", "end"), self.calculate_distance(Start, index1), -len(text))
+        self.rangeInfo.parse_text(self.get("1.0", "end"), changeIndex=self.calculate_distance(Start, index1), changeLen=-len(text))
         self.event('delete')(self, index1, index2)
 
     def replace(self, index1, index2, text, updateUndo=True):
@@ -320,9 +321,9 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         if updateUndo:
             self.add_change(type='replace', index=index1, oldText=oldText, text=text)
         distance = self.calculate_distance(Start, index1)
-        content  = self.get("0.1", "end")
-        self.rangeInfo.parse_text(content, distance, -len(oldText))
-        self.rangeInfo.parse_text(content, distance, len(text))
+        content  = self.get("1.0", "end")
+        self.rangeInfo.parse_text(content, changeIndex=distance, changeLen=-len(oldText))
+        self.rangeInfo.parse_text(content, changeIndex=distance, changeLen=len(text))
         self.event('replace')(self, index1, index2, text)
 
     def undo(self):
@@ -387,7 +388,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
             ttk.Tkinter.Text.delete(self, "end -1c", "end")
             ModelInfo.delete(self, self.index("end -1c"), self.index("end"))
 
-        self.rangeInfo.parse_text(self.get("1.0", "end"))
+        self.rangeInfo.fast_parse_text(self.get("1.0", "end"))
         self.edit_reset()
         self.edit_modified(False)
     
@@ -476,7 +477,7 @@ class SourceBuffer(TextModel):
 
         if text:
             count = ttk.Tkinter.IntVar()
-            match_start = ttk.Tkinter.Text.search(self, text, "0.1", stopindex="end", forwards=True, exact=False, count=count)
+            match_start = ttk.Tkinter.Text.search(self, text, "1.0", stopindex="end", forwards=True, exact=False, count=count)
             while match_start:
                 match_end = "{}+{}c".format(match_start,count.get())
                 self.tag_add(tag, match_start, match_end)
