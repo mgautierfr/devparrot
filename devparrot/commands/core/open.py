@@ -43,8 +43,8 @@ def _open_a_file(fileToOpen):
         from devparrot.documents.fileDocSource import FileDocSource
         try:
             doc = Document(FileDocSource(fileToOpen))
-            doc.load()
             session.get_documentManager().add_file(doc)
+            doc.load()
         except IOError:
             raise FileAccessError(doc.get_path())
     session.commands.core.switch(doc)
