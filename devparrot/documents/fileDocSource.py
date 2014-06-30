@@ -83,7 +83,7 @@ class FileDocSource(object):
                 if i < 5:
                     encoding = coding_re.search(line)
                     if encoding:
-                        self._encoding = self._encoding.group(1)
+                        self._encoding = encoding.group(1)
                         return
                     i += 1
                 detector.feed(line)
