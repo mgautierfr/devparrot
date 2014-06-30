@@ -25,7 +25,6 @@ class Event(CbCaller):
     def __call__(self, *args, **kwords):
         self.notify(*args, **kwords)
 
-
 class EventSource(object):
     def __init__(self):
         self.__events = dict()
@@ -36,4 +35,7 @@ class EventSource(object):
     def event(self, eventName):
         return self.__events.get(eventName, Event())
 
-
+def auto_bind(obj, eventSource, name_prefix="on_", wrapper=lambda caller:caller):
+    for name in dir(obj):
+        if name.startswith(name_prefix) and callable(getattr(obj, name)):
+            eventSource.connect(name[len(name_prefix):], wrapper(getattr(obj, name)))

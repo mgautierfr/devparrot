@@ -48,20 +48,14 @@ class TextHighlight(BaseModule):
     def activate(self):
         self._create_fonts()
         self._create_styles()
-        self.font_changed_handle = session.config.textView.font.register(self.on_font_changed)
-        self.style_changed_handle = self.configSection.hlstyle.register(self.on_style_changed)
-        session.eventSystem.connect('documentAdded', self.on_documentAdded)
-        session.eventSystem.connect('pathChanged', lambda document, oldPath: self.init_and_highlight(document))
-        session.eventSystem.connect('textSet', self.on_textSet)
-        session.eventSystem.connect('insert', self.on_insert)
-        session.eventSystem.connect('delete', self.on_delete)
-        session.eventSystem.connect('replace', self.on_replace)
+        self.font_changed_handle = session.config.textView.font.register(self._on_font_changed)
+        self.style_changed_handle = self.configSection.hlstyle.register(self._on_style_changed)
 
     def deactivate(self):
         session.config.textView.font.unregister(self.font_changed_handle)
         self.configSection.hlstyle.unregister(self.style_changed_handle)
 
-    def on_font_changed(self, var, old):
+    def _on_font_changed(self, var, old):
         if var.get() == old:
             return
         self._create_fonts()
@@ -69,7 +63,7 @@ class TextHighlight(BaseModule):
         for document in session.get_documentManager():
             self.create_style_table(document.model)
 
-    def on_style_changed(self, var, old):
+    def _on_style_changed(self, var, old):
         if var.get() == old:
             return
         self._create_styles()
@@ -124,6 +118,9 @@ class TextHighlight(BaseModule):
         textWidget.configure(background=self._style.background_color,selectbackground=self._style.highlight_color)
         for token, style in self._styles.items():
             textWidget.tag_configure(token, style)
+
+    def on_pathChanged(self, document, oldPath):
+        self.init_and_highlight(document)
 
     def on_documentAdded(self, document):
         self.create_style_table(document.model)

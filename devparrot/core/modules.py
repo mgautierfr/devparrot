@@ -20,13 +20,21 @@
 
 
 from devparrot.core import session
+from devparrot.core.utils.event import auto_bind
 import pkg_resources
+
+def create_auto_call(module, attr):
+    def auto_call(*args, **kwords):
+        if module.active:
+            return attr(*args, **kwords)
+    return auto_call
 
 class BaseModule(object):
     def __init__(self, configSection, name):
         self.configSection = configSection
         self.name = name
         self.active = False
+        auto_bind(self, session.eventSystem, wrapper=lambda attr:create_auto_call(self, attr))
 
     def activate(self):
         pass

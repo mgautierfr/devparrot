@@ -46,8 +46,8 @@ class FileExplorer(BaseModule):
     def activate(self):
         self.fileExplorerView = FileExplorerView(ui.window, self)
         ui.helperManager.add_helper(self.fileExplorerView, "fileExplorer", 'left')
-        self.handlers.append(self.configSection.iconTheme.register(self.on_iconTheme_changed))
-        self.handlers.append(self.configSection.showIcon.register(self.on_iconTheme_changed))
+        self.handlers.append(self.configSection.iconTheme.register(self._on_iconTheme_changed))
+        self.handlers.append(self.configSection.showIcon.register(self._on_iconTheme_changed))
 
     def deactivate(self):
         [h.unregister() for h in self.handlers]
@@ -55,7 +55,7 @@ class FileExplorer(BaseModule):
         ui.helperManager.remove_helper(self.fileExplorerView, 'left')
         self.fileExplorerView = None
 
-    def on_iconTheme_changed(self, var, old):
+    def _on_iconTheme_changed(self, var, old):
         global tkImages
         tkImages = {}
         if self.active:
