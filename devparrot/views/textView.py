@@ -288,8 +288,8 @@ class TextView():
         self.hScrollbar['command'] = self.view.xview
         self.view.grid(column=10, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
         self.view.lift(self.uiContainer)
-        self.view.connect('insert', self.on_event_lineChanged)
-        self.view.connect('delete', self.on_event_lineChanged)
+        session.eventSystem.connect('insert', self.on_event_lineChanged)
+        session.eventSystem.connect('delete', self.on_event_lineChanged)
 
     def lift(self, above):
         self.uiContainer.lift(above)

@@ -20,10 +20,10 @@
 
 
 import utils.event
+import session
 
-class DocumentManager(utils.event.EventSource):
+class DocumentManager(object):
     def __init__(self):
-        utils.event.EventSource.__init__(self)
         self.documents = set()
     
     def get_nbDocuments(self):
@@ -57,12 +57,12 @@ class DocumentManager(utils.event.EventSource):
 
     def del_file(self, document):
         self.documents.remove(document)
-        self.event('documentDeleted')(document)
+        session.eventSystem.event('documentDeleted')(document)
         return True
 
     def add_file(self, document):
         self.documents.add(document)
-        self.event('documentAdded')(document)
+        session.eventSystem.event('documentAdded')(document)
     
     def __str__(self):
         return "Open Files\n[\n%(openfiles)s\n]" % {

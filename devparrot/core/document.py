@@ -28,7 +28,7 @@ from utils.variable import Property, Variable
 from devparrot.models.sourceBuffer import SourceBuffer
 
 
-class Document(utils.event.EventSource):
+class Document(object):
     def get_title(self):
         return self.documentSource.title
 
@@ -39,12 +39,10 @@ class Document(utils.event.EventSource):
 
 
     def __init__(self, documentSource):
-        utils.event.EventSource.__init__(self)
-        self.documentSource = None
-        self.set_path(documentSource)
+        self.documentSource = documentSource
         self.documentView = DocumentView(self)
-        self.model = SourceBuffer(self.documentSource.is_readonly())
-        self.model.connect("modified", self.on_modified_changed)
+        self.model = SourceBuffer(documentSource.is_readonly())
+        session.eventSystem.connect("modified", self.on_modified_changed)
         self.currentView = None
         self.set_view(TextView(self))
     
@@ -84,7 +82,7 @@ class Document(utils.event.EventSource):
             self.documentSource = documentSource
             self.title_notify()
             self.longTitle_notify()
-            self.event('pathChanged')(self, oldPath)
+            session.eventSystem.event('pathChanged')(self, oldPath)
 
     def is_readonly(self):
         return self.documentSource.is_readonly()
@@ -93,13 +91,13 @@ class Document(utils.event.EventSource):
         with self.documentSource.get_content() as content:
             self.model.set_text(content)
         self.currentView.update_infos()
-        self.event('textSet')(self)
+        session.eventSystem.event('textSet')(self)
     
     def write(self):
         self.documentSource.set_content(self.model.get_text())
         self.model.edit_modified(False)
         
-    def on_modified_changed(self, modified):
+    def on_modified_changed(self, model, modified):
         if not self.is_readonly():
             self.documentView.set_bold(modified)
     

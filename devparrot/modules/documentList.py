@@ -88,8 +88,9 @@ class DocumentList(BaseModule):
 
     def activate(self):
         self.documentListView = DocumentListView(ui.window)
-        session.get_documentManager().connect('documentDeleted', self.on_documentDeleted)
-        session.get_documentManager().connect('documentAdded', self.on_documentAdded)
+        session.eventSystem.connect('documentDeleted', self.on_documentDeleted)
+        session.eventSystem.connect('documentAdded', self.on_documentAdded)
+        session.eventSystem.connect('pathChanged', self.on_path_changed)
         ui.helperManager.add_helper(documentListView, "documentList", 'left')
 
     def deactivate(self):
@@ -98,7 +99,6 @@ class DocumentList(BaseModule):
     def on_documentAdded(self, document):
         self.documentListView._add_document(document)
         self.documentListView.sort()
-        document.connect('pathChanged', self.on_path_changed)
 
     def on_documentDeleted(self, document):
         self.documentListView.delete(document.get_path())

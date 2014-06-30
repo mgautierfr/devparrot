@@ -50,7 +50,12 @@ class TextHighlight(BaseModule):
         self._create_styles()
         self.font_changed_handle = session.config.textView.font.register(self.on_font_changed)
         self.style_changed_handle = self.configSection.hlstyle.register(self.on_style_changed)
-        session.get_documentManager().connect('documentAdded', self.on_documentAdded)
+        session.eventSystem.connect('documentAdded', self.on_documentAdded)
+        session.eventSystem.connect('pathChanged', lambda document, oldPath: self.init_and_highlight(document))
+        session.eventSystem.connect('textSet', self.on_textSet)
+        session.eventSystem.connect('insert', self.on_insert)
+        session.eventSystem.connect('delete', self.on_delete)
+        session.eventSystem.connect('replace', self.on_replace)
 
     def deactivate(self):
         session.config.textView.font.unregister(self.font_changed_handle)
@@ -123,13 +128,8 @@ class TextHighlight(BaseModule):
     def on_documentAdded(self, document):
         self.create_style_table(document.model)
 
-        document.connect('pathChanged', lambda document, oldPath: self.init_and_highlight(document))
         document.model._highlight = HighlightContext()
         self.init_doc(document)
-        document.connect('textSet', self.on_textSet)
-        document.model.connect('insert', self.on_insert)
-        document.model.connect('delete', self.on_delete)
-        document.model.connect('replace', self.on_replace)
 
     def init_doc(self, document):
         def find_lexer(mimetype):

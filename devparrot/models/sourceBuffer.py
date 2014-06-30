@@ -165,9 +165,8 @@ class ModelInfo(object):
             distance += self.lineInfos[i].len + 1
         return distance
 
-class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
+class TextModel(Tkinter.Text, ModelInfo):
     def __init__(self):
-        utils.event.EventSource.__init__(self)
         Tkinter.Text.__init__(self,session.get_globalContainer(),
                                   tabstyle="wordprocessor")
         ModelInfo.__init__(self)
@@ -191,7 +190,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         modified = (self._nbModifAtLastChange != self.nbModif)
         self._nbModifAtLastChange = value
         if modified != (self._nbModifAtLastChange != self.nbModif):
-            self.event('modified')(not modified)
+            session.eventSystem.event('modified')(self, not modified)
 
     @property
     def nbModif(self):
@@ -202,7 +201,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         modified = (self._nbModifAtLastChange != self.nbModif)
         self._nbModif = value
         if modified != (self._nbModifAtLastChange != self.nbModif):
-            self.event('modified')(not modified)
+            session.eventSystem.event('modified')(self, not modified)
 
     # Selection Operations
     def sel_clear(self):
@@ -299,7 +298,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
     # Overloads
     def mark_set( self, name, index ):
         Tkinter.Text.mark_set(self, name, str(index) )
-        self.event('mark_set')(self, name, index)
+        session.eventSystem.event('mark_set')(self, name, index)
         if name == 'insert':
             self.sel_update()
         
@@ -313,7 +312,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         if kword.get('forceUpdate', False):
             self.update()
         self.rangeInfo.parse_text(self.get("1.0", "end"), changeIndex=orig_len, changeLen=len(text))
-        self.event('insert')(self, index, text)
+        session.eventSystem.event('insert')(self, index, text)
     
     def delete(self, index1, index2, updateUndo=True):
         index1 = self.index(index1)
@@ -324,7 +323,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         if updateUndo:
             self.add_change(type='delete', index=index1, oldText=text)
         self.rangeInfo.parse_text(self.get("1.0", "end"), changeIndex=self.calculate_distance(Start, index1), changeLen=-len(text))
-        self.event('delete')(self, index1, index2)
+        session.eventSystem.event('delete')(self, index1, index2)
 
     def replace(self, index1, index2, text, updateUndo=True):
         index1 = self.index(index1)
@@ -339,7 +338,7 @@ class TextModel(utils.event.EventSource, Tkinter.Text, ModelInfo):
         content  = self.get("1.0", "end")
         self.rangeInfo.parse_text(content, changeIndex=distance, changeLen=-len(oldText))
         self.rangeInfo.parse_text(content, changeIndex=distance, changeLen=len(text))
-        self.event('replace')(self, index1, index2, text)
+        session.eventSystem.event('replace')(self, index1, index2, text)
 
     def undo(self):
         if self.nbModif and self.nbModif <= len(self.undoredoStack):
