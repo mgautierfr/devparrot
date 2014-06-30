@@ -89,3 +89,4 @@ class menu(MasterCommand):
 
 session.bindings["selection"] = "menu update_popup_menu\n"
 session.bindings["pathChanged"] = "menu update_popup_menu\n"
+session.bindings["currentChanged"] = "menu update_popup_menu\n"

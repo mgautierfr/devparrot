@@ -66,7 +66,7 @@ class DocumentView(ContainerChild, ttk.Frame):
         self.currentView.focus()
 
     def on_focus_child(self, event):
-        NotebookContainer.current = self.parentContainer
+        self.parentContainer.set_as_current()
         
     def dnd_end(self, target, event):
         pass	

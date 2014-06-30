@@ -212,6 +212,17 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
         self.bindtags(" ".join(["Drag"]+[t for t in self.bindtags()]))
         self.bind("<Button-2>", self.on_middleClickButton)
         self.bind("<<NotebookTabChanged>>", self.on_tabChanged)
+
+    def select(self, *args):
+        if not args:
+            return ttk.Notebook.select(self)
+        else:
+            selected = ttk.Notebook.select(self)
+            if selected :
+                self._oldSelected = self.nametowidget(selected)
+            else:
+                self._oldSelected = None
+            return ttk.Notebook.select(self, *args)
     
     def dnd_register(self):
         NotebookContainer.notebookList.add(self)
@@ -270,12 +281,19 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
             win.lift()
     
     def set_as_current(self):
+        oldDocument = session.get_currentDocument()
         NotebookContainer.current = self
+        currentDocument = session.get_currentDocument()
+        if oldDocument != currentDocument:
+            session.eventSystem.event("currentChanged")(currentDocument, oldDocument)
 
     def on_tabChanged(self, arg):
         selected = self.select()
         if selected:
-            self.nametowidget(selected).focus()
+            currentDocument = self.nametowidget(selected)
+            currentDocument.focus()
+            if self == NotebookContainer.current:
+                session.eventSystem.event("currentChanged")(currentDocument.document, self._oldSelected.document)
 
     def on_middleClickButton(self, event):
         documentViewIndex = self.index("@%d,%d" % (event.x, event.y))

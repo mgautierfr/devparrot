@@ -68,7 +68,10 @@ def get_documentManager():
     return _documentManager
 
 def get_currentDocument():
-    return _workspace.get_currentDocument()
+    try:
+        return _workspace.get_currentDocument()
+    except AttributeError:
+        return None
 
 def set_workspace(workspace):
     global _workspace
