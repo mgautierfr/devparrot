@@ -26,79 +26,81 @@ from xdg.IconTheme import getIconPath
 from xdg import Mime
 
 from devparrot.core import ui, session
+from devparrot.core.modules import BaseModule
 
-fileExplorerView = None
 tkImages = {}
-configSection = None
-pending_filltree = None
-handlers = []
-
-def init(_configSection, name):
-    global configSection
-    configSection = _configSection
-    configSection.add_variable("iconTheme", None)
-    configSection.add_variable("showIcon", False)
-    configSection.add_variable("excludes", ["*.pyc", "*.pyo", "*.o"])
-    configSection.active.register(activate)
-
-def activate(var, old):
-    global fileExplorerView
-    if var.get():
-        fileExplorerView = FileExplorerView(ui.window)
-        ui.helperManager.add_helper(fileExplorerView, "fileExplorer", 'left')
-        handlers.append(configSection.iconTheme.register(on_iconTheme_changed))
-        handlers.append(configSection.showIcon.register(on_iconTheme_changed))
-    else:
-        [h.unregister() for h in handlers]
-        handlers[:] = []
-        ui.helperManager.remove_helper(fileExplorerView, 'left')
-        fileExplorerView = None
-        pass
-
-def on_iconTheme_changed(var, old):
-    global tkImages
-    tkImages = {}
-    if configSection.active.get():
-        ui.window.after_idle(fileExplorerView.filltree)
-
-def _load_icon_for_mime(mimeType):
-    try:
-        from PIL import Image, ImageTk
-    except ImportError:
-        try:
-            import Image, ImageTk
-        except ImportError:
-            return None
-    iconPath = getIconPath(mimeType, size=16, theme=configSection.get("iconTheme"), extensions=["png", "xpm"])
-    if iconPath:
-        iconImage = Image.open(iconPath)
-        return ImageTk.PhotoImage(iconImage)
-    return None
 
 def _generate_all_mime_combination(mimeType):
     for i in xrange(len(mimeType), 0, -1):
         yield tuple(mimeType[:i]), "-".join(mimeType[:i])
         yield tuple(mimeType[:i]), "%s%s"%("gnome-mime-", "-".join(mimeType[:i]))
 
-def _get_icon_for_mime(mimeType):
-    global tkImages
-    if not configSection.get("showIcon"):
+class FileExplorer(BaseModule):
+    def __init__(self, configSection, name):
+        BaseModule.__init__(self, configSection, name)
+        configSection.add_variable("iconTheme", None)
+        configSection.add_variable("showIcon", False)
+        configSection.add_variable("excludes", ["*.pyc", "*.pyo", "*.o"])
+        self.handlers = []
+
+    def activate(self):
+        self.fileExplorerView = FileExplorerView(ui.window, self)
+        ui.helperManager.add_helper(self.fileExplorerView, "fileExplorer", 'left')
+        self.handlers.append(self.configSection.iconTheme.register(self.on_iconTheme_changed))
+        self.handlers.append(self.configSection.showIcon.register(self.on_iconTheme_changed))
+
+    def deactivate(self):
+        [h.unregister() for h in self.handlers]
+        self.handlers = []
+        ui.helperManager.remove_helper(self.fileExplorerView, 'left')
+        self.fileExplorerView = None
+
+    def on_iconTheme_changed(self, var, old):
+        global tkImages
+        tkImages = {}
+        if self.active:
+            ui.window.after_idle(self.fileExplorerView.filltree)
+
+    def _load_icon_for_mime(self, mimeType):
+        try:
+            from PIL import Image, ImageTk
+        except ImportError:
+            try:
+                import Image, ImageTk
+            except ImportError:
+                return None
+        iconPath = getIconPath(mimeType, size=16, theme=self.configSection.get("iconTheme"), extensions=["png", "xpm"])
+        if iconPath:
+            iconImage = Image.open(iconPath)
+            return ImageTk.PhotoImage(iconImage)
         return None
-    passedMime = set()
-    for mimekey, mimetext in _generate_all_mime_combination(mimeType):
-        if mimekey in tkImages:
-            return tkImages[mimekey]
-        image = _load_icon_for_mime(mimetext)
-        if not image:
-            passedMime.add(mimekey)
-        else:
-            for passed in passedMime:
-                tkImages[passed] = image
-            tkImages[mimekey] = image
-            return image
-    for passed in passedMime:
-        tkImages[passed] = None
-    return None
+
+    def _get_icon_for_mime(self, mimeType):
+        if not self.configSection.get("showIcon"):
+            return None
+        passedMime = set()
+        for mimekey, mimetext in _generate_all_mime_combination(mimeType):
+            if mimekey in tkImages:
+                return tkImages[mimekey]
+            image = self._load_icon_for_mime(mimetext)
+            if not image:
+                passedMime.add(mimekey)
+            else:
+                for passed in passedMime:
+                    tkImages[passed] = image
+                tkImages[mimekey] = image
+                return image
+        for passed in passedMime:
+            tkImages[passed] = None
+        return None
+
+    def apply_exclude(self, entry):
+        from fnmatch import fnmatch
+        for filter_ in self.configSection.excludes.get():
+            if fnmatch(entry, filter_):
+                return False
+        return True
+
 
 def FileComparator(rootpath):
     class PseudoKey(object):
@@ -127,16 +129,10 @@ def FileComparator(rootpath):
             return self.entry != other.entry
     return PseudoKey
 
-def apply_exclude(entry):
-    from fnmatch import fnmatch
-    for filter_ in configSection.excludes.get():
-        if fnmatch(entry, filter_):
-            return False
-    return True
-
 class FileExplorerView(ttk.Frame):
-    def __init__(self,parent):
+    def __init__(self,parent, module):
         ttk.Frame.__init__(self, parent)
+        self.module = module
         self.vScrollbar = ttk.Scrollbar(self, orient=ttk.Tkinter.VERTICAL)
         self.vScrollbar.grid(column=1, row=0, sticky="nsew")
         self.treeView = ttk.Treeview(self)
@@ -157,6 +153,7 @@ class FileExplorerView(ttk.Frame):
         bindtags = " ".join(bindtags)
         self.treeView.bindtags(bindtags)
         self.currentPath = os.getcwd()
+        self._pending_filltree = None
         self.filltree()
 
     def on_double_click(self, event):
@@ -178,28 +175,26 @@ class FileExplorerView(ttk.Frame):
         self.treeView.insert('', 'end', **args)
 
     def filltree(self):
-        global pending_filltree
-        if pending_filltree:
+        if self._pending_filltree:
             return
-        pending_filltree = self.after_idle(self._filltree)
+        self._pending_filltree = self.after_idle(self._filltree)
 
     def _filltree(self):
-        global pending_filltree
-        pending_filltree = None
+        self._pending_filltree = None
         self.treeView.heading('#0', text=os.path.basename(self.currentPath))
         while len(self.treeView.get_children('')):
             self.treeView.delete(self.treeView.get_children('')[0])
         children = os.listdir(self.currentPath)
-        children = [ c for c in children if apply_exclude(c) ]
+        children = [ c for c in children if self.module.apply_exclude(c) ]
         children = sorted(children, key=FileComparator(self.currentPath))
-        image = _get_icon_for_mime(("folder",))
+        image = self.module._get_icon_for_mime(("folder",))
         self.insert_child(os.path.join(self.currentPath, ".."), "..", image)
         for child in children:
             fullPath = os.path.join(self.currentPath, child)
             if os.path.isdir(fullPath):
-                image = _get_icon_for_mime(("folder",))
+                image = self.module._get_icon_for_mime(("folder",))
             else:
                 mime = str(Mime.get_type_by_name(fullPath)).split('/')
-                image = _get_icon_for_mime(mime)
+                image = self.module._get_icon_for_mime(mime)
             self.insert_child(fullPath, child, image)
 

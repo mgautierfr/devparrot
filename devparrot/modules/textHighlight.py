@@ -23,6 +23,7 @@ import tkFont
 import os.path
 
 from devparrot.core import session
+from devparrot.core.modules import BaseModule
 
 from devparrot.core.utils.posrange import Index, Start
 
@@ -31,161 +32,153 @@ from pygments.token import Token
 import Tkinter
 import weakref
 
-
-_fonts = {}
-_styles = {}
 _tokens_name = {}
-_configSection = None
 _lexers_cache = {}
-
-def init(configSection, name):
-    global _configSection
-    _configSection=configSection
-    configSection.add_variable("hlstyle", "default")
-    configSection.active.register(activate)
-
-def activate(var, old):
-    if var.get():
-        create_fonts()
-        create_styles()
-        session.config.textView.font.register(on_font_changed)
-        _configSection.hlstyle.register(on_style_changed)
-        session.get_documentManager().connect("documentAdded",on_new_document)
-    else:
-        pass
-
-def on_font_changed(var, old):
-    if var.get() == old:
-        return
-    create_fonts()
-    create_styles()
-    for document in session.get_documentManager():
-        create_style_table(document.model)
-
-def on_style_changed(var, old):
-    if var.get() == old:
-        return
-    create_styles()
-    for document in session.get_documentManager():
-        create_style_table(document.model)
-
-def create_fonts():
-    global _fonts
-    _fonts[(False,False)] = tkFont.Font(font=session.config.get("textView.font"))
-    _fonts[(True,False)] = _fonts[(False,False)].copy()
-    _fonts[(True,False)].configure(weight='bold')
-    _fonts[(False,True)] = _fonts[(False,False)].copy()
-    _fonts[(False,True)].configure(slant='italic')
-    _fonts[(True,True)] = _fonts[(False,False)].copy()
-    _fonts[(True,True)].configure(slant='italic',weight='bold')
-
-def create_styles():
-    from pygments.styles import get_style_by_name
-    global _fonts
-    global _styles
-    global _style
-    global _tokens_name
-    
-    _style = get_style_by_name(_configSection.get("hlstyle"))
-    
-    tkStyles = dict(_style)
-    for token in sorted(tkStyles):
-        while True:
-            if token == Token:
-                break
-            parent = token.parent
-            if not tkStyles[token]['color']:
-                tkStyles[token]['color'] = tkStyles[parent]['color']
-            if not tkStyles[token]['bgcolor']:
-                tkStyles[token]['bgcolor'] = tkStyles[parent]['bgcolor']
-            if tkStyles[token]['color'] and tkStyles[token]['bgcolor']:
-                break
-            token = parent
-            
-    for token,tStyle in tkStyles.items():
-        token = _tokens_name.setdefault(token,"DP::SH::%s"%str(token))
-        _styles[token] = {}
-        
-        _styles[token]['foreground'] = "#%s"%tStyle['color'] if tStyle['color'] else ""
-        _styles[token]['background'] = "#%s"%tStyle['bgcolor'] if tStyle['bgcolor'] else ""
-
-        _styles[token]['underline'] = tStyle['underline']
-        _styles[token]['font'] = _fonts[(tStyle['bold'],tStyle['italic'])]
-
-    _styles.setdefault("DP::SH::Token.Error", {})['background'] = "red"
-    _styles.setdefault("DP::SH::Token.Generic.Error", {})['background'] = "red"
-
-def create_style_table(textWidget):
-    textWidget.configure(background=_style.background_color,selectbackground=_style.highlight_color)
-    for token, style in _styles.items():
-        textWidget.tag_configure(token, style)
 
 class HighlightContext(object):
     def __init__(self):
         self.lexer = None
         self.idle_handle = None
 
+class TextHighlight(BaseModule):
+    def __init__(self, configSection, name):
+        BaseModule.__init__(self, configSection, name)
+        configSection.add_variable("hlstyle", "default")
 
-def on_new_document(document):
-    create_style_table(document.model)
+    def activate(self):
+        self._create_fonts()
+        self._create_styles()
+        self.font_changed_handle = session.config.textView.font.register(self.on_font_changed)
+        self.style_changed_handle = self.configSection.hlstyle.register(self.on_style_changed)
+        session.get_documentManager().connect('documentAdded', self.on_documentAdded)
 
-    document.connect('pathChanged', lambda document, oldPath: init_and_highlight(document))
-    document.model._highlight = HighlightContext()
-    init_doc(document)
-    document.connect('textSet', on_textSet)
-    document.model.connect('insert', on_insert)
-    document.model.connect('delete', on_delete)
-    document.model.connect('replace', on_replace)
+    def deactivate(self):
+        session.config.textView.font.unregister(self.font_changed_handle)
+        self.configSection.hlstyle.unregister(self.style_changed_handle)
 
-def init_doc(document):
-    def find_lexer(mimetype):
-        from pygments.lexers import get_lexer_for_mimetype
-        from pygments.util import ClassNotFound
-        mime = str(str(mimetype))
-        lexer = None
-        try:
-            lexer = _lexers_cache[mime]()
-        except KeyError:
+    def on_font_changed(self, var, old):
+        if var.get() == old:
+            return
+        self._create_fonts()
+        self._create_styles()
+        for document in session.get_documentManager():
+            self.create_style_table(document.model)
+
+    def on_style_changed(self, var, old):
+        if var.get() == old:
+            return
+        self._create_styles()
+        for document in session.get_documentManager():
+            self.create_style_table(document.model)
+
+    def _create_fonts(self):
+        self._fonts = {}
+        self._fonts[(False,False)] = tkFont.Font(font=session.config.get("textView.font"))
+        self._fonts[(True,False)] = self._fonts[(False,False)].copy()
+        self._fonts[(True,False)].configure(weight='bold')
+        self._fonts[(False,True)] = self._fonts[(False,False)].copy()
+        self._fonts[(False,True)].configure(slant='italic')
+        self._fonts[(True,True)] = self._fonts[(False,False)].copy()
+        self._fonts[(True,True)].configure(slant='italic',weight='bold')
+
+    def _create_styles(self):
+        from pygments.styles import get_style_by_name
+        global _tokens_name
+
+        self._style = get_style_by_name(self.configSection.get("hlstyle"))
+
+        tkStyles = dict(self._style)
+        for token in sorted(tkStyles):
+            while True:
+                if token == Token:
+                    break
+                parent = token.parent
+                if not tkStyles[token]['color']:
+                    tkStyles[token]['color'] = tkStyles[parent]['color']
+                if not tkStyles[token]['bgcolor']:
+                    tkStyles[token]['bgcolor'] = tkStyles[parent]['bgcolor']
+                if tkStyles[token]['color'] and tkStyles[token]['bgcolor']:
+                    break
+                token = parent
+
+        self._styles = {}
+        for token,tStyle in tkStyles.items():
+            token = _tokens_name.setdefault(token,"DP::SH::%s"%str(token))
+            self._styles[token] = {}
+
+            self._styles[token]['foreground'] = "#%s"%tStyle['color'] if tStyle['color'] else ""
+            self._styles[token]['background'] = "#%s"%tStyle['bgcolor'] if tStyle['bgcolor'] else ""
+
+            self._styles[token]['underline'] = tStyle['underline']
+            self._styles[token]['font'] = self._fonts[(tStyle['bold'],tStyle['italic'])]
+
+        self._styles.setdefault("DP::SH::Token.Error", {})['background'] = "red"
+        self._styles.setdefault("DP::SH::Token.Generic.Error", {})['background'] = "red"
+
+    def create_style_table(self, textWidget):
+        textWidget.configure(background=self._style.background_color,selectbackground=self._style.highlight_color)
+        for token, style in self._styles.items():
+            textWidget.tag_configure(token, style)
+
+    def on_documentAdded(self, document):
+        self.create_style_table(document.model)
+
+        document.connect('pathChanged', lambda document, oldPath: self.init_and_highlight(document))
+        document.model._highlight = HighlightContext()
+        self.init_doc(document)
+        document.connect('textSet', self.on_textSet)
+        document.model.connect('insert', self.on_insert)
+        document.model.connect('delete', self.on_delete)
+        document.model.connect('replace', self.on_replace)
+
+    def init_doc(self, document):
+        def find_lexer(mimetype):
+            from pygments.lexers import get_lexer_for_mimetype
+            from pygments.util import ClassNotFound
+            mime = str(str(mimetype))
+            lexer = None
             try:
-                lexer = get_lexer_for_mimetype(mime)
-                _lexers_cache[mime] = lexer.__class__
-            except ClassNotFound:
-                pass
-        return lexer
+                lexer = _lexers_cache[mime]()
+            except KeyError:
+                try:
+                    lexer = get_lexer_for_mimetype(mime)
+                    _lexers_cache[mime] = lexer.__class__
+                except ClassNotFound:
+                    pass
+            return lexer
 
-    if not document.has_a_path():
-        return
+        if not document.has_a_path():
+            return
 
-    document.model._highlight.lexer = find_lexer(document.get_mimetype())
+        document.model._highlight.lexer = find_lexer(document.get_mimetype())
 
-def init_and_highlight(document):
-    init_doc(document)
-    if document.model._highlight.lexer:
-        update_highlight(document.model, Start, document.model.getend())
+    def init_and_highlight(self, document):
+        self.init_doc(document)
+        if document.model._highlight.lexer:
+            update_highlight(document.model, Start, document.model.getend())
 
-def on_textSet(document):
-    if document.model._highlight.lexer :
-        update_highlight(document.model, Start, document.model.getend())
+    def on_textSet(self, document):
+        if document.model._highlight.lexer :
+            update_highlight(document.model, Start, document.model.getend())
 
+    def on_insert(self, model, insertMark, text):
+        if model._highlight.lexer :
+            start = model.index(insertMark)
+            stop = model.addchar(start, len(text))
 
-def on_insert(model, insertMark, text):
-    if model._highlight.lexer :
-        start = model.index(insertMark)
-        stop = model.addchar(start, len(text))
+            for name in model.tag_names(str(start)):
+                if not name.startswith("DP::SH::"):
+                    continue
+                model.tag_remove(name, str(start), str(stop))
 
-        for name in model.tag_names(str(start)):
-            if not name.startswith("DP::SH::"):
-                continue
-            model.tag_remove(name, str(start), str(stop))
+            update_highlight(model, start, stop)
 
-        update_highlight(model, start, stop)
+    def on_delete(self, model, fromMark, toMark):
+        if model._highlight.lexer :
+            update_highlight(model, fromMark, fromMark)
 
-def on_delete(model, fromMark, toMark):
-    if model._highlight.lexer :
-        update_highlight(model, fromMark, fromMark)
-
-def on_replace(model, fromMark, toMark, text):
-    on_insert(model, fromMark, text)
+    def on_replace(self, model, fromMark, toMark, text):
+        self.on_insert(model, fromMark, text)
 
 def update_highlight(model, start, stop):
     if model._highlight.idle_handle:
@@ -288,7 +281,6 @@ def update_tokens(model, tokens, start, stop, safe_zone):
                 except IndexError:
                     pass
 
-
     #really add the tags to the model
     for token, positions in tags_to_add.items():
         model.tag_add(_tokens_name[token], *positions)
@@ -296,7 +288,7 @@ def update_tokens(model, tokens, start, stop, safe_zone):
 
 def clean_tokens(model, start, end, token_name):
     if model.tag_nextrange(token_name, start, end) != (start, end):
-    
+
         tags = set()
 
         for n in model.tag_names(start):

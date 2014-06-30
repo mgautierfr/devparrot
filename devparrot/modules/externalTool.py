@@ -23,6 +23,7 @@ from devparrot.core.command import Command, Alias
 from devparrot.core.constraints import Stream
 
 from devparrot.core import ui, session
+from devparrot.core.modules import BaseModule
 
 import re
 
@@ -34,15 +35,10 @@ fileParsing = [re.compile(r"(?P<file>[^:]+):(?P<line>[0-9]+):(?P<pos>[0-9]+)"), 
 
 configSection = None
 
-def init(_configSection, name):
-    global configSection
-    configSection = _configSection
-    configSection.add_variable("command", "make")
-    configSection.active.register(activate)
-
-def activate(var, old):
-    if var.get():
-        pass
+class ExternalTool(BaseModule):
+    def __init__(self, configSection, name):
+        BaseModule.__init__(self, configSection, name)
+        configSection.add_variable("command", "make")
 
 class CommandOutput(ttk.Frame):
     def __init__(self, parent):
@@ -157,3 +153,5 @@ def commandOutput(name, content):
 @Alias()
 def runtool():
     return "shell {command}  | commandOutput {command}".format(command=configSection.get('command'))
+
+

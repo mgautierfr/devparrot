@@ -20,43 +20,50 @@
 
 
 from devparrot.core import session
+import pkg_resources
+
+class BaseModule(object):
+    def __init__(self, configSection, name):
+        self.configSection = configSection
+        self.name = name
+        self.active = False
+
+    def activate(self):
+        pass
+
+    def _activate(self):
+        self.active = True
+        return self.activate()
+
+    def deactivate(self):
+        pass
+
+    def _deactivate(self):
+        self.active = False
+        return self.deactivate()
 
 _modules = {}
 
+def create_active_handler(module):
+    def active_handler(var, old):
+        if var.get():
+            module._activate()
+        else:
+            module._deactivate()
+    return active_handler
+
 def load():
-    from pwd import getpwuid
-    import os
-    path = os.path.join(session.config.get('devparrotPath'), 'modules')
-    moduleList = os.listdir(path)
-    for module in moduleList:
-        load_module(path, module)
-
-    _homedir = getpwuid(os.getuid())[5]
-    path = os.path.join(_homedir,'.devparrot', 'modules')
-    if os.path.exists(path):
-        moduleList = os.listdir(path)
-        for module in moduleList:
-            load_module(path, module)
-
-def load_module(path, name):
-    import imp, os
     import configLoader
-    if name.endswith('.py'):
-        name = name[:-3]
-    elif not os.path.isdir(os.path.join(path,name)):
-        return
-
-    try:
-        fp, pathname, description = imp.find_module(name, [path])
-    except ImportError, err:
-        session.logger.error("can't import module named %s", name)
-        return
-
-    with fp:
-        module = imp.load_module(name, fp, pathname, description)
-        _modules[name] = module
+    # Note: data is zest.releaser specific: we want to pass
+    # something to the plugin
+    for entrypoint in pkg_resources.iter_entry_points(group='devparrot.module'):
+        # get the module creator (class or fonction)
+        name = entrypoint.name
+        module = entrypoint.load()
+        # create the associated config section
         section = configLoader.createSection(name, session.config.modules)
         section.add_variable("active", False)
-        module.init(section, name)
-
+        # create the module instance
+        _modules[name] = module(section, name)
+        section.active.register(create_active_handler(_modules[name]))
 

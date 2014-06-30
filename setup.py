@@ -43,6 +43,13 @@ setup(name='devparrot',
       entry_points = {
         'gui_scripts' : [
             'devparrot = devparrot:main'
+        ],
+        'devparrot.module' : [
+            'documentList = devparrot.modules.documentList:DocumentList',
+            'externalTool = devparrot.modules.externalTool:ExternalTool',
+            'fileExplorer = devparrot.modules.fileExplorer:FileExplorer',
+            'textHighlight = devparrot.modules.textHighlight:TextHighlight'
         ]
       }
 )
+

@@ -22,22 +22,7 @@
 import Tkinter,ttk
 
 from devparrot.core import session, ui
-
-documentListView = None
-
-def init(configSection, name):
-    configSection.active.register(activate)
-
-def activate(var, old):
-    if var.get():
-        global documentListView
-        documentListView = DocumentListView(ui.window)
-        session.get_documentManager().connect('documentDeleted', documentListView.on_documentDeleted)
-        session.get_documentManager().connect('documentAdded', documentListView.on_documentAdded)
-        ui.helperManager.add_helper(documentListView, "documentList", 'left')
-    else:
-        pass
-
+from devparrot.core.modules import BaseModule
 
 class DocumentListView(ttk.Treeview):
     class PseudoList(object):
@@ -80,21 +65,6 @@ class DocumentListView(ttk.Treeview):
 
     def _add_document(self, document):
         ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=('"%s"'%document.title))
-        document.connect('pathChanged', self.on_path_changed)
-
-    def on_documentAdded(self, document):
-        self._add_document(document)
-        self.sort()
-
-    def on_documentDeleted(self,document):
-        self.delete(document.get_path())
-        self.sort()
-    
-    def on_path_changed(self, document, oldPath):
-        if oldPath:
-            self.delete(oldPath)
-        ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=('"%s"'%document.title))
-        self.sort()
 
     def on_double_click(self, event):
         from devparrot.core import session
@@ -109,4 +79,34 @@ class DocumentListView(ttk.Treeview):
 
     def sort(self):
         DocumentListView.PseudoList(self).sort()
+
+
+class DocumentList(BaseModule):
+    def __init__(self, configSection, name):
+        BaseModule.__init__(self, configSection, name)
+        self.documentListView = None
+
+    def activate(self):
+        self.documentListView = DocumentListView(ui.window)
+        session.get_documentManager().connect('documentDeleted', self.on_documentDeleted)
+        session.get_documentManager().connect('documentAdded', self.on_documentAdded)
+        ui.helperManager.add_helper(documentListView, "documentList", 'left')
+
+    def deactivate(self):
+        pass
+
+    def on_documentAdded(self, document):
+        self.documentListView._add_document(document)
+        self.documentListView.sort()
+        document.connect('pathChanged', self.on_path_changed)
+
+    def on_documentDeleted(self, document):
+        self.documentListView.delete(document.get_path())
+        self.documentListView.sort()
+
+    def on_pathChanged(self, document, oldPath):
+        if oldPath:
+            self.documentListView.delete(oldPath)
+        self.documentListView._add_document(document)
+        self.documentListView.sort()
 
