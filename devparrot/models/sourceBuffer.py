@@ -297,6 +297,7 @@ class TextModel(Tkinter.Text, ModelInfo):
 
     # Overloads
     def mark_set( self, name, index ):
+        index = self.index(index)
         Tkinter.Text.mark_set(self, name, str(index) )
         session.eventSystem.event('mark_set')(self, name, index)
         if name == 'insert':

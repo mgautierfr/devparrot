@@ -19,20 +19,30 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import Tkinter
+import Tkinter, ttk
 import logging
 from devparrot.core import session, userLogging
 
-class StatusBar(Tkinter.Label, logging.Handler):
+class StatusBar(Tkinter.Frame, logging.Handler):
     def __init__(self, parent):
-        Tkinter.Label.__init__(self, parent)
+        Tkinter.Frame.__init__(self, parent)
         logging.Handler.__init__(self)
         self.pack(side=Tkinter.BOTTOM, fill=Tkinter.X)
+        self['relief'] = 'sunken'
         session.userLogger.addHandler(self)
 
+        self.label = Tkinter.Label(self)
+        self.label.pack(side='left', fill=Tkinter.BOTH, expand=True)
         self.defaultColor = self['background']
-        self['relief'] = 'sunken'
-        self['anchor'] = 'nw'
+        self.label['anchor'] = 'nw'
+
+        separator = ttk.Separator(self, orient="vertical")
+        separator.pack(side='left', fill='y')
+
+        self.insertLabel = ttk.Label(self)
+        self.insertLabel.pack(side='right', expand=False, fill="none")
+        session.eventSystem.connect('mark_set', self.on_mark_set)
+
         self.currentLevel = 0
         self.callbackId = 0
 
@@ -43,21 +53,28 @@ class StatusBar(Tkinter.Label, logging.Handler):
 
     def clear(self):
         self.currentLevel = 0
-        self['text'] = ""
-        self['background'] = self.defaultColor
+        self.label['text'] = ""
+        self.label['background'] = self.defaultColor
         self.callbackId = 0
 
     def emit(self,record):
         """overide logging.Handler.emit"""
         if record.levelno >= self.currentLevel:
             self.currentLevel = record.levelno
-            self['text'] = record.getMessage()
+            self.label['text'] = record.getMessage()
             if self.currentLevel == userLogging.INFO:
-                self['background'] = session.config.get('color.okColor')
+                self.label['background'] = session.config.get('color.okColor')
             if self.currentLevel == userLogging.ERROR:
-                self['background'] = session.config.get('color.errorColor')
+                self.label['background'] = session.config.get('color.errorColor')
             if self.currentLevel == userLogging.INVALID:
-                self['background'] = session.config.get('color.invalidColor')
+                self.label['background'] = session.config.get('color.invalidColor')
             if self.callbackId:
                 self.after_cancel(self.callbackId)
             self.callbackId = self.after(5000, self.clear)
+
+    def on_mark_set(self, model, name, index):
+        if name == "insert":
+            if model.sel_isSelection():
+                self.insertLabel['text'] = "[%s:%s]"%(model.index("sel.first"), model.index("sel.last"))
+            else:
+                self.insertLabel['text'] = str(model.index("insert"))
