@@ -205,8 +205,6 @@ class MasterCommandWrapper(object):
     def __getitem__(self, name):
         return self.subCommands[name]
 
-
-
 class MacroWrapper(CommandWrapper):
     def __init__(self, constraints):
         CommandWrapper.__init__(self, constraints, None)
@@ -214,6 +212,14 @@ class MacroWrapper(CommandWrapper):
     def resolve(self, *args, **kwords):
         call_list, call_kwords = self._get_call_args(args, kwords)
         return self.functionToCall(*call_list, **call_kwords)
+
+class MacroDict(MacroWrapper):
+    def __init__(self, kwords):
+        MacroWrapper.__init__(self, {})
+        self.kwords = kwords
+
+    def resolve(self, *args, **kwords):
+        return self.kwords[args[0]]
 
 
 class MacroResult(object):

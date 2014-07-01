@@ -95,11 +95,11 @@ class History(object):
             return ""
         return self.history[-self.currentIndex]
 
-def expand_alias(commands, first=False):
+def expand_alias(commands, kwords, first=False):
     from devparrot.core import session
     from devparrot.core.errors import InvalidArgument
     from devparrot.core.command.parserGrammar import parse_input_text
-    from devparrot.core.command.wrappers import AliasWrapper, MacroResult
+    from devparrot.core.command.wrappers import AliasWrapper, MacroResult, MacroDict
     for command in commands:
         if command == "\n":
             yield command
@@ -117,6 +117,7 @@ def expand_alias(commands, first=False):
             try:
                 _globals = dict(session.commands)
                 _globals["_macros"] = dict(session.macros)
+                _globals["_macros"]["argument"] = MacroDict(kwords)
                 _globals["_MacroListResult"] = (lambda l : [MacroResult(i) for i in l])
                 _globals["_MacroResult"] = MacroResult
                 alias_expansion = eval(command.rewrited(), _globals, {})
@@ -124,7 +125,7 @@ def expand_alias(commands, first=False):
                 raise InvalidArgument(err.message)
             #parse new text and redo the work for it
             pipe = parse_input_text(alias_expansion, forCompletion=False)
-            for com in expand_alias(pipe.values):
+            for com in expand_alias(pipe.values, kwords):
                 yield com
         else:
             #it is a command, just yield it
@@ -136,14 +137,14 @@ class CommandLauncher:
     def __init__(self):
         self.history = History()
 
-    def run_command(self, text):
+    def run_command(self, text, kwords={}):
         from devparrot.core import session
         from devparrot.core.command.parserGrammar import parse_input_text
         from devparrot.core.command.stream import PseudoStream, DefaultStreamEater
-        from devparrot.core.command.wrappers import MacroResult
+        from devparrot.core.command.wrappers import MacroResult, MacroDict
         session.logger.debug("running command %s", repr(text))
         pipe = parse_input_text(text, forCompletion=False)
-        commands = expand_alias(pipe.values, True)
+        commands = expand_alias(pipe.values, kwords, True)
 
         noMoreCommand = False
         while True:
@@ -170,6 +171,7 @@ class CommandLauncher:
                 try:
                     _globals = dict(session.commands)
                     _globals["_macros"] = dict(session.macros)
+                    _globals["_macros"]["argument"] = MacroDict(kwords)
                     _globals["_MacroListResult"] = (lambda l : [MacroResult(i) for i in l])
                     _globals["_MacroResult"] = MacroResult
                     streamEater = eval(command.rewrited(), _globals, {})
@@ -182,11 +184,11 @@ class CommandLauncher:
 
         self.history.push(text)
 
-    def run_command_nofail(self, text):
+    def run_command_nofail(self, text, kwords={}):
         from devparrot.core import session
         from devparrot.core.errors import ContextError, InvalidError
         try:
-            self.run_command(text)
+            self.run_command(text, kwords)
             session.userLogger.info(text)
         except ContextError as err:
             session.userLogger.error(err)
