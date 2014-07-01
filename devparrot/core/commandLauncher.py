@@ -145,36 +145,41 @@ class CommandLauncher:
         pipe = parse_input_text(text, forCompletion=False)
         commands = expand_alias(pipe.values, True)
 
+        noMoreCommand = False
         while True:
-            try:
-                stream = PseudoStream()
-                while True:
+            stream = PseudoStream()
+            while True:
+                try:
                     command = commands.next()
-                    if command == "\n":
-                        DefaultStreamEater(stream)
-                        break # one pipe, start a new line (pipe)
-                    # check that command really exists
-                    l = command.name.split('.')
-                    sections, commandName = l[:-1], l[-1]
-                    try:
-                        lastSection = session.commands
-                        for section in sections:
-                            lastSection = lastSection[section]
-                        lastSection[commandName]
-                    except KeyError:
-                         raise InvalidName("{0} is not a valid command name".format(command.name))
-                    try:
-                        _globals = dict(session.commands)
-                        _globals["_macros"] = dict(session.macros)
-                        _globals["_MacroListResult"] = (lambda l : [MacroResult(i) for i in l])
-                        _globals["_MacroResult"] = MacroResult
-                        streamEater = eval(command.rewrited(), _globals, {})
-                        stream = streamEater(stream)
-                    except UserCancel:
-                        raise StopIteration
+                except StopIteration:
+                    noMoreCommand = True
+                    break
+                if command == "\n":
+                    DefaultStreamEater(stream)
+                    break # one pipe, start a new line (pipe)
+                # check that command really exists
+                l = command.name.split('.')
+                sections, commandName = l[:-1], l[-1]
+                try:
+                    lastSection = session.commands
+                    for section in sections:
+                        lastSection = lastSection[section]
+                    lastSection[commandName]
+                except KeyError:
+                     raise InvalidName("{0} is not a valid command name".format(command.name))
+                try:
+                    _globals = dict(session.commands)
+                    _globals["_macros"] = dict(session.macros)
+                    _globals["_MacroListResult"] = (lambda l : [MacroResult(i) for i in l])
+                    _globals["_MacroResult"] = MacroResult
+                    streamEater = eval(command.rewrited(), _globals, {})
+                    stream = streamEater(stream)
+                except UserCancel:
+                    noMoreCommand = True
+                    break
+            if noMoreCommand:
+                break
 
-            except StopIteration:
-                break # cause no more command at all
         self.history.push(text)
 
     def run_command_nofail(self, text):
