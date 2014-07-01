@@ -156,31 +156,65 @@ class ProxyVar(Variable):
     def get(self):
         return self._value()
 
-def Property(name, fget=None, fset=None, fdel=None, doc=None):
-    if doc is None:
-        doc = "Property %s" % name
-    name = "_"+name
+default = object()
 
-    def var(self):
-        try:
-            return getattr(self, name)
-        except AttributeError:
-            var = Variable()
-            setattr(self, name, var)
-            return var
-    if fget is None:
-        def fget(self):
-            return var(self).get()
-    if fset is None:
-        def fset(self, value):
-            return var(self).set(value)
-    if fdel is None:
-        def fdel(self):
-            delattr(self, name)
-    def notify(self):
-        return var(self).notify()
-    def register(self, callback):
-        return var(self).register(callback)
-    def unregister(self, handler):
-        return var(self).unregister(handler)
-    return (property( fget, fset, fdel, doc), notify, register, unregister)
+class Property(object):
+    def __init__(self, doc=None, **kwords):
+        self.fget = kwords.get('fget', default)
+        self.fset = kwords.get('fset', default)
+        self.fdel = kwords.get('fdel', default)
+        self.doc  = doc
+
+    def create_objects(self, name):
+        doc = self.doc
+        if doc is None:
+            doc = "Property %s"%name
+        name = "_"+name
+
+        var = Variable()
+        fget = self.fget
+        if fget is default:
+            def fget(self_):
+                return var.get()
+        fset = self.fset
+        if fset is default:
+            def fset(self_, value):
+                return var.set(value)
+        fdel = self.fdel
+        if fdel is default:
+            def fdel(self_):
+                delattr(self_, name)
+        def notify(self_):
+            """make the var notify has it where changed"""
+            return var.notify()
+        def register(self_, callback):
+            """register a callback for change of the variable"""
+            return var.register(callback)
+        def unregister(self_, handler):
+            """unregister a callback for change of the variable"""
+            return var.unregister(handler)
+        return (var, fget, fset, fdel, doc, notify, register, unregister)
+
+
+class HasPropertyMeta(type):
+    def __new__(cls, name, bases, dct):
+        if name == "HasProperty":
+            return type.__new__(cls, name, bases, dct)
+
+        newdct = {}
+        for attrName, attr in dct.items():
+            if not isinstance(attr, Property):
+                newdct[attrName] = attr
+                continue
+            var, fget, fset, fdel, doc, notify, register, unregister = attr.create_objects(attrName)
+            newdct[attrName] = property(fget, fset, fdel, doc)
+            newdct["_%s"%attrName] = var
+            newdct["%s_notify"%attrName] = var.notify
+            newdct["%s_register"%attrName] = var.register
+            newdct["%s_unregister"%attrName] = var.unregister
+
+        return type.__new__(cls, name, bases, newdct)
+
+class HasProperty(object):
+    __metaclass__ = HasPropertyMeta
+

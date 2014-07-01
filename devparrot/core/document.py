@@ -24,19 +24,19 @@ from devparrot.views.textView import TextView
 from devparrot.core import session
 
 import utils.event
-from utils.variable import Property, Variable
+from utils.variable import Property, Variable, HasProperty
 from devparrot.models.sourceBuffer import SourceBuffer
 
 
-class Document(object):
+class Document(HasProperty):
     def get_title(self):
         return self.documentSource.title
 
     def get_longTitle(self):
         return self.documentSource.longTitle
-    title, title_notify, title_register, title_unregister = Property("title", get_title)
-    longTitle, longTitle_notify, longTitle_register, longTitle_unregister = Property("longTitle", get_longTitle)
 
+    title     = Property(fget=get_title, fset=None, fdel=None)
+    longTitle = Property(fget=get_longTitle, fset=None, fdel=None)
 
     def __init__(self, documentSource):
         self.documentSource = documentSource
