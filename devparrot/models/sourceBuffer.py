@@ -394,11 +394,13 @@ class TextModel(Tkinter.Text, ModelInfo):
         Tkinter.Text.delete(self, "1.0", "end")
         self.reinit()
 
-        line = ""
+        oldLine = ""
         for line in content:
-            fast_insert(line)
+            if line:
+                fast_insert(line)
+                oldLine = line
         #remove last "\n" as tkText add one automaticaly
-        if line == "\n":
+        if oldLine == "\n":
             ttk.Tkinter.Text.delete(self, "end -1c", "end")
             ModelInfo.delete(self, self.index("end -1c"), self.index("end"))
 
