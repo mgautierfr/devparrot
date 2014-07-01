@@ -98,7 +98,7 @@ class Document(object):
         self.model.edit_modified(False)
         
     def on_modified_changed(self, model, modified):
-        if not self.is_readonly():
+        if model==self.model and not self.is_readonly():
             self.documentView.set_bold(modified)
     
     def on_focus_in_event(self, event):
