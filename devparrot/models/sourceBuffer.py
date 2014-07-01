@@ -312,7 +312,7 @@ class TextModel(Tkinter.Text, ModelInfo):
             self.add_change(type='insert', index=index, text=text)
         if kword.get('forceUpdate', False):
             self.update()
-        self.rangeInfo.parse_text(self.get("1.0", "end"), changeIndex=orig_len, changeLen=len(text))
+        #self.rangeInfo.parse_text(self.get("1.0", "end"), changeIndex=orig_len, changeLen=len(text))
         session.eventSystem.event('insert')(self, index, text)
     
     def delete(self, index1, index2, updateUndo=True):
@@ -323,7 +323,7 @@ class TextModel(Tkinter.Text, ModelInfo):
         ModelInfo.delete(self, index1, index2)
         if updateUndo:
             self.add_change(type='delete', index=index1, oldText=text)
-        self.rangeInfo.parse_text(self.get("1.0", "end"), changeIndex=self.calculate_distance(Start, index1), changeLen=-len(text))
+        #self.rangeInfo.parse_text(self.get("1.0", "end"), changeIndex=self.calculate_distance(Start, index1), changeLen=-len(text))
         session.eventSystem.event('delete')(self, index1, index2)
 
     def replace(self, index1, index2, text, updateUndo=True):
@@ -337,8 +337,8 @@ class TextModel(Tkinter.Text, ModelInfo):
             self.add_change(type='replace', index=index1, oldText=oldText, text=text)
         distance = self.calculate_distance(Start, index1)
         content  = self.get("1.0", "end")
-        self.rangeInfo.parse_text(content, changeIndex=distance, changeLen=-len(oldText))
-        self.rangeInfo.parse_text(content, changeIndex=distance, changeLen=len(text))
+        #self.rangeInfo.parse_text(content, changeIndex=distance, changeLen=-len(oldText))
+        #self.rangeInfo.parse_text(content, changeIndex=distance, changeLen=len(text))
         session.eventSystem.event('replace')(self, index1, index2, text)
 
     def undo(self):
@@ -405,7 +405,7 @@ class TextModel(Tkinter.Text, ModelInfo):
             ttk.Tkinter.Text.delete(self, "end -1c", "end")
             ModelInfo.delete(self, self.index("end -1c"), self.index("end"))
 
-        self.rangeInfo.fast_parse_text(self.get("1.0", "end"))
+        #self.rangeInfo.fast_parse_text(self.get("1.0", "end"))
         self.edit_reset()
         self.edit_modified(False)
     
