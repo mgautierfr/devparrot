@@ -29,10 +29,10 @@ class BindLauncher(object):
         self.commands = commands[:-1]
         self.leftText = commands[-1]
 
-    def __call__(self, *args):
+    def __call__(self, kwords):
         from devparrot.core import session, ui
         for cmd in self.commands:
-            ret = session.commandLauncher.run_command_nofail(cmd)
+            ret = session.commandLauncher.run_command_nofail(cmd, kwords)
             if not ret:
                 return "break"
         ui.window.entry.delete("1.0", "end")
@@ -42,6 +42,15 @@ class BindLauncher(object):
             ui.window.entry.focus()
             ui.window.entry.mark_set("index", "end")
         return "break"
+
+class TkBindLauncher(BindLauncher):
+    def __call__(self, event):
+        return BindLauncher.__call__(self, {'event':event})
+
+class CommandBindLauncher(BindLauncher):
+    def __call__(self, *args):
+        kwords = {str(i):arg for i, arg in enumerate(args)}
+        return BindLauncher.__call__(self, kwords)
 
 class Binder(object):
     def __init__(self):
@@ -53,14 +62,15 @@ class Binder(object):
 
     def __setitem__(self, accel, command):
         from devparrot.core import session
-        bindLauncher = BindLauncher(command)
         if TkEventMatcher.match(accel):
             from devparrot.core import ui
+            bindLauncher = TkBindLauncher(command)
             if ui.window:
                 ui.window.bind_class("devparrot", accel, bindLauncher)
             else:
                 self.tkBinds[accel] = bindLauncher
         else:
+            bindLauncher = CommandBindLauncher(command)
             currentBinds = self.binds.setdefault(accel, set())
             currentBinds.add(session.eventSystem.connect(accel, bindLauncher))
 
