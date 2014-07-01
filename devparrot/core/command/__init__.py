@@ -61,4 +61,6 @@ def load_module(path, name):
         return imp.load_module(name, fp, pathname, description)
 
 
-
+def arg_escape(arg):
+    import codecs
+    return codecs.encode(arg, "unicode_escape")

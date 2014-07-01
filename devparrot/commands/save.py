@@ -19,29 +19,30 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.core.command import Alias
-from devparrot.core.constraints import File
+from devparrot.core.command import Alias, Command, arg_escape
+from devparrot.core.constraints import File, OpenDocument
 from devparrot.core.session import bindings
 from devparrot.core.errors import FileAccessError
 
-@Alias(
+from devparrot.core import session
+
+@Command(
+document = OpenDocument(default=session.macros.current, help="document to save"),
 fileName = File(mode=File.SAVE, default=lambda:None)
 )
-def save(fileName):
+def save(document, fileName):
     """
     Save current file.
 
     If fileName is provided, act as "saveas" command.
     """
-    from devparrot.core import session
     if fileName:
-        return "core.save %current {0!r}".format(fileName)
+        session.commands.core.save(document, fileName)
     else:
-        document = session.get_currentDocument()
         if document.has_a_path():
-            return "core.save %current {0!r}".format(document.get_path())
+            session.commands.core.save(document, document.get_path())
         else:
-            return "core.save %current"
+            session.commandLauncher.run_command("core.save %current")
 
 @Alias(
 fileName = File(mode=File.SAVE)
@@ -52,7 +53,7 @@ def saveas(fileName):
 
     If fileName is not provided, the user is asked for it.
     """
-    return "core.save %current {0!r}".format(fileName)
+    return "core.save %current {0}".format(arg_escape(fileName))
 
 bindings["<Control-s>"] = "save\n"
 bindings["<Control-Shift-S>"] = "saveas\n"
