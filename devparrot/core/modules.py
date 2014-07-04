@@ -30,8 +30,7 @@ def create_auto_call(module, attr):
     return auto_call
 
 class BaseModule(object):
-    def __init__(self, configSection, name):
-        self.configSection = configSection
+    def __init__(self, name):
         self.name = name
         self.active = False
         auto_bind(self, session.eventSystem, wrapper=lambda attr:create_auto_call(self, attr))
@@ -50,6 +49,10 @@ class BaseModule(object):
         self.active = False
         return self.deactivate()
 
+    @staticmethod
+    def update_config(config):
+        pass
+
 _modules = {}
 
 def create_active_handler(module):
@@ -60,6 +63,11 @@ def create_active_handler(module):
             module._deactivate()
     return active_handler
 
+def update_config(config):
+    for entrypoint in pkg_resources.iter_entry_points(group='devparrot.module'):
+        module = entrypoint.load()
+        module.update_config(config)
+
 def load():
     import configLoader
     # Note: data is zest.releaser specific: we want to pass
@@ -69,9 +77,6 @@ def load():
         name = entrypoint.name
         module = entrypoint.load()
         # create the associated config section
-        section = configLoader.createSection(name, session.config.modules)
-        section.add_variable("active", False)
         # create the module instance
-        _modules[name] = module(section, name)
-        section.active.register(create_active_handler(_modules[name]))
+        _modules[name] = module(name)
 

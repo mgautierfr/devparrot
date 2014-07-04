@@ -95,7 +95,7 @@ class ControlerEntry(Tkinter.Text):
             self.completionSystem.update_completion()
             return "break"
         char = event.char.decode('utf8')
-        if char in set(session.config.get("wchars")+session.config.get("puncchars")+session.config.get("spacechars")):
+        if char in set(session.config.get('wchars')+session.config.get('puncchars')+session.config.get('spacechars')):
             self.tag_remove( 'sel', '1.0', 'end' )
             self.mark_unset( 'sel.first', 'sel.last' )
             self.insert( 'insert', char)

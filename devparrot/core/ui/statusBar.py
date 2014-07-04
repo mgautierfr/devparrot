@@ -63,11 +63,11 @@ class StatusBar(Tkinter.Frame, logging.Handler):
             self.currentLevel = record.levelno
             self.label['text'] = record.getMessage()
             if self.currentLevel == userLogging.INFO:
-                self.label['background'] = session.config.get('color.okColor')
+                self.label['background'] = session.config.get('ok_color')
             if self.currentLevel == userLogging.ERROR:
-                self.label['background'] = session.config.get('color.errorColor')
+                self.label['background'] = session.config.get('error_color')
             if self.currentLevel == userLogging.INVALID:
-                self.label['background'] = session.config.get('color.invalidColor')
+                self.label['background'] = session.config.get('invalid_color')
             if self.callbackId:
                 self.after_cancel(self.callbackId)
             self.callbackId = self.after(5000, self.clear)

@@ -82,8 +82,8 @@ class DocumentListView(ttk.Treeview):
 
 
 class DocumentList(BaseModule):
-    def __init__(self, configSection, name):
-        BaseModule.__init__(self, configSection, name)
+    def __init__(self, name):
+        BaseModule.__init__(self, name)
         self.documentListView = None
 
     def activate(self):

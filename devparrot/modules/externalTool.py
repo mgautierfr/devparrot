@@ -33,12 +33,10 @@ fileParsing = [re.compile(r"(?P<file>[^:]+):(?P<line>[0-9]+):(?P<pos>[0-9]+)"), 
                re.compile(r'File (?P<file_link>"(?P<file>.*)", line (?P<line>[0-9]+))') # pythen exception
               ]
 
-configSection = None
-
 class ExternalTool(BaseModule):
-    def __init__(self, configSection, name):
-        BaseModule.__init__(self, configSection, name)
-        configSection.add_variable("command", "make")
+    @staticmethod
+    def update_config(config):
+        config.add_option("command", default="make")
 
 class CommandOutput(ttk.Frame):
     def __init__(self, parent):
@@ -152,6 +150,6 @@ def commandOutput(name, content):
 
 @Alias()
 def runtool():
-    return "shell {command}  | commandOutput {command}".format(command=configSection.get('command'))
+    return "shell %config(command)  | commandOutput %config(command)"
 
 

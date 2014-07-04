@@ -139,7 +139,7 @@ class CompletionSystem(object):
 
     def _on_event(self, event):
         from devparrot.core import session
-        validChars = set(session.config.get("wchars")+" ")
+        validChars = set(session.config.get('wchars')+" ")
         if event.keysym == 'Escape':
             self.stop_completion()
             return

@@ -90,7 +90,7 @@ class WordStart(object):
         word = model.get(str(wordstart), str(currentPos))
 
         while wordstart != currentPos:
-            if len(set(word)&set(session.config.get("wchars"))) != 0:
+            if len(set(word)&set(session.config.get('wchars'))) != 0:
                 break
             currentPos = wordstart
             wordstart = model.index("%s -1c wordstart"%str(currentPos))
@@ -116,7 +116,7 @@ class WordEnd(object):
         word = model.get(str(currentPos), str(wordend))
 
         while wordend != currentPos:
-            if len(set(word)&set(session.config.get("wchars"))) != 0:
+            if len(set(word)&set(session.config.get('wchars'))) != 0:
                 break
             currentPos = wordend
             wordend = model.index("%s wordend"%str(currentPos) )

@@ -36,7 +36,7 @@ class menu(MasterCommand):
         #import pdb; pdb.set_trace()
         sections = entry.split('.')
         menu, sections, name = sections[0], sections[1:-1], sections[-1]
-        menu = session.config.ui.get(menu)
+        menu = session.config.get(menu)
         section = _get_section(menu, sections)
         section.append((name, command))
 
@@ -44,7 +44,7 @@ class menu(MasterCommand):
     def disable(entry):
         sections = entry.split('.')
         menu, sections, name = sections[0], sections[1:-1], sections[-1]
-        menu = session.config.ui.get(menu)
+        menu = session.config.get(menu)
         section = _get_section(menu, sections)
         section.entryconfigure(name, state="disable")
 
@@ -52,7 +52,7 @@ class menu(MasterCommand):
     def enable(entry):
         sections = entry.split('.')
         menu, sections, name = sections[0], sections[1:-1], sections[-1]
-        menu = session.config.ui.get(menu)
+        menu = session.config.get(menu)
         section = _get_section(menu, sections)
         section.entryconfigure(name, state="normal")
 

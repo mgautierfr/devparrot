@@ -430,23 +430,21 @@ class SourceBuffer(TextModel):
     def __init__(self, readOnly):
         TextModel.__init__(self)
 
-        tags = [str(self._w), 'devparrot'] + session.config.get('controllers.default')
+        tags = [str(self._w), 'devparrot'] + session.config.get('default_controllers')
         self.bindtags(tuple(tags))
 
         self.readOnly = readOnly
 
-        self.tag_configure('currentLine_tag', background=session.config.get("color.currentLine_tag_color"))
+        self.tag_configure('currentLine_tag', background=session.config.get('currentLine_tag_color'))
         self.tag_raise("currentLine_tag")
         self.tag_raise("sel", "currentLine_tag")
 
-        self.on_font_changed(None, None)
-        session.config.textView.font.register(self.on_font_changed)
-        session.config.textView.tab_width.register(self.on_tab_width_changed)
-        session.config.color.currentLine_tag_color.register(self.on_currentLine_color_changed)
+        self.on_configChanged(session.config.font, None)
+        session.eventSystem.connect("configChanged", self.on_configChanged)
 
         self.highlight_tag_protected = False
-        self.tag_configure("highlight_tag", background=session.config.get("color.highlight_tag_color"))
-        self.tag_configure("search_tag", background=session.config.get("color.search_tag_color"))
+        self.tag_configure("highlight_tag", background=session.config.get('highlight_tag_color'))
+        self.tag_configure("search_tag", background=session.config.get('search_tag_color'))
         self.bind("<<Selection>>", self.on_selection_changed)
         self.hl_callId = None
         self.tag_lower("highlight_tag", "sel")
@@ -454,20 +452,22 @@ class SourceBuffer(TextModel):
         self.tag_raise("highlight_tag", "currentLine_tag")
         self.tag_raise("search_tag", "currentLine_tag")
 
-    def on_font_changed(self, var, old):
-        self.config(font = session.config.get("textView.font"))
-        self.on_tab_width_changed(None, None)
-
-    def on_tab_width_changed(self, var, old):
+    def on_configChanged(self, var, old):
         import tkFont
-        self.config(tabs = session.config.get("textView.tab_width")*tkFont.Font(font=session.config.get("textView.font")).measure(" "))
 
-    def on_currentLine_color_changed(self, var, old):
-        self.tag_configure('currentLine_tag', background=var.get())
+        if var.name == "currentLine_tag_color":
+            self.tag_configure('currentLine_tag', background=var.get())
+            return
+
+        if var.name == "font":
+            self.config(font = var.get())
+
+        if var.name in ("font", "tab_width"):
+            self.config(tabs = session.config.get('tab_width')*tkFont.Font(font=session.config.get('font')).measure(" "))
 
     def set_currentLineTag(self):
         self.tag_remove('currentLine_tag', '1.0', 'end')
-        if session.config.get("textView.highlight_current_line"):
+        if session.config.get('highlight_current_line'):
             self.tag_add( 'currentLine_tag', 'insert linestart', 'insert + 1l linestart')
 
     def on_selection_changed(self, event):

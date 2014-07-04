@@ -341,22 +341,17 @@ class ConfigEntry(_Constraint):
         
     def check(self, arg):
         from devparrot.core import session
-        sections = arg.split('.')
-        currentSection = session.config
-        for section in sections:
-            try:
-                currentSection = currentSection[section]
-            except KeyError:
-                return False, None
-        return True, currentSection
+        try:
+            return True, session.config[arg]
+        except KeyError:
+            return False, None
 
     def check_direct(self, arg):
-        from devparrot.core.configLoader import Section
-        return isinstance(arg,Section) , arg
+        from cfgparser import Option
+        return isinstance(arg, Option), arg
 
     def complete(self, token):
         from devparrot.core import session
-        completions = []
         
         if token.get_type().endswith('String'):
             token = token.values
@@ -365,23 +360,7 @@ class ConfigEntry(_Constraint):
         else:
             token = ''
 
-        sections = token.split('.')
-        currentSection = session.config
+        completions = [Completion(section, True) for section in session.config.__dict__.keys() if section.startswith(token)]
 
-        for section in sections[:-1]:
-            try:
-                currentSection = currentSection[section]
-            except KeyError:
-                return []
-
-        prefix = ".".join(sections[:-1])
-        token = sections[-1]
-
-        prefix = ""
-        if len(sections) > 1:
-            prefix = ".".join(sections[:-1]+[""])
-
-        completions.extend([Completion("%s%s."%(prefix, section), False) for section in currentSection.sections if section.startswith(token)])
-        completions.extend([Completion("%s%s"%(prefix, var), True) for var in currentSection.variables if var.startswith(token)])
         return completions
 

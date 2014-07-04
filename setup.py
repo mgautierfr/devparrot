@@ -39,7 +39,7 @@ setup(name='devparrot',
       packages=find_packages(exclude=['tests'])+['devparrot.commands', 'devparrot.modules'],
       package_data= { 'devparrot.core.ui' : [ 'resources/icon48.png' ],
                       'devparrot' : ['default_user_configrc']},
-      install_requires=['PIL', 'pyxdg', 'picoparse', 'pygments', 'python-magic'],
+      install_requires=['PIL', 'pyxdg', 'picoparse', 'pygments', 'python-magic', 'cfgparse'],
       entry_points = {
         'gui_scripts' : [
             'devparrot = devparrot:main'

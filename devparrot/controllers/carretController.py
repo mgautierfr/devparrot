@@ -43,7 +43,7 @@ class CarretController( Controller ):
         newPos = 'insert linestart'
         if modifiers.ctrl:
             newPos = '1.0'
-        elif session.config.get("textView.smart_home_end"):
+        elif session.config.get('smart_home_end'):
             match_start = ttk.Tkinter.Text.search(event.widget, "[^ \t]" , 'insert linestart', stopindex='insert lineend', regexp=True)
             if match_start:
                 if event.widget.compare(match_start, '!=', 'insert'):

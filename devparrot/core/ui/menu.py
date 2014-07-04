@@ -23,6 +23,7 @@ import Tkinter
 from devparrot.core import session
 from functools import partial
 from devparrot.core.errors import *
+from devparrot.core.configLoader import ReadOnlyOption
    
 
 class Menu(Tkinter.Menu):
@@ -90,10 +91,10 @@ class MenuBar(Menu):
     def __init__(self):
         Menu.__init__(self, parent=None)
         self.create_menu()
-        session.config.ui.menuBar = self
+        object.__setattr__(session.config, 'menuBar', ReadOnlyOption('menuBar', self))
 
     def create_menu(self):
-        [self.append(value) for value in session.config.ui.menuBar.get()]
+        [self.append(value) for value in session.config.get('menuBar')]
 
 
 class PopupMenu(Menu):
@@ -101,10 +102,10 @@ class PopupMenu(Menu):
         Menu.__init__(self, parent=None)
         self.config(postcommand=self.postCommand)
         self.create_menu()
-        session.config.ui.popupMenu = self
+        object.__setattr__(session.config, 'popupMenu', ReadOnlyOption('popupMenu', self))
 
     def create_menu(self):
-        [self.append(value) for value in session.config.ui.popupMenu.get()]
+        [self.append(value) for value in session.config.get('popupMenu')]
 
     def postCommand(self):
         try:

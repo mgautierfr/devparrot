@@ -41,19 +41,19 @@ class HighlightContext(object):
         self.idle_handle = None
 
 class TextHighlight(BaseModule):
-    def __init__(self, configSection, name):
-        BaseModule.__init__(self, configSection, name)
-        configSection.add_variable("hlstyle", "default")
+    @staticmethod
+    def update_config(config):
+        config.add_option("hlstyle", default="default")
 
     def activate(self):
         self._create_fonts()
         self._create_styles()
-        self.font_changed_handle = session.config.textView.font.register(self._on_font_changed)
-        self.style_changed_handle = self.configSection.hlstyle.register(self._on_style_changed)
 
-    def deactivate(self):
-        session.config.textView.font.unregister(self.font_changed_handle)
-        self.configSection.hlstyle.unregister(self.style_changed_handle)
+    def on_configChanged(self, var, old):
+        if var.name == "font":
+            return self._on_font_changed(var, old)
+        if var.name == "hlstyle":
+            return self._on_style_changed(var, old)
 
     def _on_font_changed(self, var, old):
         if var.get() == old:
@@ -72,7 +72,7 @@ class TextHighlight(BaseModule):
 
     def _create_fonts(self):
         self._fonts = {}
-        self._fonts[(False,False)] = tkFont.Font(font=session.config.get("textView.font"))
+        self._fonts[(False,False)] = tkFont.Font(font=session.config.get('font'))
         self._fonts[(True,False)] = self._fonts[(False,False)].copy()
         self._fonts[(True,False)].configure(weight='bold')
         self._fonts[(False,True)] = self._fonts[(False,False)].copy()
@@ -84,7 +84,7 @@ class TextHighlight(BaseModule):
         from pygments.styles import get_style_by_name
         global _tokens_name
 
-        self._style = get_style_by_name(self.configSection.get("hlstyle"))
+        self._style = get_style_by_name(session.config.get('hlstyle'))
 
         tkStyles = dict(self._style)
         for token in sorted(tkStyles):

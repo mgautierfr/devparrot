@@ -36,26 +36,25 @@ def _generate_all_mime_combination(mimeType):
         yield tuple(mimeType[:i]), "%s%s"%("gnome-mime-", "-".join(mimeType[:i]))
 
 class FileExplorer(BaseModule):
-    def __init__(self, configSection, name):
-        BaseModule.__init__(self, configSection, name)
-        configSection.add_variable("iconTheme", None)
-        configSection.add_variable("showIcon", False)
-        configSection.add_variable("excludes", ["*.pyc", "*.pyo", "*.o"])
-        self.handlers = []
+    @staticmethod
+    def update_config(config):
+        config.add_option("iconTheme", default=None)
+        config.add_option("showIcon", default=False)
+        config.add_option("excludes", default=["*.pyc", "*.pyo", "*.o"])
 
     def activate(self):
         self.fileExplorerView = FileExplorerView(ui.window, self)
         ui.helperManager.add_helper(self.fileExplorerView, "fileExplorer", 'left')
-        self.handlers.append(self.configSection.iconTheme.register(self._on_iconTheme_changed))
-        self.handlers.append(self.configSection.showIcon.register(self._on_iconTheme_changed))
 
     def deactivate(self):
-        [h.unregister() for h in self.handlers]
-        self.handlers = []
         ui.helperManager.remove_helper(self.fileExplorerView, 'left')
         self.fileExplorerView = None
 
-    def _on_iconTheme_changed(self, var, old):
+    def on_configChanged(self, var, old):
+        if var.name in ("iconTheme", "showIcon"):
+            return _on_iconTheme_changed()
+
+    def _on_iconTheme_changed(self):
         global tkImages
         tkImages = {}
         if self.active:
@@ -69,14 +68,14 @@ class FileExplorer(BaseModule):
                 import Image, ImageTk
             except ImportError:
                 return None
-        iconPath = getIconPath(mimeType, size=16, theme=self.configSection.get("iconTheme"), extensions=["png", "xpm"])
+        iconPath = getIconPath(mimeType, size=16, theme=session.config.get('iconTheme'), extensions=["png", "xpm"])
         if iconPath:
             iconImage = Image.open(iconPath)
             return ImageTk.PhotoImage(iconImage)
         return None
 
     def _get_icon_for_mime(self, mimeType):
-        if not self.configSection.get("showIcon"):
+        if not session.config.get('showIcon'):
             return None
         passedMime = set()
         for mimekey, mimetext in _generate_all_mime_combination(mimeType):
@@ -96,7 +95,7 @@ class FileExplorer(BaseModule):
 
     def apply_exclude(self, entry):
         from fnmatch import fnmatch
-        for filter_ in self.configSection.excludes.get():
+        for filter_ in session.config.get('excludes'):
             if fnmatch(entry, filter_):
                 return False
         return True

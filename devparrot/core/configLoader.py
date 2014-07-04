@@ -21,162 +21,117 @@
 
 
 from devparrot.core.utils.variable import CbCaller
-import re, os
+from devparrot.core import session, modules
+import cfgparse
+import re, os, types
 
 _config = None
 
-class Section(CbCaller):
-    def __init__(self, config, name):
-        from devparrot.core.utils.variable import CbList
-        # do not call parent __init__
-        object.__setattr__(self, "_callbacks", CbList())
-        object.__setattr__(self, "sections", {})
-        object.__setattr__(self, "variables", {})
-        object.__setattr__(self, "config", config)
-        object.__setattr__(self, "name", name)
+def _customSet(self_, value, cfgfile=None, keys=None):
+    if cfgfile is None:
+        cfgfile=self_._userFile
+    old = self_.get()
+    self_.__class__.set(self_, value, cfgfile=cfgfile, keys=keys)
+    session.eventSystem.event("configChanged")(self_, old)
 
-    def _get(self,name):
-        try:
-            return self.variables[name]
-        except KeyError:
-            return self.sections[name]
+class Config(object):
+    def __init__(self):
+        self._parser = cfgparse.ConfigParser(allow_py=True, exception=True)
+        self._userFile = self._parser.add_file(os.path.expanduser("~/.devparrotcfg"))
 
-    def __getattr__(self, name):
-        try:
-            return self._get(name)
-        except KeyError:
-            raise AttributeError
+    def add_option(self, name, *args, **kwords):
+        option = self._parser.add_option(name, *args, **kwords)
+        option.set = types.MethodType(_customSet, option)
+        option._userFile = self._userFile
+        object.__setattr__(self, name, option)
 
-    def __getitem__(self, name):
-        return self._get(name)
-
-    def get(self, name):
-        args = name.split('.')
-        section = self
-        for arg in args[:-1]:
-            section = section.sections[arg]
-        return section._get(args[-1]).get()
-
-    def set(self, name, value):
-        args = name.split('.')
-        section = self
-        for arg in args[:-1]:
-            section = section.sections[arg]
-        section._get(args[-1]).set(value)
-
-    def add_section(self, name, section):
-        self.sections[name] = section
-
-    def add_variable(self, name, value):
-        from devparrot.core.utils.variable import Variable
-        self.variables[name] = Variable(value)
-    
-    def notify(self):
-        for var in self.variables:
-            CbCaller.notify(self, var, var)
-        for section in self.sections:
-            section.notify()
+    def add_file(self, filename):
+        return self._parser.add_file(filename)
 
     def __setattr__(self, name, value):
-        from devparrot.core.session import logger
-        if name in self.sections:
-            logger.warning("can't redifine section name %s", name)
-            return
+        if name.startswith("_"):
+            return object.__setattr__(self, name, value)
+        self[name].set(value)
 
-        if name not in self.variables:
-            logger.warning("%s is not a valid (known) variables name in section %s", name, self)
-            return
+    def __getitem__(self, name):
+        return getattr(self, name)
 
-        self.variables[name].set(value)
+    __setitem__ = __setattr__
 
+    def get(self, name):
+        return self[name].get()
 
-    def __str__(self):
-        return self.name
+class ReadOnlyOption(object):
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
 
-class Config(Section):
-    def __init__(self):
-        Section.__init__(self, self, "config")
-
-    def __setitem__(self, name, value):
-        setattr(self, name, value)
+    def get(self):
+        return self.value
 
 def init(cmd_options):
     import os
     global _config
     devparrotPath = os.path.dirname(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
     _config = Config()
-    _config.add_variable("encoding", "utf8")
-    _config.add_variable("devparrotPath", devparrotPath)
-    _config.add_variable("wchars", u"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ€")
-    _config.add_variable("spacechars", u" \t")
-    _config.add_variable("puncchars", u"!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿×÷")
-    section = createSection("cmd")
-    section.add_variable("ARGUMENTS", cmd_options.ARGUMENTS)
+    _config.add_option("encoding", default="utf8")
+    _config.add_option("wchars", default=u"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ€")
+    _config.add_option("spacechars", default=u" \t")
+    _config.add_option("puncchars", default=u"!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿×÷")
 
-    section = createSection("controllers")
-    section.add_variable("default", [ 'CarretController', 'KeyboardController', 'MouseController' ])
+    _config.add_option("default_controllers", default=[ 'CarretController', 'KeyboardController', 'MouseController' ])
 
-    section = createSection("window")
-    section.add_variable("height", 600)
-    section.add_variable("width", 800)
-    section.add_variable("posx", 10)
-    section.add_variable("posy", 10)
+    _config.add_option("window_height", type='int', default=600)
+    _config.add_option("window_width", type='int', default=800)
+    _config.add_option("window_x", type='int', default=10)
+    _config.add_option("window_y", type='int', default=10)
 
-    section = createSection("textView")
-    section.add_variable("auto_indent", True)
-    section.add_variable("remove_tail_space", True)
-    section.add_variable("tab_width", 4)
-    section.add_variable("space_indent", False)
-    section.add_variable("highlight_current_line", True)
-    section.add_variable("show_line_numbers", True)
-    section.add_variable("smart_home_end", True)
-    section.add_variable("font", "monospace")
+    _config.add_option("auto_indent", default=True)
+    _config.add_option("remove_tail_space", default=True)
+    _config.add_option("tab_width", type='int', default=4)
+    _config.add_option("space_indent", default=False)
+    _config.add_option("highlight_current_line", default=True)
+    _config.add_option("show_line_numbers", default=True)
+    _config.add_option("smart_home_end", default=True)
+    _config.add_option("font", default="monospace")
 
-    section = createSection("color")
-    section.add_variable("invalidColor", "red")
-    section.add_variable("okColor", "#BBFFBB")
-    section.add_variable("errorColor", "#FF9999")
-    section.add_variable("highlight_tag_color", "#FFFFBB")
-    section.add_variable("search_tag_color", "#FFAAAA")
-    section.add_variable("currentLine_tag_color", "#EEEEEE")
+    _config.add_option("invalid_color", default="red")
+    _config.add_option("ok_color", default="#BBFFBB")
+    _config.add_option("error_color", default="#FF9999")
+    _config.add_option("highlight_tag_color", default="#FFFFBB")
+    _config.add_option("search_tag_color", default="#FFAAAA")
+    _config.add_option("currentLine_tag_color", default="#EEEEEE")
 
-    section = createSection("ui")
-    section.add_variable("menuBar", [("File", [ ("New", "new"),
-                                                ("Open", "open"),
-                                                "---",
-                                                ("Save", "save"),
-                                                ("Save as", "saveas")
-                                              ]),
-                                     ("Edit", [ ("Undo", "undo"),
-                                                ("Redo", "redo"),
-                                                "---",
-                                                ("Copy", "copy"),
-                                                ("Cut", "cut"),
-                                                ("Paste", "paste")
-                                              ]),
-                                     ("Help", "help")
-                                    ])
-    section.add_variable("popupMenu", [ ("Undo", "undo"),
-                                        ("Redo", "redo"),
-                                        "---",
-                                        ("Copy", "copy"),
-                                        ("Cut", "cut"),
-                                        ("Paste", "paste")
-                                      ])
+    _config.add_option("menuBar", default=[("File", [ ("New", "new"),
+                    ("Open", "open"),
+                    "---",
+                    ("Save", "save"),
+                    ("Save as", "saveas")
+                  ]),
+         ("Edit", [ ("Undo", "undo"),
+                    ("Redo", "redo"),
+                    "---",
+                    ("Copy", "copy"),
+                    ("Cut", "cut"),
+                    ("Paste", "paste")
+                  ]),
+         ("Help", "help")
+        ])
+    _config.add_option("popupMenu", default=[ ("Undo", "undo"),
+            ("Redo", "redo"),
+            "---",
+            ("Copy", "copy"),
+            ("Cut", "cut"),
+            ("Paste", "paste")
+          ])
 
-    section = createSection("modules")
+    modules.update_config(_config)
 
+    object.__setattr__(_config, 'ARGUMENTS', ReadOnlyOption('ARGUMENTS', cmd_options.ARGUMENTS))
+    object.__setattr__(_config, 'devparrotPath', ReadOnlyOption('devparrotPath', devparrotPath))
     return _config
 
-def createSection(name, parent=None):
-    if not parent:
-        parent = _config
-    newSection = Section(_config, name)
-    parent.add_section(name, newSection)
-    return newSection
-
 def load(cmd_options):
-    from devparrot.core import session
 
     if cmd_options.load_configrc:
         try:
