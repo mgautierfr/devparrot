@@ -31,7 +31,7 @@ def _customSet(self_, value, cfgfile=None, keys=None):
     if cfgfile is None:
         cfgfile=self_._userFile
     old = self_.get()
-    self_.__class__.set(self_, value, cfgfile=cfgfile, keys=keys)
+    self_.__class__.set(self_, value, cfgfile=cfgfile, keys=keys).parse()
     session.eventSystem.event("configChanged")(self_, old)
 
 class Config(object):
@@ -58,15 +58,15 @@ class Config(object):
 
     __setitem__ = __setattr__
 
-    def get(self, name):
-        return self[name].get()
+    def get(self, name, keys=None):
+        return self[name].get(keys)
 
 class ReadOnlyOption(object):
     def __init__(self, name, value):
         self.name = name
         self.value = value
 
-    def get(self):
+    def get(self, *args, **kwords):
         return self.value
 
 def init(cmd_options):

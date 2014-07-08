@@ -20,25 +20,27 @@
 
 
 from devparrot.core.command import Command, Macro
-from devparrot.core.constraints import ConfigEntry
+from devparrot.core.constraints import ConfigEntry, Default
 
 @Command(
 _section='core',
 _name='config',
-configEntry = ConfigEntry()
+configEntry = ConfigEntry(),
+key=Default(default=lambda:"")
 )
-def configset(configEntry, value):
+def configset(configEntry, value, key):
     """set a config entry to value"""
     from ast import literal_eval
     try:
         value = literal_eval(value)
     except (SyntaxError, ValueError):
         pass
-    configEntry.set(value)
+    configEntry.set(value, keys=[key])
 
 @Macro(
 _name='config',
-configEntry=ConfigEntry()
+configEntry=ConfigEntry(),
+key=Default(default=lambda:"")
 )
-def configget(configEntry):
-    return configEntry.get()
+def configget(configEntry, key):
+    return configEntry.get(keys=key)
