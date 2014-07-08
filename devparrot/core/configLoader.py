@@ -37,7 +37,7 @@ def _customSet(self_, value, cfgfile=None, keys=None):
 class Config(object):
     def __init__(self):
         self._parser = cfgparse.ConfigParser(allow_py=True, exception=True)
-        self._userFile = self._parser.add_file(os.path.expanduser("~/.devparrotcfg"))
+        self._userFile = self._parser.add_file(os.path.expanduser("~/.devparrotrc"), type='py')
 
     def add_option(self, name, *args, **kwords):
         option = self._parser.add_option(name, *args, **kwords)
@@ -125,6 +125,8 @@ def init(cmd_options):
             ("Paste", "paste")
           ])
 
+    _config.add_option("start_command", default="")
+
     modules.update_config(_config)
 
     object.__setattr__(_config, 'ARGUMENTS', ReadOnlyOption('ARGUMENTS', cmd_options.ARGUMENTS))
@@ -132,15 +134,8 @@ def init(cmd_options):
     return _config
 
 def load(cmd_options):
-
-    if cmd_options.load_configrc:
-        try:
-            with open(cmd_options.configrc) as f:
-                for line in f:
-                    line = line.strip()
-                    if not line or line.startswith("#"):
-                        continue
-
-                    session.commandLauncher.run_command_nofail(line)
-        except IOError:
-            session.logger.warning("Cannot load %r config file", cmd_options.configrc)
+    for line in _config.start_command.get().split("\n"):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        session.commandLauncher.run_command_nofail(line)
