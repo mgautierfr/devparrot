@@ -125,7 +125,7 @@ def init(cmd_options):
             ("Paste", "paste")
           ])
 
-    _config.add_option("start_command", default="")
+    _config.add_option("start_command", default="open %%config(ARGUMENTS)")
 
     modules.update_config(_config)
 
