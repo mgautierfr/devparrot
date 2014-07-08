@@ -22,6 +22,7 @@
 import ttk
 from devparrot.core.controller import Controller, bind
 from devparrot.core.utils.posrange import Index, Tag, Mark, LineStart, LineEnd
+from devparrot.core import mimemapper
 
 from devparrot.core.errors import *
 
@@ -39,7 +40,8 @@ class KeyboardController(Controller):
             event.widget.sel_clear()
             return "break"
         char = event.char.decode('utf8')
-        if char in set(session.config.get('wchars')+session.config.get('puncchars')+session.config.get('spacechars')):
+        mimetype = mimemapper.mimeMap.get(str(event.widget.document.get_mimetype()))
+        if char in set(session.config.wchars.get(mimetype)+session.config.puncchars.get(mimetype)+session.config.spacechars.get(mimetype)):
             event.widget.sel_delete( )
             event.widget.insert( 'insert', char )
             event.widget.sel_clear( )
@@ -55,11 +57,12 @@ class KeyboardController(Controller):
         text = "\n"
         insert = Mark('insert').resolve(event.widget)
         linestart =  LineStart(insert).resolve(event.widget)
-        if session.config.get('remove_tail_space'):
+        mimetype = mimemapper.mimeMap.get(str(event.widget.document.get_mimetype()))
+        if session.config.remove_tail_space.get(mimetype):
             match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*$", str(linestart), regexp=True)
             if match_start:
                 event.widget.delete(match_start, LineEnd(insert).resolve(event.widget))
-        if session.config.get('auto_indent'):
+        if session.config.auto_indent.get(mimetype):
             match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*" , str(linestart), stopindex=str(insert), regexp=True, count=count)
             if match_start:
                 match_end = Index(insert.line, min(count.get(), insert.col))
@@ -72,7 +75,8 @@ class KeyboardController(Controller):
         from devparrot.core.utils.posrange import Index
         if event.widget.readOnly:
             return
-        tabs = ['\t'] + [' '*i for i in xrange(session.config.get('tab_width'), 0, -1)]
+        mimetype = mimemapper.mimeMap.get(str(event.widget.document.get_mimetype()))
+        tabs = ['\t'] + [' '*i for i in xrange(session.config.tab_width.get(mimetype), 0, -1)]
         start, stop = Tag('sel').resolve(event.widget)
         for line in xrange(start.line, stop.line+1):
             for tab in tabs:
@@ -86,7 +90,8 @@ class KeyboardController(Controller):
         from devparrot.core import session
         if event.widget.readOnly:
             return
-        tab = ' '*session.config.get('tab_width') if session.config.get('space_indent') else '\t'
+        mimetype = mimemapper.mimeMap.get(str(event.widget.document.get_mimetype()))
+        tab = ' '*session.config.tab_width.get(mimetype) if session.config.space_indent.get(mimetype) else '\t'
         start, stop = Tag('sel').resolve(event.widget)
         if start == stop:
             # no selection

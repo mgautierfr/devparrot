@@ -27,6 +27,7 @@ import re
 from devparrot.core import session, utils
 from devparrot.core.utils.posrange import Index, Start
 from devparrot.core.errors import *
+from devparrot.core import mimemapper
 
 import rangeInfo
 
@@ -430,13 +431,14 @@ class SourceBuffer(TextModel):
     def __init__(self, document):
         TextModel.__init__(self)
 
-        tags = [str(self._w), 'devparrot'] + session.config.get('default_controllers')
+        tags = [str(self._w), 'devparrot'] + session.config.default_controllers.get()
         self.bindtags(tuple(tags))
 
         self.document = document # TODO weakref
         self.readOnly = document.is_readonly()
+        mimetype = mimemapper.mimeMap.get(str(document.get_mimetype()))
 
-        self.tag_configure('currentLine_tag', background=session.config.get('currentLine_tag_color'))
+        self.tag_configure('currentLine_tag', background=session.config.currentLine_tag_color.get(mimetype))
         self.tag_raise("currentLine_tag")
         self.tag_raise("sel", "currentLine_tag")
 
@@ -444,8 +446,8 @@ class SourceBuffer(TextModel):
         session.eventSystem.connect("configChanged", self.on_configChanged)
 
         self.highlight_tag_protected = False
-        self.tag_configure("highlight_tag", background=session.config.get('highlight_tag_color'))
-        self.tag_configure("search_tag", background=session.config.get('search_tag_color'))
+        self.tag_configure("highlight_tag", background=session.config.highlight_tag_color.get(mimetype))
+        self.tag_configure("search_tag", background=session.config.search_tag_color.get(mimetype))
         self.bind("<<Selection>>", self.on_selection_changed)
         self.hl_callId = None
         self.tag_lower("highlight_tag", "sel")
@@ -455,20 +457,20 @@ class SourceBuffer(TextModel):
 
     def on_configChanged(self, var, old):
         import tkFont
-
+        mimetype = mimemapper.mimeMap.get(str(self.document.get_mimetype()))
         if var.name == "currentLine_tag_color":
-            self.tag_configure('currentLine_tag', background=var.get())
+            self.tag_configure('currentLine_tag', background=var.get(mimetype))
             return
 
         if var.name == "font":
-            self.config(font = var.get())
+            self.config(font = var.get(mimetype))
 
         if var.name in ("font", "tab_width"):
-            self.config(tabs = session.config.get('tab_width')*tkFont.Font(font=session.config.get('font')).measure(" "))
+            self.config(tabs = session.config.tab_width.get()*tkFont.Font(font=session.config.font.get()).measure(" "))
 
     def set_currentLineTag(self):
         self.tag_remove('currentLine_tag', '1.0', 'end')
-        if session.config.get('highlight_current_line'):
+        if session.config.highlight_current_line.get():
             self.tag_add( 'currentLine_tag', 'insert linestart', 'insert + 1l linestart')
 
     def on_selection_changed(self, event):

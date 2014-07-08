@@ -51,7 +51,7 @@ class NewDocSource(object):
 
     @property
     def encoding(self):
-        return session.config.get('encoding')
+        return session.config.encoding.get([self.mimetype])
 
     @contextmanager
     def get_content(self):

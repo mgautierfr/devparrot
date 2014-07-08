@@ -72,7 +72,7 @@ class FileDocSource(object):
 
     @property
     def encoding(self):
-        return self._encoding or session.config.get('encoding')
+        return self._encoding or session.config.encoding.get([self.mimetype])
 
     def guess_encoding(self):
         from chardet.universaldetector import UniversalDetector
@@ -92,6 +92,8 @@ class FileDocSource(object):
                         break
             detector.close()
             self._encoding = detector.result['encoding']
+            if self._encoding == "ascii":
+                self._encoding = None
 
     @contextmanager
     def get_content(self):
