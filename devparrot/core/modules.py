@@ -55,14 +55,6 @@ class BaseModule(object):
 
 _modules = {}
 
-def create_active_handler(module):
-    def active_handler(var, old):
-        if var.get():
-            module._activate()
-        else:
-            module._deactivate()
-    return active_handler
-
 def update_config(config):
     for entrypoint in pkg_resources.iter_entry_points(group='devparrot.module'):
         module = entrypoint.load()

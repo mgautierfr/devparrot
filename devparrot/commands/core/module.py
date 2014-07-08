@@ -25,7 +25,6 @@ from devparrot.core import session
 class module(MasterCommand):
     @SubCommand()
     def activate(module):
-        print "activating module", module
         session.modules[module]._activate()
 
     @SubCommand()
