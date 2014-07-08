@@ -427,13 +427,14 @@ class TextModel(Tkinter.Text, ModelInfo):
             match_start = Tkinter.Text.search(self, text, match_end, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count)
 
 class SourceBuffer(TextModel):
-    def __init__(self, readOnly):
+    def __init__(self, document):
         TextModel.__init__(self)
 
         tags = [str(self._w), 'devparrot'] + session.config.get('default_controllers')
         self.bindtags(tuple(tags))
 
-        self.readOnly = readOnly
+        self.document = document # TODO weakref
+        self.readOnly = document.is_readonly()
 
         self.tag_configure('currentLine_tag', background=session.config.get('currentLine_tag_color'))
         self.tag_raise("currentLine_tag")

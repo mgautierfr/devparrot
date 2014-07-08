@@ -27,6 +27,7 @@ class NewDocSource(object):
     """ This class is used for new document """
     def __init__(self, name):
         self.name = name
+        self.mimetype = None
         
     def __getattr__(self, name):
         if name in ["title", "longTitle"]:

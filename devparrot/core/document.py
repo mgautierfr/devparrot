@@ -35,43 +35,55 @@ class Document(HasProperty):
     def get_longTitle(self):
         return self.documentSource.longTitle
 
+    def get_mimetype(self):
+        if self._mimetype.get() is None:
+            return self.documentSource.mimetype
+        return self._mimetype.get()
+
+    def get_space_indent(self):
+        if self._mimetype.get() is None:
+            return session.config.space_indent
+        return self._mimetype.get()
+
     title     = Property(fget=get_title, fset=None, fdel=None)
     longTitle = Property(fget=get_longTitle, fset=None, fdel=None)
+
+    mimetype     = Property(fget=get_mimetype)
+    space_indent = Property(fget=get_space_indent)
+
+
 
     def __init__(self, documentSource):
         self.documentSource = documentSource
         self.documentView = DocumentView(self)
-        self.model = SourceBuffer(documentSource.is_readonly())
+        self.model = SourceBuffer(self)
         session.eventSystem.connect("modified", self.on_modified_changed)
         self.currentView = None
         self.set_view(TextView(self))
-    
+
     def __eq__(self, other):
         if other == None:
             return False
         return self.documentSource == other.documentSource
-        
+
     def set_view(self, view):
         view.set_model(self.model)
         self.documentView.set_view(view)
         self.currentView = view
         view.view.bind("<FocusIn>", self.on_focus_in_event, add="+")
-        
+
     def get_currentView(self):
         return self.currentView
 
-    def get_mimetype(self):
-        return self.documentSource.mimetype
-
     def get_model(self):
         return self.model
-    
+
     def has_a_path(self):
         return self.documentSource.has_path()
-    
+
     def get_path(self):
         return self.documentSource.get_path()
-    
+
     def set_path(self, documentSource):
         if (not "documentSource" in self.__dict__ or
             self.documentSource != documentSource):
@@ -86,21 +98,21 @@ class Document(HasProperty):
 
     def is_readonly(self):
         return self.documentSource.is_readonly()
-        
+
     def load(self):
         with self.documentSource.get_content() as content:
             self.model.set_text(content)
         self.currentView.update_infos()
         session.eventSystem.event('textSet')(self)
-    
+
     def write(self):
         self.documentSource.set_content(self.model.get_text())
         self.model.edit_modified(False)
-        
+
     def on_modified_changed(self, model, modified):
         if model==self.model and not self.is_readonly():
             self.documentView.set_bold(modified)
-    
+
     def on_focus_in_event(self, event):
         res = self.documentSource.need_reload()
         if res:
