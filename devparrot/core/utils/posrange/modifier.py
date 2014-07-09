@@ -1,7 +1,6 @@
 
 import Tkinter
 from range import Range
-from devparrot.core import mimemapper
 
 class StartEndRange(object):
     is_index = False
@@ -88,8 +87,7 @@ class WordStart(object):
     def resolve(self, model):
         from devparrot.core import session
         start_search = self.index.resolve(model)
-        mimetype = mimemapper.mimeMap.get(str(model.document.get_mimetype()))
-        regex = u"[%(wchars)s]+[^%(wchars)s]*"%{'wchars':session.config.wchars.get(mimetype)}
+        regex = u"[%(wchars)s]+[^%(wchars)s]*"%{'wchars':model.document.get_config('wchars')}
         match_start = Tkinter.Text.search(model, regex, str(start_search), regexp=True, backwards=True)
         return model.index(match_start)
 
@@ -107,8 +105,7 @@ class WordEnd(object):
     def resolve(self, model):
         from devparrot.core import session
         start_search = self.index.resolve(model)
-        mimetype = mimemapper.mimeMap.get(str(model.document.get_mimetype()))
-        regex = u"[^%(wchars)s]*[%(wchars)s]+"%{'wchars':session.config.wchars.get(mimetype)}
+        regex = u"[^%(wchars)s]*[%(wchars)s]+"%{'wchars':model.document.get_config('wchars')}
         count = Tkinter.IntVar()
         match_start = Tkinter.Text.search(model, regex, str(start_search), regexp=True, count=count)
         return model.index("%s + %d c"%(match_start, count.get()))

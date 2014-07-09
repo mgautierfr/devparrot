@@ -27,7 +27,6 @@ import re
 from devparrot.core import session, utils
 from devparrot.core.utils.posrange import Index, Start
 from devparrot.core.errors import *
-from devparrot.core import mimemapper
 
 import rangeInfo
 
@@ -436,9 +435,8 @@ class SourceBuffer(TextModel):
 
         self.document = document # TODO weakref
         self.readOnly = document.is_readonly()
-        mimetype = mimemapper.mimeMap.get(str(document.get_mimetype()))
 
-        self.tag_configure('currentLine_tag', background=session.config.currentLine_tag_color.get(mimetype))
+        self.tag_configure('currentLine_tag', background=document.get_config('currentLine_tag_color'))
         self.tag_raise("currentLine_tag")
         self.tag_raise("sel", "currentLine_tag")
 
@@ -446,8 +444,8 @@ class SourceBuffer(TextModel):
         session.eventSystem.connect("configChanged", self.on_configChanged)
 
         self.highlight_tag_protected = False
-        self.tag_configure("highlight_tag", background=session.config.highlight_tag_color.get(mimetype))
-        self.tag_configure("search_tag", background=session.config.search_tag_color.get(mimetype))
+        self.tag_configure("highlight_tag", background=document.get_config('highlight_tag_color'))
+        self.tag_configure("search_tag", background=document.get_config('search_tag_color'))
         self.bind("<<Selection>>", self.on_selection_changed)
         self.hl_callId = None
         self.tag_lower("highlight_tag", "sel")
@@ -457,7 +455,7 @@ class SourceBuffer(TextModel):
 
     def on_configChanged(self, var, old):
         import tkFont
-        mimetype = mimemapper.mimeMap.get(str(self.document.get_mimetype()))
+        mimetype = self.document.get_config_keys()
         if var.name == "currentLine_tag_color":
             self.tag_configure('currentLine_tag', background=var.get(mimetype))
             return

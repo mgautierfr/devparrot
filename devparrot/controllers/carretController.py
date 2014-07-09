@@ -22,7 +22,6 @@
 import ttk
 from devparrot.core.controller import Controller, bind
 from devparrot.core.utils.posrange import WordStart, WordEnd, Mark
-from devparrot.core import mimemapper
 
 class CarretController( Controller ):
     def __init__( self ):
@@ -42,10 +41,10 @@ class CarretController( Controller ):
             return
         self._handle_shift(modifiers.shift, event)
         newPos = 'insert linestart'
-        mimetype = mimemapper.mimeMap.get(str(event.widget.document.get_mimetype()))
+        document = event.widget.document
         if modifiers.ctrl:
             newPos = '1.0'
-        elif session.config.smart_home_end.get(mimetype):
+        elif document.get_config('smart_home_end'):
             match_start = ttk.Tkinter.Text.search(event.widget, "[^ \t]" , 'insert linestart', stopindex='insert lineend', regexp=True)
             if match_start:
                 if event.widget.compare(match_start, '!=', 'insert'):

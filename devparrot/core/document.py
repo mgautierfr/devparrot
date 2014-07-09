@@ -26,6 +26,7 @@ from devparrot.core import session
 import utils.event
 from utils.variable import Property, Variable, HasProperty
 from devparrot.models.sourceBuffer import SourceBuffer
+from devparrot.core import mimemapper
 
 
 class Document(HasProperty):
@@ -137,4 +138,10 @@ class Document(HasProperty):
         self.currentView.view.mark_set("insert", str(index))
         self.currentView.view.see(str(index))
 
+    def get_config_keys(self):
+        mimetype = str(self.get_mimetype())
+        mimekey = mimemapper.mimeMap.get(mimetype)
+        return [mimekey]
 
+    def get_config(self, name):
+        return session.config.get(name, keys=self.get_config_keys())
