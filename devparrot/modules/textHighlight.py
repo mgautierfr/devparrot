@@ -126,6 +126,7 @@ class TextHighlight(BaseModule):
         self.create_style_table(document.model)
 
         document.model._highlight = HighlightContext()
+        document.mimetype_register(lambda var, old: self.init_and_highlight(document))
         self.init_doc(document)
 
     def init_doc(self, document):
@@ -151,6 +152,16 @@ class TextHighlight(BaseModule):
 
     def init_and_highlight(self, document):
         self.init_doc(document)
+        # clean modelinfo relatives to hl
+        for info in document.model.lineInfos:
+            if info:
+                info._hlsafe = False
+
+        # remove all tag in 
+        for name in document.model.tag_names():
+            if name.startswith("DP::SH::"):
+                document.model.tag_remove(name, "1.0", "end")
+
         if document.model._highlight.lexer:
             update_highlight(document.model, Start, document.model.getend())
 
@@ -236,7 +247,14 @@ def update_tokens(model, tokens, start, stop, safe_zone):
 
         #get some info on the token.
         list_for_token = tags_to_add.setdefault(t, [])
-        token_name = _tokens_name[t]
+        try:
+            token_name = _tokens_name[t]
+        except KeyError:
+            p = t.parent
+            while p not in _tokens_name:
+                p = p.parent
+            token_name = _tokens_name[p]
+            _tokens_name[t] = _tokens_name[p]
 
         # do the job
         if token_start<safe_zone[0] or currentPos > safe_zone[1]:
