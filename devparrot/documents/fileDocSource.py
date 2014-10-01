@@ -25,8 +25,11 @@ from xdg import Mime
 import codecs
 from contextlib import contextmanager
 from devparrot.core import session
+import subprocess
 
 coding_re = re.compile(r"coding[:=]\s*([-\w.]+)")
+charset_ret = re.compile(r"charset=([-\w.]+)")
+
 
 class FileDocSource(object):
     """This class is used for document comming from a file (most of document)"""
@@ -75,8 +78,6 @@ class FileDocSource(object):
         return self._encoding or session.config.encoding.get([self.mimetype])
 
     def guess_encoding(self):
-        from chardet.universaldetector import UniversalDetector
-        detector = UniversalDetector()
         i = 0
         with open(self.path, 'r') as fileIn:
             for line in fileIn:
@@ -86,14 +87,14 @@ class FileDocSource(object):
                         self._encoding = encoding.group(1)
                         return
                     i += 1
-                detector.feed(line)
-                if i >= 5:
-                    if detector.done:
-                        break
-            detector.close()
-            self._encoding = detector.result['encoding']
-            if self._encoding == "ascii":
-                self._encoding = None
+                else:
+                    break
+        output = subprocess.check_output(["file", "-i", self.path])
+        encoding = charset_ret.search(output)
+        if encoding:
+            self._encoding = encoding.group(1)
+        if self._encoding == "ascii":
+            self._encoding = None
 
     @contextmanager
     def get_content(self):
