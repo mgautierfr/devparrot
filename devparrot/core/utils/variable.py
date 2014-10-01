@@ -165,56 +165,60 @@ class Property(object):
         self.fdel = kwords.get('fdel', default)
         self.doc  = doc
 
-    def create_objects(self, name):
-        doc = self.doc
-        if doc is None:
-            doc = "Property %s"%name
-        name = "_"+name
+    def __get__(self, instance, owner):
+        if instance is None:
+            raise AttributeError
 
-        var = Variable()
-        fget = self.fget
-        if fget is default:
-            def fget(self_):
-                return var.get()
-        fset = self.fset
-        if fset is default:
-            def fset(self_, value):
-                return var.set(value)
-        fdel = self.fdel
-        if fdel is default:
-            def fdel(self_):
-                delattr(self_, name)
-        def notify(self_):
-            """make the var notify has it where changed"""
-            return var.notify()
-        def register(self_, callback):
-            """register a callback for change of the variable"""
-            return var.register(callback)
-        def unregister(self_, handler):
-            """unregister a callback for change of the variable"""
-            return var.unregister(handler)
-        return (var, fget, fset, fdel, doc, notify, register, unregister)
+        if self.fget is None:
+            raise AttributeError
 
+        if self.fget is not default:
+            return self.fget(instance)
+        return getattr(instance, self.name).get()
+
+    def __set__(self, instance, value):
+        if instance is None:
+            raise AttributeError
+
+        if self.fset is None:
+            raise AttributeError
+
+        if self.fset is not default:
+            return self.fset(instance, value)
+        return getattr(instance, self.name).set(value)
+
+    def __delete__(self, instance):
+        if instance is None:
+            raise AttributeError
+
+        if self.fdel is None:
+            raise AttributeError
+
+        if self.fdel is not default:
+            return self.fdel(instance)
+        return delattr(instance, self.name)
 
 class HasPropertyMeta(type):
     def __new__(cls, name, bases, dct):
         if name == "HasProperty":
             return type.__new__(cls, name, bases, dct)
 
-        newdct = {}
+        property_list = []
+        newdct = {'_HasProperty__property_list': property_list}
         for attrName, attr in dct.items():
-            if not isinstance(attr, Property):
-                newdct[attrName] = attr
-                continue
-            var, fget, fset, fdel, doc, notify, register, unregister = attr.create_objects(attrName)
-            newdct[attrName] = property(fget, fset, fdel, doc)
-            newdct["_%s"%attrName] = var
-            newdct["%s_notify"%attrName] = var.notify
-            newdct["%s_register"%attrName] = var.register
-            newdct["%s_unregister"%attrName] = var.unregister
+            newdct[attrName] = attr
+            if isinstance(attr, Property):
+                attr.name = "_%s"%attrName
+                newdct["%s_notify"%attrName] = lambda s, n="_%s"%attrName: getattr(s, n).notify()
+                newdct["%s_register"%attrName] = lambda s, cb, n="_%s"%attrName: getattr(s, n).register(cb)
+                newdct["%s_unregister"%attrName] = lambda s, hd, n="_%s"%attrName: getattr(s, n).unregister(hd)
+                property_list.append(attrName)
 
         return type.__new__(cls, name, bases, newdct)
 
 class HasProperty(object):
     __metaclass__ = HasPropertyMeta
 
+    def __init__(self):
+        for name in self.__property_list:
+            setattr(self, "_%s"%name, Variable())

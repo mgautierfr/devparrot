@@ -55,6 +55,7 @@ class Document(HasProperty):
 
 
     def __init__(self, documentSource):
+        HasProperty.__init__(self)
         self.documentSource = documentSource
         self.documentView = DocumentView(self)
         self.model = SourceBuffer(self)
