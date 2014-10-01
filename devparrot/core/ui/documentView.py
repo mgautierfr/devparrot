@@ -19,10 +19,19 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import ttk
+import ttk, Tkinter
+from xdg import Mime
 from viewContainer import NotebookContainer, ContainerChild
+from devparrot.core import mimemapper
+from pygments.lexers import get_all_lexers, get_lexer_for_mimetype
+from pygments.util import ClassNotFound
 
 from devparrot.core import session
+
+def get_valid_lexer_names():
+    for name, aliases, filetype, mimetypes in get_all_lexers():
+        if mimetypes:
+            yield name
 
 class DocumentView(ContainerChild, ttk.Frame):
     def __init__(self, document):
@@ -32,12 +41,27 @@ class DocumentView(ContainerChild, ttk.Frame):
         self.currentView = None
         
         import tkFont
-        self.label = ttk.Label(self)
+
+        self.header = ttk.Frame(self)
+        self.header.pack(fill='x')
+
+        self.label = ttk.Label(self.header)
         self.label.font = tkFont.Font(font="TkDefaultFont")
         self.label.documentView = self
         self.label['text'] = document.longTitle
         self.label['font'] = self.label.font
-        self.label.pack()
+        self.label.pack(side='left', expand=True, fill="x")
+
+        separator = ttk.Separator(self.header, orient="vertical")
+        separator.pack(side='left', fill='y')
+
+        self.mimeVar = Tkinter.StringVar()
+        self.mimeOption = ttk.Combobox(self.header, textvar=self.mimeVar)
+        self.mimeOption.set(mimemapper.mimeMap.get(str(document.get_mimetype()), "UNKNOWN"))
+        self.mimeOption['values'] = sorted(mimemapper.mimeMap.values())
+        self.mimeVar.trace('w', self.on_mimeChange)
+        self.mimeOption.pack(side='right', expand=False, fill="none")
+
         document.longTitle_register(self.on_title_changed)
 
         self.bind('<FocusIn>', self.on_focus)
@@ -47,6 +71,9 @@ class DocumentView(ContainerChild, ttk.Frame):
         self.currentView = child
         child.view.bind('<FocusIn>', self.on_focus_child)
 
+    def on_mimeChange(self, *args):
+        mimetype = next(k for k,v in mimemapper.mimeMap.items() if v==self.mimeVar.get())
+        self.document.mimetype = mimetype
     
     def lift(self):
         ttk.Frame.lift(self, self.parentContainer)
