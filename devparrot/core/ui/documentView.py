@@ -56,13 +56,15 @@ class DocumentView(ContainerChild, ttk.Frame):
         separator.pack(side='left', fill='y')
 
         self.mimeVar = Tkinter.StringVar()
-        self.mimeOption = ttk.Combobox(self.header, textvar=self.mimeVar)
-        self.mimeOption.set(mimemapper.mimeMap.get(str(document.get_mimetype()), "UNKNOWN"))
-        self.mimeOption['values'] = sorted(mimemapper.mimeMap.values())
+        self.mimeOption = ttk.Combobox(self.header, textvar=self.mimeVar, state="readonly")
+        self.mimeOption.set(mimemapper.mimeMap.get(str(document.get_mimetype()), "Text only"))
+        self.mimeOption['values'] = sorted(set(mimemapper.mimeMap.values()))
         self.mimeVar.trace('w', self.on_mimeChange)
         self.mimeOption.pack(side='right', expand=False, fill="none")
+        self._ownChange = False
 
         document.longTitle_register(self.on_title_changed)
+        document.mimetype_register(self.on_mimetype_changed)
 
         self.bind('<FocusIn>', self.on_focus)
         
@@ -72,8 +74,16 @@ class DocumentView(ContainerChild, ttk.Frame):
         child.view.bind('<FocusIn>', self.on_focus_child)
 
     def on_mimeChange(self, *args):
+        if self._ownChange:
+            return
         mimetype = next(k for k,v in mimemapper.mimeMap.items() if v==self.mimeVar.get())
         self.document.mimetype = mimetype
+
+    def on_mimetype_changed(self, var, old):
+        print("mime changed from doc  to %s"%self.document.mimetype)
+        self._ownChange = True
+        self.mimeOption.set(mimemapper.mimeMap[str(self.document.mimetype)])
+        self._ownChange = False
     
     def lift(self):
         ttk.Frame.lift(self, self.parentContainer)

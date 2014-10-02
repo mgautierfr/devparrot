@@ -97,6 +97,7 @@ class Document(HasProperty):
             self.title_notify()
             self.longTitle_notify()
             session.eventSystem.event('pathChanged')(self, oldPath)
+            self.mimetype_notify()
 
     def is_readonly(self):
         return self.documentSource.is_readonly()
