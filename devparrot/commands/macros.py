@@ -1,12 +1,16 @@
 
 
 from devparrot.core.command import Command, Macro, Alias
+from devparrot.core.errors import InvalidArgument
 
 from devparrot.core.ui.viewContainer import get_neighbour
 
 def _get_neighbour(direction):
     from devparrot.core import session
-    return get_neighbour(session.get_currentContainer(), direction)
+    currentContainer = get_neighbour(session.get_currentContainer(), direction)
+    if currentContainer is None:
+        raise InvalidArgument()
+    return currentContainer.document
 
 @Macro()
 def previous():
@@ -35,7 +39,10 @@ def bottom():
 @Macro()
 def current():
     from devparrot.core import session
-    return session.get_currentDocument()
+    currentDoc = session.get_currentDocument()
+    if currentDoc is None:
+        raise InvalidArgument()
+    return currentDoc
 
 @Macro()
 def all_document():
