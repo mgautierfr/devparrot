@@ -58,21 +58,24 @@ class menu(MasterCommand):
 
     @SubCommand()
     def update_popup_menu():
-        cut = copy = paste = undo = redo = True
-    
-        if session.get_currentDocument().is_readonly():
-            cut = paste = undo = redo = False
-    
-        view = session.get_currentDocument().get_currentView().view
-    
-        if not view.sel_isSelection():
-            cut = copy = False
-    
-        if not view.nbModif:
-            undo = False
-    
-        if not view.nbModif < len(view.undoredoStack):
-            redo = False
+        cut = copy = paste = undo = redo = (session.get_currentDocument() is not None)
+
+        try:
+            if session.get_currentDocument().is_readonly():
+                cut = paste = undo = redo = False
+        
+            view = session.get_currentDocument().get_currentView().view
+        
+            if not view.sel_isSelection():
+                cut = copy = False
+        
+            if not view.nbModif:
+                undo = False
+        
+            if not view.nbModif < len(view.undoredoStack):
+                redo = False
+        except AttributeError:
+            pass
     
         session.commands.menu['enable' if cut else 'disable']('popupMenu.Cut')
         session.commands.menu['enable' if copy else 'disable']('popupMenu.Copy')
