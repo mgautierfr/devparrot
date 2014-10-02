@@ -92,6 +92,10 @@ class FileDocSource(object):
                     break
         output = subprocess.check_output(["file", "-i", self.path])
         encoding = charset_ret.search(output)
+        if "x-empty" in output:
+            encoding = None
+        else:
+            encoding = charset_ret.search(output)
         if encoding:
             self._encoding = encoding.group(1)
         if self._encoding == "ascii":
