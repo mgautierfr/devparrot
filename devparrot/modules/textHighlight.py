@@ -133,7 +133,7 @@ class TextHighlight(BaseModule):
         def find_lexer(mimetype):
             from pygments.lexers import get_lexer_for_mimetype
             from pygments.util import ClassNotFound
-            mime = str(str(mimetype))
+            mime = str(mimetype)
             lexer = None
             try:
                 lexer = _lexers_cache[mime]()
