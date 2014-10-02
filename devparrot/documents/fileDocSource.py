@@ -33,7 +33,7 @@ charset_ret = re.compile(r"charset=([-\w.]+)")
 
 class FileDocSource(object):
     """This class is used for document comming from a file (most of document)"""
-    def __init__(self, path):
+    def __init__(self, path, guess_encoding=True):
         self.path = os.path.abspath(path)
         self.timestamp = None
 
@@ -45,10 +45,11 @@ class FileDocSource(object):
                 self.mimetype = Mime.lookup("text", "plain")
 
         self._encoding = None
-        try:
-            self.guess_encoding()
-        except IOError:
-            pass
+        if guess_encoding:
+            try:
+                self.guess_encoding()
+            except IOError:
+                pass
 
     def __getattr__(self, name):
         if name == "title":
