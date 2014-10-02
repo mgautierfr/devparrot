@@ -21,13 +21,13 @@
 
 from contextlib import contextmanager
 from devparrot.core import session
-
+from xdg import Mime
 
 class NewDocSource(object):
     """ This class is used for new document """
     def __init__(self, name):
         self.name = name
-        self.mimetype = None
+        self.mimetype = Mime.lookup("text", "plain")
         
     def __getattr__(self, name):
         if name in ["title", "longTitle"]:
