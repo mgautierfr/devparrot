@@ -135,7 +135,8 @@ class ControlerEntryCompletion(CompletionSystem):
     def __init__(self, textWidget):
         CompletionSystem.__init__(self, textWidget)
 
-    def get_completions(self, text):
+    def get_completions(self):
+        text = self.textWidget.get('1.0', 'insert')
         startIndex, completions = get_completions(text)
         if startIndex is None:
             startIndex = len(text)

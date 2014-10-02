@@ -108,8 +108,7 @@ class CompletionSystem(object):
         self._hide()
 
     def start_completion(self):
-        text = self.textWidget.get('1.0', 'insert')
-        self._update_completion(*self.get_completions(text))
+        self._update_completion(*self.get_completions())
         if len(self.completions) > 1:
             self._show()
             self.listbox.focus()
@@ -167,7 +166,7 @@ class CompletionSystem(object):
             return
 
         text = self.textWidget.get('1.0', 'insert')
-        startIndex, completions = self.get_completions(text)
+        startIndex, completions = self.get_completions()
         self._update_completion(startIndex, completions)
         if autoCommon and not text.endswith(self.commonString):
             self.complete(self.startIndex, self.commonString)
@@ -188,7 +187,7 @@ class CompletionSystem(object):
         self.listbox.configure(width=size)
         self.listbox.select_set(0)
 
-    def get_completions(self,text):
+    def get_completions(self):
         """
         analyse the text and return a tuple (startIndex, completions)
         startIndex in a valid tk index corresponding from where the completions start
@@ -217,6 +216,6 @@ class CompletionSystem(object):
             self.textWidget.delete( 'sel.first', 'sel.last' )
             self.textWidget.tag_remove( 'sel', '1.0', 'end' )
             self.textWidget.mark_unset( 'sel.first', 'sel.last' )
-        except TclError:
+        except BadArgument:
             self.textWidget.delete( 'insert -1 chars', 'insert' )
         self.update_completion()

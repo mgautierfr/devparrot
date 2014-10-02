@@ -48,7 +48,8 @@ setup(name='devparrot',
             'documentList = devparrot.modules.documentList:DocumentList',
             'externalTool = devparrot.modules.externalTool:ExternalTool',
             'fileExplorer = devparrot.modules.fileExplorer:FileExplorer',
-            'textHighlight = devparrot.modules.textHighlight:TextHighlight'
+            'textHighlight = devparrot.modules.textHighlight:TextHighlight',
+            'textCompletion = devparrot.modules.completion:TextCompletion'
         ]
       }
 )
