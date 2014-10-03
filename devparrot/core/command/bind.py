@@ -81,7 +81,7 @@ class Binder(object):
         if window:
             for accel, func in self.tkBinds.items():
                 window.bind_class("devparrot", accel, func)
-            self.tkBinds = []
+            self.tkBinds = {}
 
     def __delitem__(self, accel):
         from devparrot.core import session
@@ -89,7 +89,10 @@ class Binder(object):
             from devparrot.core import ui
             if ui.window:
                 ui.window.unbind_class("devparrot", accel)
-            del self.tkBinds[accel]
+            try:
+                del self.tkBinds[accel]
+            except KeyError:
+                pass
         else:
             for bind in self.binds.get(accel, []):
                 session.eventSystem.event(accel).unregister(bind)
