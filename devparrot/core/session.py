@@ -50,23 +50,25 @@ formatter = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-def init(_config):
+def init():
     from devparrot.core.command import bind
     from devparrot.core.command.section import Section
     from devparrot.core import modules as _modules
-    global config
     global _documentManager
     global commandLauncher
     global bindings
     global macros
     global modules
-    config = _config
     _documentManager = documentManager.DocumentManager()
     commandLauncher = _commandLauncher.CommandLauncher()
     _commandLauncher.create_section()
     bindings = bind.Binder()
     macros = Section(None, None)
     modules = _modules._modules
+
+def set_config(_config):
+    global config
+    config = _config
 
 def get_documentManager():
     return _documentManager

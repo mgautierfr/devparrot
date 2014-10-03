@@ -69,8 +69,9 @@ def set_signal_handler():
 
 def _main(cmd_options):
     os.environ['XMODIFIERS'] = "@im=none"
+    core.session.init()
     config = core.configLoader.init(cmd_options)
-    core.session.init(config)
+    core.session.set_config(config)
     core.ui.init()
     core.modules.load()
     core.command.load()
