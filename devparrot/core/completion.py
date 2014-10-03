@@ -66,6 +66,8 @@ class CompletionSystem(object):
         self._update_completion("1.0", [])
 
     def _install_binding(self):
+        if self.completionEvent is None:
+            return
         bindtagName = "Completion_%s"%self.__class__.__name__
         bindtags = list(self.textWidget.bindtags())
         bindtags.insert(0, bindtagName)
