@@ -48,7 +48,7 @@ class Option(object):
         except KeyError:
             old = None
         self.values[key] = value
-        session.eventSystem.event("configChanged")(self, old)
+        session.eventSystem.event("configChanged")(self, key, old)
 
     def update(self, values):
         if not isinstance(values, dict):

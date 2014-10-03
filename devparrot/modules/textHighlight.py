@@ -49,7 +49,7 @@ class TextHighlight(BaseModule):
         self._create_fonts()
         self._create_styles()
 
-    def on_configChanged(self, var, old):
+    def on_configChanged(self, var, key, old):
         if var.name == "font":
             return self._on_font_changed(var, old)
         if var.name == "hlstyle":

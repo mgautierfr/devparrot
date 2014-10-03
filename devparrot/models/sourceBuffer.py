@@ -440,7 +440,7 @@ class SourceBuffer(TextModel):
         self.tag_raise("currentLine_tag")
         self.tag_raise("sel", "currentLine_tag")
 
-        self.on_configChanged(session.config.font, None)
+        self.on_configChanged(session.config.font, None, None)
         session.eventSystem.connect("configChanged", self.on_configChanged)
 
         self.highlight_tag_protected = False
@@ -453,7 +453,7 @@ class SourceBuffer(TextModel):
         self.tag_raise("highlight_tag", "currentLine_tag")
         self.tag_raise("search_tag", "currentLine_tag")
 
-    def on_configChanged(self, var, old):
+    def on_configChanged(self, var, key, old):
         import tkFont
         mimetype = self.document.get_config_keys()
         if var.name == "currentLine_tag_color":

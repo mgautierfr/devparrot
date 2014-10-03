@@ -50,7 +50,7 @@ class FileExplorer(BaseModule):
         ui.helperManager.remove_helper(self.fileExplorerView, 'left')
         self.fileExplorerView = None
 
-    def on_configChanged(self, var, old):
+    def on_configChanged(self, var, key, old):
         if var.name in ("iconTheme", "showIcon"):
             return _on_iconTheme_changed()
 
