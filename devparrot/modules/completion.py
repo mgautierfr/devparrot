@@ -19,19 +19,37 @@
 #    Copyright 2011-2014 Matthieu Gautier
 
 
-from devparrot.core import session, completion
+from devparrot.core import completion as completion_
 from devparrot.core.modules import BaseModule
+from devparrot.core.command import MasterCommand, SubCommand
+from devparrot.core.session import bindings
+from devparrot.core import session
+import itertools
 
 import Tkinter
 import re
 
 class TextCompletion(BaseModule):
+    words = []
     @staticmethod
     def update_config(config):
-        pass
+        config.add_option("completion_functions", default=infile_completions)
 
-    def on_documentAdded(self, document):
-        document.model._completion = BasicCompletionSystem(document.model)
+    def activate(self):
+        with open("/usr/share/dict/words", "r") as f:
+            TextCompletion.words = list(w[:-1] for w in f.readlines())
+        bindings["<Control-space>"] = "completion start none\n"
+
+    def deactivate(self):
+        del bindings["<Control-space>"]
+
+
+class completion(MasterCommand):
+    @SubCommand()
+    def start(type):
+        currentDocument = session.get_currentDocument()
+        completionSystem = BasicCompletionSystem(currentDocument.model, currentDocument.get_config('completion_functions'))
+        completionSystem.start_completion()
 
 class Completion(object):
     def __init__(self, value):
@@ -41,9 +59,27 @@ class Completion(object):
     def __str__(self):
         return self.value
 
-class BasicCompletionSystem(completion.CompletionSystem):
-    def __init__(self, textWidget):
-        completion.CompletionSystem.__init__(self, textWidget)
+def infile_completions(currentWord, textWidget):
+    all_text = textWidget.get("1.0", "end")
+    words_iter = re.finditer(r"[%s]+"%session.config.get('wchars'), all_text)
+    words = (m.group(0) for m in words_iter)
+    return (w for w in words if w!=currentWord and w.startswith(currentWord))
+
+def words_completions(currentWord, textWidget):
+    return (w for w in TextCompletion.words if w!=currentWord and w.startswith(currentWord))
+
+def uniqueFilter():
+    mySet = set()
+    def filter(value):
+        if value in mySet:
+            return False
+        mySet.add(value)
+        return True
+
+class BasicCompletionSystem(completion_.CompletionSystem):
+    def __init__(self, textWidget, sourcefunction):
+        completion_.CompletionSystem.__init__(self, textWidget, None)
+        self.sourcefunction = sourcefunction
 
     def get_completions(self):
         separators = session.config.get('spacechars')+session.config.get('puncchars')+"\n"
@@ -57,12 +93,9 @@ class BasicCompletionSystem(completion.CompletionSystem):
         currentWord = self.textWidget.get(str(start_index), "insert")
         if not currentWord:
             return None, []
-        all_text = self.textWidget.get("1.0", "end")
-        words_iter = re.finditer(r"[%s]+"%session.config.get('wchars'), all_text)
-        words = (m.group(0) for m in words_iter)
-        words_starting = (w for w in words if w!=currentWord and w.startswith(currentWord))
-        words_completion = [Completion(w) for w in set(words_starting)]
-        return str(start_index), words_completion
+        words = self.sourcefunction(currentWord, self.textWidget)
+        unique = (Completion(w) for w in itertools.ifilter(uniqueFilter(), words))
+        return str(start_index), [Completion(currentWord)]+list(itertools.islice(unique,10))
 
     def complete(self, startIndex, text):
         oldInsert = self.textWidget.index("insert")
