@@ -26,7 +26,7 @@ from devparrot.core.constraints import ConfigEntry, Default
 _section='core',
 _name='config',
 configEntry = ConfigEntry(),
-key=Default(default=lambda:"")
+key=Default(default=lambda:None)
 )
 def configset(configEntry, value, key):
     """set a config entry to value"""
@@ -35,12 +35,12 @@ def configset(configEntry, value, key):
         value = literal_eval(value)
     except (SyntaxError, ValueError):
         pass
-    configEntry.set(value, keys=[key])
+    configEntry.set(value, key=key)
 
 @Macro(
 _name='config',
 configEntry=ConfigEntry(),
-key=Default(default=lambda:"")
+key=Default(default=lambda:None)
 )
 def configget(configEntry, key):
-    return configEntry.get(keys=key)
+    return configEntry.get(key=key)

@@ -91,7 +91,7 @@ class MenuBar(Menu):
     def __init__(self):
         Menu.__init__(self, parent=None)
         self.create_menu()
-        object.__setattr__(session.config, 'menuBar', ReadOnlyOption('menuBar', self))
+        dict.__setitem__(session.config.options, 'menuBar', ReadOnlyOption('menuBar', self))
 
     def create_menu(self):
         [self.append(value) for value in session.config.get('menuBar')]
@@ -102,7 +102,7 @@ class PopupMenu(Menu):
         Menu.__init__(self, parent=None)
         self.config(postcommand=self.postCommand)
         self.create_menu()
-        object.__setattr__(session.config, 'popupMenu', ReadOnlyOption('popupMenu', self))
+        dict.__setitem__(session.config.options, 'popupMenu', ReadOnlyOption('popupMenu', self))
 
     def create_menu(self):
         [self.append(value) for value in session.config.get('popupMenu')]

@@ -22,44 +22,38 @@
 
 from devparrot.core.utils.variable import CbCaller
 from devparrot.core import session, modules
-import cfgparse
 import re, os, types
 
 _config = None
 
-def _customSet(self_, value, cfgfile=None, keys=None):
-    if cfgfile is None:
-        cfgfile=self_._userFile
-    old = self_.get()
-    self_.__class__.set(self_, value, cfgfile=cfgfile, keys=keys).parse()
-    session.eventSystem.event("configChanged")(self_, old)
+class Option(object):
+    def __init__(self, name, config, parent, type="string"):
+        self.name = name
+        self.config = config
+        self.parent = parent
+        self.type = type
+        self.values = {}
 
-class Config(object):
-    def __init__(self):
-        self._parser = cfgparse.ConfigParser(allow_py=True, exception=True)
-        self._userFile = self._parser.add_file(os.path.expanduser("~/.devparrotrc"), type='py')
+    def get(self, keys=[None]):
+        if None not in keys:
+            keys.append(None)
+        for key in keys:
+            if key in self.values:
+                return self.values[key]
+        raise KeyError("No Value for option named %s"%self.name)
 
-    def add_option(self, name, *args, **kwords):
-        option = self._parser.add_option(name, *args, **kwords)
-        option.set = types.MethodType(_customSet, option)
-        option._userFile = self._userFile
-        object.__setattr__(self, name, option)
+    def set(self, value, key=None):
+        try:
+            old = self.values[key]
+        except KeyError:
+            old = None
+        self.values[key] = value
+        session.eventSystem.event("configChanged")(self, old)
 
-    def add_file(self, filename):
-        return self._parser.add_file(filename)
-
-    def __setattr__(self, name, value):
-        if name.startswith("_"):
-            return object.__setattr__(self, name, value)
-        self[name].set(value)
-
-    def __getitem__(self, name):
-        return getattr(self, name)
-
-    __setitem__ = __setattr__
-
-    def get(self, name, keys=None):
-        return self[name].get(keys)
+    def update(self, values):
+        if not isinstance(values, dict):
+            values = {None:values}
+        self.values.update(values)
 
 class ReadOnlyOption(object):
     def __init__(self, name, value):
@@ -68,6 +62,82 @@ class ReadOnlyOption(object):
 
     def get(self, *args, **kwords):
         return self.value
+
+class BaseSection(object):
+    def __init__(self, config):
+        self.config = config
+        self.options = {}
+
+    def _get(self, name):
+        return self.options[name]
+
+    def add_option(self, name, type="string", **kwords):
+        self.options[name] = Option(name, self.config, self, type)
+        if "default" in kwords:
+            self.options[name].set(kwords["default"])
+
+    def add_section(self, name):
+        self.options[name] = Section(self.config, self)
+
+    def update(self, options, skip_unknown=False):
+        for key, value in options.items():
+            if key[0] == "_":
+                continue
+            try:
+                self.options[key].update(value)
+            except KeyError:
+                if not skip_unknown:
+                    raise
+                print("%s is not a valid option name"%key)
+
+class Section(BaseSection):
+    def __init__(self, config, parent):
+        BaseSection.__init__(self, config)
+        self.parent = parent
+
+class Config(BaseSection):
+    def __init__(self):
+        BaseSection.__init__(self, self)
+
+    def get(self, name, keys=[None]):
+        names = name.split('.')
+        sections, name = names[:-1], names[-1]
+        section = self
+        for sectionName in sections:
+            section = section._get(sectionName)
+        option = section._get(name)
+        return option.get(keys)
+
+    def __getattr__(self, name):
+        return self._get(name)
+
+    __getitem__ = __getattr__
+
+class ConfigFile(object):
+    def __init__(self, filename):
+        self.filename = filename
+
+    def parse(self):
+        options = {}
+        globals_ = {'source' : self.source_file}
+        execfile(self.filename, globals_, options)
+        return options
+
+    def source_file(self, filename):
+        pass
+
+class ConfigParser(object):
+    def __init__(self, config):
+        self.config = config
+        self.configFiles = []
+
+    def add_file(self, filename):
+        self.configFiles.append(ConfigFile(filename))
+
+    def parse(self):
+        for configFile in self.configFiles:
+            options = configFile.parse()
+            self.config.update(options, skip_unknown=True)
 
 def init(cmd_options):
     import os
@@ -129,8 +199,13 @@ def init(cmd_options):
 
     modules.update_config(_config)
 
-    object.__setattr__(_config, 'ARGUMENTS', ReadOnlyOption('ARGUMENTS', cmd_options.ARGUMENTS))
-    object.__setattr__(_config, 'devparrotPath', ReadOnlyOption('devparrotPath', devparrotPath))
+    parser = ConfigParser(_config)
+    parser.add_file(os.path.expanduser("~/.devparrotrc"))
+    parser.parse()
+
+    dict.__setitem__(_config.options, 'ARGUMENTS', ReadOnlyOption('ARGUMENTS', cmd_options.ARGUMENTS))
+    dict.__setitem__(_config.options, 'devparrotPath', ReadOnlyOption('devparrotPath', devparrotPath))
+
     return _config
 
 def load(cmd_options):
