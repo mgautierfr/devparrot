@@ -184,7 +184,7 @@ class CompletionSystem(object):
             size = max(size, len(v.value))
             self.listbox.insert('end', v.value)
         self._set_position()
-        self.listbox.configure(width=size)
+        self.listbox.configure(width=size, height=len(self.completions))
         self.listbox.select_set(0)
 
     def get_completions(self):
