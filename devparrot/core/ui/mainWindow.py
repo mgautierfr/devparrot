@@ -42,27 +42,27 @@ class MainWindow(ttk.Tkinter.Tk):
         from devparrot.core import session
         ttk.Tkinter.Tk.__init__(self, className='Devparrot')
         geom = self.wm_geometry()
-        w = geom.split('+')[0].split('x')[0]
+        w = int(geom.split('+')[0].split('x')[0])
         try:
             w = session.config.get('window_width')
         except AttributeError:
             pass
-        h = geom.split('+')[0].split('x')[1]
+        h = int(geom.split('+')[0].split('x')[1])
         try:
             h = session.config.get('window_height')
         except AttributeError:
             pass
-        x = geom.split('+')[1]
+        x = int(geom.split('+')[1])
         try:
             x = session.config.get('window_x')
         except AttributeError:
             pass
-        y = geom.split('+')[2]
+        y = int(geom.split('+')[2])
         try:
             y = session.config.get('window_y')
         except AttributeError:
             pass
-        self.wm_geometry("%dx%d+%s+%s"%(w, h, x, y))
+        self.wm_geometry("%dx%d+%d+%d"%(w, h, x, y))
         self.wm_title("devparrot")
 
         self.protocol('WM_DELETE_WINDOW', quit)
