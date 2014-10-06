@@ -224,6 +224,7 @@ def find_previous(model, index):
     return Index(line, 0)
 
 def update_tokens(model, tokens, start, stop, safe_zone):
+    print "Starting update_tokens at %s" % str(start)
     currentPos = start
     currentPos_str = str(start)
 
@@ -271,7 +272,7 @@ def update_tokens(model, tokens, start, stop, safe_zone):
                 extraTests = tokens.gi_frame.f_locals['statestack'][-1] == 'root' and tokens.gi_frame.f_locals['action'] is Token.Text
             except KeyError:
                 extraTests = True
-            if t is Token.Text and v == u"\n" and extraTests:
+            if t is Token.Text and v.isspace() and extraTests:
 
                 for line in xrange(lastSafeLine+1, currentPos_line):
                     model.lineInfos[line]._hlsafe = False
@@ -299,6 +300,8 @@ def update_tokens(model, tokens, start, stop, safe_zone):
     #really add the tags to the model
     for token, positions in tags_to_add.items():
         model.tag_add(_tokens_name[token], *positions)
+
+    print "Ending update_tokens at %s" % currentPos_line
 
 
 def clean_tokens(model, start, end, token_name):
