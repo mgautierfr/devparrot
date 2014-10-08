@@ -45,11 +45,13 @@ setup(name='devparrot',
             'devparrot = devparrot:main'
         ],
         'devparrot.module' : [
+            'project = devparrot.modules.project:Project',
             'documentList = devparrot.modules.documentList:DocumentList',
             'externalTool = devparrot.modules.externalTool:ExternalTool',
             'fileExplorer = devparrot.modules.fileExplorer:FileExplorer',
             'textHighlight = devparrot.modules.textHighlight:TextHighlight',
-            'textCompletion = devparrot.modules.completion:TextCompletion'
+            'textCompletion = devparrot.modules.completion:TextCompletion',
+            'autocmd = devparrot.modules.autocmd:Autocmd',
         ]
       }
 )
