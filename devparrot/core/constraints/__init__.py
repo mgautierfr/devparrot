@@ -342,12 +342,12 @@ class ConfigEntry(_Constraint):
     def check(self, arg):
         from devparrot.core import session
         try:
-            return True, session.config[arg]
+            return True, session.config.get_option(arg)
         except KeyError:
             return False, None
 
     def check_direct(self, arg):
-        from cfgparser import Option
+        from devparrot.core.utils.config import Option
         return isinstance(arg, Option), arg
 
     def complete(self, token):
@@ -360,7 +360,13 @@ class ConfigEntry(_Constraint):
         else:
             token = ''
 
-        completions = [Completion(section, True) for section in session.config.__dict__.keys() if section.startswith(token)]
+        names = name.split('.')
+        sections, name = names[:-1], names[-1]
+        section = session.config
+        for sectionName in sections:
+            section = section._get(sectionName)
+
+        completions = [Completion(sectionName, True) for sectionName in section.options.keys() if sectionName.startswith(token)]
 
         return completions
 

@@ -20,127 +20,14 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.core.utils.variable import CbCaller
 from devparrot.core import session, modules
-import re, os, types
+from devparrot.core.utils.config import Config, ConfigParser, ReadOnlyOption
+
+import os
 
 _config = None
 
-class Option(object):
-    def __init__(self, name, config, parent, type="string"):
-        self.name = name
-        self.config = config
-        self.parent = parent
-        self.type = type
-        self.values = {}
-
-    def get(self, keys=[None]):
-        if None not in keys:
-            keys.append(None)
-        for key in keys:
-            if key in self.values:
-                return self.values[key]
-        raise KeyError("No Value for option named %s"%self.name)
-
-    def set(self, value, key=None):
-        try:
-            old = self.values[key]
-        except KeyError:
-            old = None
-        self.values[key] = value
-        session.eventSystem.event("configChanged")(self, key, old)
-
-    def update(self, values):
-        if not isinstance(values, dict):
-            values = {None:values}
-        self.values.update(values)
-
-class ReadOnlyOption(object):
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
-
-    def get(self, *args, **kwords):
-        return self.value
-
-class BaseSection(object):
-    def __init__(self, config):
-        self.config = config
-        self.options = {}
-
-    def _get(self, name):
-        return self.options[name]
-
-    def add_option(self, name, type="string", **kwords):
-        self.options[name] = Option(name, self.config, self, type)
-        if "default" in kwords:
-            self.options[name].set(kwords["default"])
-
-    def add_section(self, name):
-        self.options[name] = Section(self.config, self)
-
-    def update(self, options, skip_unknown=False):
-        for key, value in options.items():
-            if key[0] == "_":
-                continue
-            try:
-                self.options[key].update(value)
-            except KeyError:
-                if not skip_unknown:
-                    raise
-                print("%s is not a valid option name"%key)
-
-class Section(BaseSection):
-    def __init__(self, config, parent):
-        BaseSection.__init__(self, config)
-        self.parent = parent
-
-class Config(BaseSection):
-    def __init__(self):
-        BaseSection.__init__(self, self)
-
-    def get(self, name, keys=[None]):
-        names = name.split('.')
-        sections, name = names[:-1], names[-1]
-        section = self
-        for sectionName in sections:
-            section = section._get(sectionName)
-        option = section._get(name)
-        return option.get(keys)
-
-    def __getattr__(self, name):
-        return self._get(name)
-
-    __getitem__ = __getattr__
-
-class ConfigFile(object):
-    def __init__(self, filename):
-        self.filename = filename
-
-    def parse(self):
-        options = {}
-        globals_ = {'source' : self.source_file}
-        execfile(self.filename, globals_, options)
-        return options
-
-    def source_file(self, filename):
-        pass
-
-class ConfigParser(object):
-    def __init__(self, config):
-        self.config = config
-        self.configFiles = []
-
-    def add_file(self, filename):
-        self.configFiles.append(ConfigFile(filename))
-
-    def parse(self):
-        for configFile in self.configFiles:
-            options = configFile.parse()
-            self.config.update(options, skip_unknown=True)
-
 def init(cmd_options):
-    import os
     global _config
     devparrotPath = os.path.dirname(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
     _config = Config()
@@ -151,14 +38,14 @@ def init(cmd_options):
 
     _config.add_option("default_controllers", default=[ 'CarretController', 'KeyboardController', 'MouseController' ])
 
-    _config.add_option("window_height", type='int', default=600)
-    _config.add_option("window_width", type='int', default=800)
-    _config.add_option("window_x", type='int', default=10)
-    _config.add_option("window_y", type='int', default=10)
+    _config.add_option("window_height", default=600)
+    _config.add_option("window_width", default=800)
+    _config.add_option("window_x", default=10)
+    _config.add_option("window_y", default=10)
 
     _config.add_option("auto_indent", default=True)
     _config.add_option("remove_tail_space", default=True)
-    _config.add_option("tab_width", type='int', default=4)
+    _config.add_option("tab_width", default=4)
     _config.add_option("space_indent", default=False)
     _config.add_option("highlight_current_line", default=True)
     _config.add_option("show_line_numbers", default=True)
@@ -203,8 +90,8 @@ def init(cmd_options):
     parser.add_file(os.path.expanduser("~/.devparrotrc"))
     parser.parse()
 
-    dict.__setitem__(_config.options, 'ARGUMENTS', ReadOnlyOption('ARGUMENTS', cmd_options.ARGUMENTS))
-    dict.__setitem__(_config.options, 'devparrotPath', ReadOnlyOption('devparrotPath', devparrotPath))
+    dict.__setitem__(_config.options, 'ARGUMENTS', ReadOnlyOption('ARGUMENTS', _config, _config, str, cmd_options.ARGUMENTS))
+    dict.__setitem__(_config.options, 'devparrotPath', ReadOnlyOption('devparrotPath', _config, _config, str, devparrotPath))
 
     return _config
 

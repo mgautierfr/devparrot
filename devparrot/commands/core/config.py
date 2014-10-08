@@ -35,7 +35,7 @@ def configset(configEntry, value, key):
         value = literal_eval(value)
     except (SyntaxError, ValueError):
         pass
-    configEntry.set(value, key=key)
+    configEntry.set(value, keys=[key])
 
 @Macro(
 _name='config',
@@ -43,4 +43,4 @@ configEntry=ConfigEntry(),
 key=Default(default=lambda:None)
 )
 def configget(configEntry, key):
-    return configEntry.get(key=key)
+    return configEntry.get(keys=[key])
