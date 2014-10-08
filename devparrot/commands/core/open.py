@@ -41,10 +41,11 @@ def _open_a_file(fileToOpen):
         from devparrot.core.errors import FileAccessError
         from devparrot.core.document import Document
         from devparrot.documents.fileDocSource import FileDocSource
-        try:
+        if os.path.exists(fileToOpen):
+            session.eventSystem.event('pathAccess')(fileToOpen)
             doc = Document(FileDocSource(fileToOpen))
             session.get_documentManager().add_file(doc)
             doc.load()
-        except IOError:
+        else:
             raise FileAccessError(fileToOpen)
     session.commands.core.switch(doc)

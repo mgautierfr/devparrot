@@ -28,6 +28,8 @@ from utils.variable import Property, Variable, HasProperty
 from devparrot.models.sourceBuffer import SourceBuffer
 from devparrot.core import mimemapper
 
+import os
+
 
 class Document(HasProperty):
     def get_title(self):
@@ -141,9 +143,11 @@ class Document(HasProperty):
         self.currentView.view.see(str(index))
 
     def get_config_keys(self):
+        keys = os.path.normpath(self.get_path()).split(os.sep)
         mimetype = str(self.get_mimetype())
-        mimekey = mimemapper.mimeMap.get(mimetype)
-        return [mimekey]
+        keys.append(mimemapper.mimeMap.get(mimetype))
+        return keys
 
     def get_config(self, name):
+        #print "get for key ", self.get_config_keys(), "for", name
         return session.config.get(name, keys=self.get_config_keys())

@@ -42,6 +42,7 @@ def save(document, fileName):
             raise ContextError("{} is already open and is not the file you want to save".format(fileName))
     
         from devparrot.documents.fileDocSource import FileDocSource
+        session.eventSystem.event('pathAccess')(fileName)
         document.set_path(FileDocSource(fileName, guess_encoding=False))
         session.get_documentManager().del_file(document)
         session.get_documentManager().add_file(document)
