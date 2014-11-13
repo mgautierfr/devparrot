@@ -215,7 +215,6 @@ class ProxySection(dict):
         self._section = section
 
     def __getitem__(self, name):
-        print "getting name", name
         try:
             return dict.__getitem__(self, name)
         except KeyError:
@@ -226,7 +225,6 @@ class ProxySection(dict):
         raise KeyError
 
     def __setitem__(self, name, v):
-        print "setting name", name
         dict.__setitem__(self,name, v)
 
     def _has_dict(self):

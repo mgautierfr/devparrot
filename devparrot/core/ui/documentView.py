@@ -80,7 +80,6 @@ class DocumentView(ContainerChild, ttk.Frame):
         self.document.mimetype = mimetype
 
     def on_mimetype_changed(self, var, old):
-        print("mime changed from doc  to %s"%self.document.mimetype)
         self._ownChange = True
         self.mimeOption.set(mimemapper.mimeMap[str(self.document.mimetype)])
         self._ownChange = False

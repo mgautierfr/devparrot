@@ -224,7 +224,6 @@ def find_previous(model, index):
     return Index(line, 0)
 
 def update_tokens(model, tokens, start, stop, safe_zone):
-    print "Starting update_tokens at %s" % str(start)
     currentPos = start
     currentPos_str = str(start)
 
@@ -301,7 +300,6 @@ def update_tokens(model, tokens, start, stop, safe_zone):
     for token, positions in tags_to_add.items():
         model.tag_add(_tokens_name[token], *positions)
 
-    print "Ending update_tokens at %s" % currentPos_line
 
 
 def clean_tokens(model, start, end, token_name):
