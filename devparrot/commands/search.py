@@ -33,7 +33,7 @@ backward=Boolean(default=lambda : False)
 )
 def search(searchText):
     if not searchText:
-        return None
+        return []
 
     return get_currentDocument().model.search(searchText)
 
