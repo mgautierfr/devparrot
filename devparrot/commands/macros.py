@@ -48,3 +48,14 @@ def current():
 def all_document():
     from devparrot.core import session
     return list(session.get_documentManager())
+
+
+@Macro()
+def range(text):
+    from devparrot.core.constraints import Range
+    ok, result = Range().check(text)
+
+    if ok:
+        doc, range_ = result
+        return doc.get_model().get(str(range_.first), str(range_.last))
+    raise InvalidArgument()
