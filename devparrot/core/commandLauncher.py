@@ -152,7 +152,7 @@ class CommandLauncher:
             while True:
                 try:
                     command = commands.next()
-                except StopIteration:
+                except (StopIteration, UserCancel):
                     noMoreCommand = True
                     break
                 if command == "\n":
