@@ -22,6 +22,7 @@
 import ttk
 from devparrot.core.controller import Controller, bind
 from devparrot.core.utils.posrange import WordStart, WordEnd, Mark
+from devparrot.core.errors import TclError
 
 class MouseController(Controller):
     def __init__(self):
