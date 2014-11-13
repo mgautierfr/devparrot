@@ -92,10 +92,7 @@ class CommandOutput(ttk.Frame):
         except IndexError:
             pass
         def goto(event):
-            print "try to go to %s, %s"%(fileMatch.group('line'), pos)
-            #import pdb; pdb.set_trace()
-            session.commandLauncher.run_command_nofail('open "{file}"\n goto {line}.{pos}'.format(file=fileMatch.group('file'), line=fileMatch.group('line'), pos=pos))
-            print "gone"
+            session.commandLauncher.run_command_nofail('open "{file}"\n goto {file}@{line}.{pos}'.format(file=fileMatch.group('file'), line=fileMatch.group('line'), pos=pos))
 
         tagName = "tag_{file}_{line}_{pos}".format(file=fileMatch.group('file'), line=fileMatch.group('line'), pos=pos)
         self.textView.tag_configure(tagName, foreground="blue", underline=True)
