@@ -73,6 +73,7 @@ class Command(_Constraint):
     def complete(self, token):
         import devparrot.core.session as session
         from devparrot.core.command.section import Section
+        from devparrot.core.command.wrappers import MasterCommandWrapper
         tokenValue = None
         if token.get_type().endswith('String'):
             tokenValue = token.values
@@ -82,7 +83,12 @@ class Command(_Constraint):
             tokenValue = ""
         if tokenValue is None:
             return []
-        l = tokenValue.split('.')
+        completionClass = type_to_completion[token.get_type()]
+        try:
+            masterCommand, subCommand = tokenValue.split(" ")
+        except ValueError:
+            masterCommand, subCommand  = tokenValue, None
+        l = masterCommand.split('.')
         sections = l[:-1]
         name = l[-1]
         currentSection = session.commands
@@ -91,11 +97,30 @@ class Command(_Constraint):
                 currentSection = currentSection[section]
         except KeyError:
             return []
-        return [Completion(".".join(sections+([k, ""] if isinstance(i,Section) else [k])), not isinstance(i,Section)) for k,i in currentSection.items() if k.startswith(name)]
+        if subCommand is None:
+            # Complete normal or master command
+            return [completionClass(value=".".join(sections+([k, ""] if isinstance(i,Section) else [k])),
+                                    final=(not isinstance(i,Section) and not isinstance(i, MasterCommandWrapper)))
+                       for k,i in currentSection.items() if k.startswith(name)]
+        else:
+            try:
+                command = currentSection[name]
+            except KeyError:
+                return []
+            if not isinstance(command, MasterCommandWrapper):
+                return []
+            return [completionClass(value="%s %s"%(command.get_name(), k),
+                                    final=True)
+                       for k in command.subCommands if k.startswith(subCommand)]
 
     def check(self, token):
         from devparrot.core import session
-        l = token.split('.')
+        from devparrot.core.command.wrappers import MasterCommandWrapper
+        try:
+            masterCommand, subCommand = token.split()
+        except ValueError:
+            masterCommand, subCommand  = token, None
+        l = masterCommand.split('.')
         sections = l[:-1]
         name = l[-1]
         currentSection = session.commands
@@ -104,7 +129,18 @@ class Command(_Constraint):
                 currentSection = currentSection[section]
         except KeyError:
             return False, None
-        return name in currentSection, currentSection.get(name)
+        if not subCommand:
+            return name in currentSection, currentSection.get(name)
+        else:
+            try:
+                command = currentSection[name]
+            except KeyError:
+                return False, None
+            if not isinstance(command, MasterCommandWrapper):
+                return False, None
+            if subCommand in command.subCommands:
+                return True, command.subCommands[subCommand]
+            return False, None
 
     def check_direct(self, arg):
         from devparrot.core.command.wrappers import CommandWrapper
