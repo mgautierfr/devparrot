@@ -37,15 +37,22 @@ class Project(BaseModule):
         BaseModule.__init__(self, name)
         self.loaded = set()
 
+    @staticmethod
+    def update_config(config):
+        print "add option"
+        config.add_option("projectdir")
+
     def on_pathAccess(self, path):
         for project_dir in search_project_dir(path):
             if project_dir in self.loaded:
                 continue
             self.loaded.add(project_dir)
+            config_keys = os.path.normpath(project_dir).split(os.sep)
+            session.config.projectdir.set(project_dir, keys=config_keys)
             if os.path.exists(os.path.join(project_dir, ".devproject", "configrc")):
                 configParser = configLoader.ConfigParser(session.config)
                 configParser.add_file(os.path.join(project_dir, ".devproject", "configrc"))
-                configParser.parse(in_keys=os.path.normpath(project_dir).split(os.sep))
+                configParser.parse(in_keys=config_keys, with_dict={"bind":session.bindings})
 
     
         
