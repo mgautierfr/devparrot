@@ -29,32 +29,25 @@ def DefaultStreamEater(stream):
         
 
 class Stream(object):
-    def __init__(self, functionName, stream):
-        self.functionName = functionName
+    def __init__(self, stream):
         self.stream = stream
 
     def __iter__(self):
         return self
 
     def next(self):
-        try:
-            if self.stream is None:
-                raise StopIteration
-
-            return self.stream.next()
-        except StopIteration:
-            if self.functionName is not None:
-                session.eventSystem.event("{}+".format(self.functionName))()
+        if self.stream is None:
             raise StopIteration
+
+        return self.stream.next()
 
 class PseudoStream(Stream):
     def __init__(self):
-        Stream.__init__(self, None, None)
+        Stream.__init__(self, None)
 
 class StreamEater(object):
-    def __init__(self, function, functionName, streamName, args, kwords, argsorder):
+    def __init__(self, function, streamName, args, kwords, argsorder):
         self.function = function
-        self.functionName = functionName
         self.streamName = streamName
         self.args = args
         self.kwords = kwords
@@ -65,9 +58,7 @@ class StreamEater(object):
             self.kwords[self.streamName] = stream
         call_list = [self.kwords[name] for name in self.argsorder]
         call_list.extend(self.args)
-        session.eventSystem.event("{}-".format(self.functionName))()
         stream_ = self.function(*call_list)
-        session.eventSystem.event("{}=".format(self.functionName))()
-        return Stream(self.functionName, stream_)
+        return Stream(stream_)
 
 

@@ -108,11 +108,12 @@ class Document(HasProperty):
         with self.documentSource.get_content() as content:
             self.model.set_text(content)
         self.currentView.update_infos()
-        session.eventSystem.event('textSet')(self)
+        session.eventSystem.event('textSet')(self, keys=self.get_config_keys())
 
     def write(self):
         self.documentSource.set_content(self.model.get_text())
         self.model.edit_modified(False)
+        session.eventSystem.event('save')(self, keys=self.get_config_keys())
 
     def on_modified_changed(self, model, modified):
         if model==self.model and not self.is_readonly():

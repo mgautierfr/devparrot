@@ -123,7 +123,7 @@ class CommandWrapper(object):
 
     def resolve(self, *args, **kwords):
         call_list, call_kwords = self._get_call_args(args, kwords)
-        return StreamEater(self.functionToCall, self.commandName, self.streamName, call_list, call_kwords, self.argSpec.args)
+        return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords, self.argSpec.args)
 
     def __call__(self, *args, **kwords):
         return self.functionToCall(*args, **kwords)
