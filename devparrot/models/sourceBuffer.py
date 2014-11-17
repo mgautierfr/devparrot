@@ -25,7 +25,7 @@ from ttk import Tkinter
 import re
 
 from devparrot.core import session, utils
-from devparrot.core.utils.posrange import Index, Start
+from devparrot.core.utils.posrange import Index, Start, Range
 from devparrot.core.errors import *
 
 import rangeInfo
@@ -302,6 +302,7 @@ class TextModel(Tkinter.Text, ModelInfo):
         session.eventSystem.event('mark_set')(self, name, index)
         if name == 'insert':
             self.sel_update()
+
     def tag_add(self, tag_name, *indexlist):
         indexlist = [str(i) for i in indexlist]
         Tkinter.Text.tag_add(self, tag_name, *indexlist)
@@ -443,7 +444,7 @@ class TextModel(Tkinter.Text, ModelInfo):
         match_start = Tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count) 
         while match_start:
             match_end = "{}+{}c".format(match_start, count.get())
-            yield self.index(match_start), self.index(match_end)
+            yield Range(self.index(match_start), self.index(match_end))
             if not count.get():
                 # avoid infinit loop if regex match 0 len text.
                 break

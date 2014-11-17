@@ -21,7 +21,7 @@
 
 from devparrot.core.command import MasterCommand, SubCommand
 from devparrot.core import session
-from devparrot.core.constraints import Stream
+from devparrot.core.constraints import Range
 
 class tag(MasterCommand):
     """ Tag help stuff"""
@@ -31,12 +31,11 @@ class tag(MasterCommand):
         session.get_currentDocument().model.tag_remove(tagName, "1.0", "end")
 
     @SubCommand(
-    tagList = Stream()
+    ranges = Range()
     )
-    def set(tagName, tagList):
-        tgList = [ str(item) for tuple_ in tagList for item in tuple_]
-        if len(tgList)>=2 and len(tgList)%2==0:
-            session.get_currentDocument().model.tag_add(tagName, *tgList)
+    def set(tagName, *ranges):
+        for doc, _range in ranges:
+            doc.model.tag_add(tagName, _range.first, _range.last)
 
 
 

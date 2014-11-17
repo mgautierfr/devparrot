@@ -19,7 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.core.command import Command, Alias
+from devparrot.core.command import Command, Alias, Macro
 from devparrot.core.constraints import Boolean, Default
 from devparrot.core.session import bindings, get_currentDocument
 
@@ -27,15 +27,14 @@ from itertools import dropwhile, takewhile
 
 lastSearch = None
 
-@Command(
-_section='core',
-backward=Boolean(default=lambda : False)
-)
+@Command(_section='core')
+@Macro()
 def search(searchText):
     if not searchText:
         return []
 
-    return get_currentDocument().model.search(searchText)
+    document = get_currentDocument()
+    return [(document, r) for r in document.model.search(searchText)]
 
 
 @Command(
@@ -52,11 +51,11 @@ def search(searchText, backward):
     lastSearch = searchText
 
     session.commands.tag.subCommands['clean']('search_tag')
-    searches_results = list(session.commands.core.search(searchText))
+    document = get_currentDocument()
+    searches_results = list(document.model.search(searchText))
     if searches_results:
-        session.commands.tag.subCommands['set']('search_tag', searches_results)
+        document.model.tag_add('search_tag', *(item for tag in searches_results for item in tag))
 
-        document = get_currentDocument()
         insert = document.model.index('insert')
 
         if backward:
