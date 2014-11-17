@@ -31,7 +31,9 @@ class Section(dict):
         self[name] = wrapper
 
     def get_name(self):
+        if not self.name:
+            return ""
         if self.parentSection:
-            return "%s.%s"%(self.parentSection.get_name(), self.name)
-        return self.name
+            return "%s%s."%(self.parentSection.get_name(), self.name)
+        return "%s."%self.name
     

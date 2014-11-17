@@ -162,11 +162,11 @@ class CommandWrapper(object):
 
     def get_name(self):
         if self.section:
-            name =  "%s.%s"%(self.section.get_name(), self.functionToCall.__name__)
+            name =  "%s%s"%(self.section.get_name(), self.functionToCall.__name__)
         else:
             name =  self.functionToCall.__name__
         if self.masterCommand:
-            return "%s %s"%(self.masterCommand.get_name(), name)
+            return "%s%s"%(self.masterCommand.get_name(), name)
         return name
 
 class AliasWrapper(CommandWrapper):
@@ -229,8 +229,8 @@ class MasterCommandWrapper(object):
 
     def get_name(self):
         if self.section:
-            return "%s.%s"%(self.section.get_name(), self._class.__name__)
-        return self._class.__name__
+            return "%s%s "%(self.section.get_name(), self._class.__name__)
+        return "%s "%self._class.__name__
 
     def __getitem__(self, name):
         return self.subCommands[name]

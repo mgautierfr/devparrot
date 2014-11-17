@@ -99,7 +99,7 @@ class Command(_Constraint):
             return []
         if subCommand is None:
             # Complete normal or master command
-            return [completionClass(value=".".join(sections+([k, ""] if isinstance(i,Section) else [k])),
+            return [completionClass(value="%s%s"%(currentSection.get_name(), "%s."%k if isinstance(i,Section) else k),
                                     final=(not isinstance(i,Section) and not isinstance(i, MasterCommandWrapper)))
                        for k,i in currentSection.items() if k.startswith(name)]
         else:
@@ -109,7 +109,7 @@ class Command(_Constraint):
                 return []
             if not isinstance(command, MasterCommandWrapper):
                 return []
-            return [completionClass(value="%s %s"%(command.get_name(), k),
+            return [completionClass(value="%s%s"%(command.get_name(), k),
                                     final=True)
                        for k in command.subCommands if k.startswith(subCommand)]
 

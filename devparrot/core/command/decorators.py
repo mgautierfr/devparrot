@@ -44,11 +44,11 @@ class Command(object):
         from devparrot.core.commandLauncher import add_command, create_section
         if section is None:
             section = self._section
-        section = create_section(section)
         if functionName is None:
             functionName = self._name
         if functionName is None:
             functionName = function.__name__
+        section = create_section(section)
         self.wrapper._set_section(section)
         self.wrapper._set_function(function, functionName)
         add_command(functionName, self.wrapper, section)
@@ -71,18 +71,22 @@ class MasterCommandMeta(type):
     def __new__(cls, name, bases, dct):
         if name == "MasterCommand":
             return type.__new__(cls, name, bases, dct)
-        from devparrot.core.commandLauncher import add_command
+        from devparrot.core.commandLauncher import add_command, create_section
         new_dct = {}
         wrapper = MasterCommandWrapper()
+        section = None
         for attrName, attr in dct.items():
             if isinstance(attr, CommandWrapper):
                 wrapper.add_subCommand(attrName, attr)
                 attr._set_commandName("{} {}".format(name, attr.commandName))
                 # only keep the function in the class. wrapper is internal
                 new_dct[attrName] = staticmethod(attr.functionToCall)
+            elif attrName == "_section":
+                section = create_section(attr)
+                wrapper._set_section(section)
             else:
                 new_dct[attrName] = attr
-        add_command(name, wrapper)
+        add_command(name, wrapper, section)
         _class = type.__new__(cls, name, bases, new_dct)
         wrapper.set_class(_class)
         return _class
