@@ -302,11 +302,34 @@ class TextModel(Tkinter.Text, ModelInfo):
         session.eventSystem.event('mark_set')(self, name, index)
         if name == 'insert':
             self.sel_update()
+    def tag_add(self, tag_name, *indexlist):
+        indexlist = [str(i) for i in indexlist]
+        Tkinter.Text.tag_add(self, tag_name, *indexlist)
+        if tag_name.startswith("autocmd."):
+            def autocmd(event, cmd=tag_name[8:]):
+                from devparrot.core import session
+                session.commandLauncher.run_command_nofail(cmd)
+            self.tag_bind(tag_name, "<Control-1>", autocmd)
+            Tkinter.Text.tag_add(self,"autocmd_link", *indexlist)
         
-    def insert(self, index, text, *args, **kword):
+    def insert(self, index, text, **kword):
         index = self.index(index)
         orig_len = self.calculate_distance(Start, index)
-        Tkinter.Text.insert(self, str(index), text, *args)
+        try:
+            tags = kword['tags']
+            autolink = False
+            for t in (t for t in tags if t.startswith("autocmd.")):
+                autolink = True
+                def autocmd(event, cmd=t[8:]):
+                    from devparrot.core import session
+                    session.commandLauncher.run_command_nofail(cmd)
+                self.tag_bind(t, "<Control-1>", autocmd)
+            if autolink:
+                tags.append("autocmd_link")
+            tag = " ".join("{%s}"%t for t in set(tags))
+        except KeyError:
+            tag = ""
+        Tkinter.Text.insert(self, str(index), text, tag)
         ModelInfo.insert(self, index, text)
         if kword.get('updateUndo', True):
             self.add_change(type='insert', index=index, text=text)
@@ -452,6 +475,14 @@ class SourceBuffer(TextModel):
         self.tag_lower("search_tag", "sel")
         self.tag_raise("highlight_tag", "currentLine_tag")
         self.tag_raise("search_tag", "currentLine_tag")
+        self.tag_bind("autocmd_link", "<Enter>", lambda e:self.set_hand_cursor())
+        self.tag_bind("autocmd_link", "<Leave>", lambda e:self.set_normal_cursor())
+
+    def set_hand_cursor(self):
+        self.configure(cursor="hand2")
+
+    def set_normal_cursor(self):
+        self.configure(cursor="")
 
     def on_configChanged(self, var, key, old):
         import tkFont
@@ -507,8 +538,8 @@ class SourceBuffer(TextModel):
         if name == 'insert':
             self.set_currentLineTag()
 
-    def insert(self, index, *args, **kword):
-        TextModel.insert(self, index, *args, **kword)
+    def insert(self, index, text, **kword):
+        TextModel.insert(self, index, text, **kword)
         self.set_currentLineTag()
         if index == 'insert':
             self.see('insert')
