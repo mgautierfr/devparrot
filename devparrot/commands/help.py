@@ -26,15 +26,17 @@ class inner:
     @staticmethod
     def help(command):
         helpText = command.get_help()
-        for line in helpText.split('\n'):
-            yield "{}\n".format(line)
+        if helpText:
+            for line in helpText.split('\n'):
+                yield "{}\n".format(line)
+        else:
+            yield "\n"
 
     @staticmethod
     def help_devparrot():
         from devparrot.core import session
         from devparrot.core.command.section import Section
         commands = [key for key, command in session.commands.items() if not isinstance(command, Section)]
-        helps = []
         yield "Devparrot help\n"
         yield "==============\n"
         yield "\n"
