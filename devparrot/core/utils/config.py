@@ -136,6 +136,9 @@ class BaseSection(object):
     def _get(self, name):
         return self.options[name]
 
+    def __contains__(self, name):
+        return name in self.options
+
     def add_option(self, name, type=str, **kwords):
         self.options[name] = Option(name, self.config, self, type)
         if "default" in kwords:
@@ -236,14 +239,32 @@ class ProxySection(dict):
                 d[k] = v
         return d
 
+class ChaineDict(object):
+    def __init__(self, globals_, options):
+        self.globals = globals_
+        self.options = options
+
+    def __getitem__(self, name):
+        try:
+            return self.globals[name]
+        except KeyError:
+            return self.options[name]
+
+    def __setitem__(self, name, v):
+        if name in self.globals:
+            self.globals[name] = v
+        else:
+            self.options[name] = v
+
 class ConfigFile(object):
     def __init__(self, filename):
         self.filename = filename
 
-    def parse(self, config):
+    def parse(self, config, with_dict):
         options = ProxySection(config)
-        globals_ = {'source' : self.source_file}
-        execfile(self.filename, globals_, options)
+        #globals_ = {'source' : self.source_file}
+        globals_ = with_dict
+        execfile(self.filename, {}, ChaineDict(globals_, options))
         return options._has_dict()
 
     def source_file(self, filename):
@@ -257,7 +278,7 @@ class ConfigParser(object):
     def add_file(self, filename):
         self.configFiles.append(ConfigFile(filename))
 
-    def parse(self, in_keys=[]):
+    def parse(self, in_keys=[], with_dict={}):
         for configFile in self.configFiles:
-            options = configFile.parse(self.config)
+            options = configFile.parse(self.config, with_dict)
             self.config.update(options, in_keys, skip_unknown=True)

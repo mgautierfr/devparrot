@@ -88,7 +88,7 @@ def init(cmd_options):
 
     parser = ConfigParser(_config)
     parser.add_file(os.path.expanduser("~/.devparrotrc"))
-    parser.parse()
+    parser.parse(with_dict={"bind":session.bindings})
 
     dict.__setitem__(_config.options, 'ARGUMENTS', ReadOnlyOption('ARGUMENTS', _config, _config, str, cmd_options.ARGUMENTS))
     dict.__setitem__(_config.options, 'devparrotPath', ReadOnlyOption('devparrotPath', _config, _config, str, devparrotPath))
