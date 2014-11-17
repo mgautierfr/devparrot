@@ -73,3 +73,11 @@ def shell(command, stdinput, *args):
 
     if left:
         yield left
+
+@Command(
+stream =Stream()
+)
+def stdoutput(stream):
+    import sys
+    for line in stream:
+        sys.stdout.write(line)
