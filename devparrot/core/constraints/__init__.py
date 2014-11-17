@@ -148,9 +148,17 @@ class File(_Constraint):
         currentDoc = session.get_currentDocument()
         d = {}
         if currentDoc:
-            path = currentDoc.get_path()
-            if path:
-                d['initialdir'] = os.path.dirname(path)
+            try:
+                path = session.config.get('projectdir', keys=currentDoc.get_config_keys())
+                print "projectdir", path
+                if path:
+                    d['initialdir'] = path
+            except KeyError:
+                #no projectdir variable (project module not active)
+                path = currentDoc.get_path()
+                print "docpath", path
+                if path:
+                    d['initialdir'] = os.path.dirname(path)
 
         if File.SAVE in self.mode:
             token = ui.helper.ask_filenameSave(**d)
