@@ -28,9 +28,13 @@ class CommandWrapper(object):
         self.constraints = constraints
         self.streamName = streamName
         self.section = None
+        self.masterCommand = None
 
     def _set_section(self, section):
         self.section = section
+
+    def _set_masterCommand(self, masterCommand):
+        self.masterCommand = masterCommand
 
     def _set_function(self, function, commandName):
         from inspect import getargspec
@@ -157,8 +161,12 @@ class CommandWrapper(object):
 
     def get_name(self):
         if self.section:
-            return "%s.%s"%(self.section.get_name(), self.functionToCall.__name__)
-        return self.functionToCall.__name__
+            name =  "%s.%s"%(self.section.get_name(), self.functionToCall.__name__)
+        else:
+            name =  self.functionToCall.__name__
+        if self.masterCommand:
+            return "%s %s"%(self.masterCommand.get_name(), name)
+        return name
 
 class AliasWrapper(CommandWrapper):
     def __init__(self, constraints):
@@ -178,6 +186,7 @@ class MasterCommandWrapper(object):
 
     def add_subCommand(self, name, function):
         self.subCommands[name] = function
+        function._set_masterCommand(self)
 
     def get_constraint(self, index):
         if index == 0:
