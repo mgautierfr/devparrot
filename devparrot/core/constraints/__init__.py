@@ -122,7 +122,7 @@ class Command(_Constraint):
             masterCommand, subCommand  = token, None
         l = masterCommand.split('.')
         sections = l[:-1]
-        name = l[-1]
+        name = l[-1].strip()
         currentSection = session.commands
         try:
             for section in sections:
