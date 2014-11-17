@@ -22,6 +22,7 @@
 from devparrot.core.constraints import ConstraintInstance, Default, Keyword
 from devparrot.core.command.stream import StreamEater
 from devparrot.core.errors import *
+import inspect
 
 class CommandWrapper(object):
     def __init__(self, constraints, streamName=None):
@@ -138,7 +139,7 @@ class CommandWrapper(object):
         helps.append("="*len(helps[-1]))
         helps.append("")
 
-        helps.append(self.functionToCall.__doc__ or "no description...")
+        helps.append(inspect.getdoc(self.functionToCall) or "no description...")
         helps.append("\n")
         
         helps.append("Arguments:")
@@ -210,7 +211,21 @@ class MasterCommandWrapper(object):
         return self.subCommands[subCommandName].resolve(*args, **kwords)
 
     def get_help(self):
-        return self._class.__doc__
+        helps = []
+        helps.append("%s master command:"%self.get_name())
+        helps.append("="*len(helps[-1]))
+        helps.append("")
+
+        helps.append(inspect.getdoc(self._class) or "no description...")
+        helps.append("\n")
+
+        helps.append("SubCommands:")
+        helps.append("-"*len(helps[-1]))
+        helps.append("")
+        for subcommand in self.subCommands:
+            helps.append(" - %s"%subcommand)
+
+        return "\n".join(helps)
 
     def get_name(self):
         if self.section:
