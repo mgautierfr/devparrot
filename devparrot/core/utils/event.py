@@ -21,8 +21,29 @@
 
 from variable import CbCaller
 
+
+def hook_spawn(eventName, context):
+    from devparrot.core import session
+    from devparrot.core.command.bind import BindLauncher
+    try:
+        option = session.config.get_option("hook.%s"%eventName)
+        for hookcmd in option.get(context):
+            BindLauncher(hookcmd)({})
+    except KeyError:
+        pass
+
 class Event(CbCaller):
+    def __init__(self, eventName):
+        CbCaller.__init__(self)
+        self.eventName = eventName
+
     def __call__(self, *args, **kwords):
+        if 'keys' in kwords:
+            keys = kwords['keys']
+            del kwords['keys']
+        else:
+            keys=[]
+        hook_spawn(self.eventName, keys)
         self.notify(*args, **kwords)
 
 class EventSource(object):
@@ -30,10 +51,11 @@ class EventSource(object):
         self.__events = dict()
 
     def connect(self, eventName, callback):
-        self.__events.setdefault(eventName, Event()).register(callback)
+        self.__events.setdefault(eventName, Event(eventName)).register(callback)
 
     def event(self, eventName):
-        return self.__events.get(eventName, Event())
+        return self.__events.get(eventName, Event(eventName))
+
 
 def auto_bind(obj, eventSource, name_prefix="on_", wrapper=lambda caller:caller):
     for name in dir(obj):
