@@ -25,12 +25,7 @@ from devparrot.core.constraints import Command as CommandConstraint
 class inner:
     @staticmethod
     def help(command):
-        helpText = command.get_help()
-        if helpText:
-            for line in helpText.split('\n'):
-                yield "{}\n".format(line)
-        else:
-            yield "\n"
+        return command.get_help()
 
     @staticmethod
     def help_devparrot():
@@ -45,7 +40,7 @@ class inner:
         yield "----------\n"
         yield "\n"
         for command in commands:
-            yield " - {}\n".format(command)
+            yield [(None," - "), ("autocmd.help %s"%command, command), (None, "\n")]
 
 Command(
 _section='core',

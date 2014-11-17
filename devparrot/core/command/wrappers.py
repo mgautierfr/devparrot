@@ -134,31 +134,30 @@ class CommandWrapper(object):
         return self.functionToCall(*args, **kwords)
 
     def get_help(self):
-        helps = []
-        helps.append("%s command:"%self.get_name())
-        helps.append("="*len(helps[-1]))
-        helps.append("")
+        last = "%s command:"%self.get_name()
+        yield last+"\n"
+        yield "="*len(last)+"\n"
+        yield "\n"
 
-        helps.append(inspect.getdoc(self.functionToCall) or "no description...")
-        helps.append("\n")
-        
-        helps.append("Arguments:")
-        helps.append("-"*len(helps[-1]))
-        helps.append("")
+        yield inspect.getdoc(self.functionToCall) or "no description...\n"
+        yield "\n\n"
+
+        yield "Arguments:\n"
+        yield "----------\n"
+        yield "\n"
         for constraint in self._get_all_constraints():
-            helps.append(constraint.get_help())
+            yield constraint.get_help()
 
         if self.argSpec.varargs and self.argSpec.varargs in self.constraints:
             constraint = ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
-            helps.append(constraint.get_help())
+            yield constraint.get_help()
 
-        helps.append("")
-        helps.append(" - stream : %s"%self.streamName)
+        yield "\n"
+        yield " - stream : %s\n"%self.streamName
         if self.streamName:
             constraint = self._get_constraint(self.streamName)
-            helps.append(constraint.get_help())
+            yield constraint.get_help()
 
-        return "\n".join(helps)
 
     def get_name(self):
         if self.section:
@@ -211,21 +210,19 @@ class MasterCommandWrapper(object):
         return self.subCommands[subCommandName].resolve(*args, **kwords)
 
     def get_help(self):
-        helps = []
-        helps.append("%s master command:"%self.get_name())
-        helps.append("="*len(helps[-1]))
-        helps.append("")
+        last = "%s master command:"%self.get_name()
+        yield last+"\n"
+        yield "="*len(last)+"\n"
+        yield "\n"
 
-        helps.append(inspect.getdoc(self._class) or "no description...")
-        helps.append("\n")
+        yield inspect.getdoc(self._class) or "no description...\n"
+        yield "\n\n"
 
-        helps.append("SubCommands:")
-        helps.append("-"*len(helps[-1]))
-        helps.append("")
+        yield "SubCommands:\n"
+        yield "------------\n"
+        yield "\n"
         for subcommand in self.subCommands:
-            helps.append(" - %s"%subcommand)
-
-        return "\n".join(helps)
+            yield [(None," - "), ("autocmd.help '%s%s'"%(self.get_name(),subcommand), subcommand), (None, "\n")]
 
     def get_name(self):
         if self.section:

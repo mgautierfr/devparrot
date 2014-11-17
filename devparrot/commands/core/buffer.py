@@ -47,7 +47,15 @@ A buffer is not attach to any file and can't be modified"""
         try:
             line = content.next()
             while line is not None:
-                model.insert("insert", line)
+                if isinstance(line, basestring):
+                    model.insert("insert", line)
+                else:
+                    for tag, subcontent in line:
+                        if tag:
+                            tags = [tag]
+                        else:
+                            tags = []
+                        model.insert("insert", subcontent, tags=tags)
                 line = content.next()
             model.after(100, read_line)
         except StopIteration:
