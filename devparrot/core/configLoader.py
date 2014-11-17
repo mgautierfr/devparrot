@@ -21,7 +21,7 @@
 
 
 from devparrot.core import session, modules
-from devparrot.core.utils.config import Config, ConfigParser, ReadOnlyOption
+from devparrot.core.utils.config import Config, ConfigParser, ReadOnlyOption, AutoCreateSection
 
 import os
 
@@ -58,6 +58,8 @@ def init(cmd_options):
     _config.add_option("highlight_tag_color", default="#FFFFBB")
     _config.add_option("search_tag_color", default="#FFAAAA")
     _config.add_option("currentLine_tag_color", default="#EEEEEE")
+
+    dict.__setitem__(_config.options, 'hook', AutoCreateSection(_config, _config, 'hook'))
 
     _config.add_option("menuBar", default=[("File", [ ("New", "new"),
                     ("Open", "open"),

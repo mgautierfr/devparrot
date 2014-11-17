@@ -153,7 +153,7 @@ class BaseSection(object):
             if key[0] == "_":
                 continue
             try:
-                self.options[key].update(value, in_keys)
+                self._get(key).update(value, in_keys)
             except KeyError:
                 if not skip_unknown:
                     raise
@@ -165,7 +165,7 @@ class BaseSection(object):
             print str(v)
 
     def __getattr__(self, name):        
-        return self.options[name]
+        return self._get(name)
 
     def __setattr__(self, name, value):
         if name == "options":
@@ -185,6 +185,19 @@ class Section(BaseSection):
     @property
     def full_name(self):
         return "%s%s."%(self.parent.full_name, self.name)
+
+class AutoCreateSection(Section):
+    def __init__(self, config, parent, name):
+        BaseSection.__init__(self, config)
+        self.parent = parent
+        self.name = name
+
+    def _get(self, name):
+        try:
+            return self.options[name]
+        except KeyError:
+            self.add_option(name)
+            return self.options[name]
 
 class Config(BaseSection):
     def __init__(self):

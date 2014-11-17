@@ -57,9 +57,6 @@ class Binder(object):
         """ used for later bind if ui.window is not set """
         self.tkBinds = {}
 
-        """ used for futur unbind """
-        self.binds = {}
-
     def __setitem__(self, accel, command):
         from devparrot.core import session
         if TkEventMatcher.match(accel):
@@ -70,9 +67,9 @@ class Binder(object):
             else:
                 self.tkBinds[accel] = bindLauncher
         else:
-            bindLauncher = CommandBindLauncher(command)
-            currentBinds = self.binds.setdefault(accel, set())
-            currentBinds.add(session.eventSystem.connect(accel, bindLauncher))
+            if accel not in session.config.hook:
+                session.config.hook.add_option(accel, default=[])
+            getattr(session.config.hook, accel).get().append(command)
 
     def bind(self, window=None):
         if window is None:
@@ -94,5 +91,4 @@ class Binder(object):
             except KeyError:
                 pass
         else:
-            for bind in self.binds.get(accel, []):
-                session.eventSystem.event(accel).unregister(bind)
+            getattr(session.config.bindings, accel).set([])
