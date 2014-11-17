@@ -180,6 +180,10 @@ class MasterCommandWrapper(object):
     def __init__(self):
         self._class = None
         self.subCommands = {}
+        self.section = None
+
+    def _set_section(self, section):
+        self.section = section
 
     def set_class(self, _class):
         self._class = _class
@@ -209,6 +213,8 @@ class MasterCommandWrapper(object):
         return self._class.__doc__
 
     def get_name(self):
+        if self.section:
+            return "%s.%s"%(self.section.get_name(), self._class.__name__)
         return self._class.__name__
 
     def __getitem__(self, name):
