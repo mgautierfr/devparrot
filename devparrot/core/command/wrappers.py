@@ -40,10 +40,7 @@ class CommandWrapper(object):
     def _set_function(self, function, commandName):
         from inspect import getargspec
         self.functionToCall = function
-        if self.section is not None:
-            self.commandName = "{}.{}".format(self.section.name, commandName)
-        else:
-            self.commandName = commandName
+        self.commandName = commandName
         self.argSpec = getargspec(function)
         varargConstraint = self.constraints.get(self.argSpec.varargs, None)
         if varargConstraint:
@@ -146,24 +143,22 @@ class CommandWrapper(object):
         yield "----------\n"
         yield "\n"
         for constraint in self._get_all_constraints():
-            yield constraint.get_help()
+            yield constraint.get_help()+"\n"
 
         if self.argSpec.varargs and self.argSpec.varargs in self.constraints:
             constraint = ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
-            yield constraint.get_help()
+            yield constraint.get_help()+"\n\n"
 
-        yield "\n"
         yield " - stream : %s\n"%self.streamName
         if self.streamName:
             constraint = self._get_constraint(self.streamName)
             yield constraint.get_help()
 
-
     def get_name(self):
         if self.section:
-            name =  "%s%s"%(self.section.get_name(), self.functionToCall.__name__)
+            name =  "%s%s"%(self.section.get_name(), self.commandName)
         else:
-            name =  self.functionToCall.__name__
+            name =  self.commandName
         if self.masterCommand:
             return "%s%s"%(self.masterCommand.get_name(), name)
         return name

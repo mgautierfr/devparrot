@@ -19,44 +19,26 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.core.command import Command, Alias
-from devparrot.core.constraints import Command as CommandConstraint
+from devparrot.core.command import Command, Alias, MasterCommand
+from devparrot.core.constraints import HelpEntry
 
 class inner:
     @staticmethod
-    def help(command):
-        return command.get_help()
-
-    @staticmethod
-    def help_devparrot():
-        from devparrot.core import session
-        from devparrot.core.command.section import Section
-        commands = [key for key, command in session.commands.items() if not isinstance(command, Section)]
-        yield "Devparrot help\n"
-        yield "==============\n"
-        yield "\n"
-        
-        yield "commands :\n"
-        yield "----------\n"
-        yield "\n"
-        for command in commands:
-            yield [(None," - "), ("autocmd.help %s"%command, command), (None, "\n")]
+    def help(helpEntry):
+        return helpEntry.get_help()
 
 Command(
 _section='core',
-command=CommandConstraint()
+helpEntry=HelpEntry()
 )(inner.help)
 
-Command(_section='core')(inner.help_devparrot)
-
 @Alias(
-command = CommandConstraint(default= lambda:None)
+helpEntry = HelpEntry(default= lambda:None)
 )
-def help(command):
+def help(helpEntry):
     """The help command"""
-    if command:
-        commandName = command.get_name()
-        line = "core.help {0!r} | core.buffer 'help {0}'".format(commandName)
-        return line
+    if helpEntry:
+        helpEntryName = helpEntry.get_name()
     else:
-        return "core.help_devparrot | core.buffer 'help devparrot'"
+        helpEntryName = "devparrot"
+    return "core.help {0!r} | core.buffer 'help {0}'".format(helpEntryName)

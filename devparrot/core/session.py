@@ -24,6 +24,7 @@ import commandLauncher as _commandLauncher
 import logging
 import userLogging
 import utils.event
+import help
 
 _documentManager = documentManager.DocumentManager()
 _workspace = None
@@ -35,6 +36,7 @@ modules = None
 memories = {}
 controllers = {}
 bindings = None
+help_entries = {'devparrot':help.DevparrotHelp()}
 
 eventSystem = utils.event.EventSource()
 

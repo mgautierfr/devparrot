@@ -414,3 +414,34 @@ class ConfigEntry(_Constraint):
 
         return completions
 
+
+class HelpEntry(_Constraint):
+    """Must be a command name"""
+    def __init(self, *args, **kwords):
+        _Constraint.__init__(self, *args, **kwords)
+
+    def complete(self, token):
+        from devparrot.core import session
+        from devparrot.core.help import HelpSection
+        tokenValue = None
+        if token.get_type().endswith('String'):
+            tokenValue = token.values
+        if token.get_type() == 'Identifier':
+            tokenValue = token.name
+        if token.get_type() == 'New':
+            tokenValue = ""
+        if tokenValue is None:
+            return []
+        completionClass = type_to_completion[token.get_type()]
+        return [completionClass(value=entry.get_name(), final=not isinstance(entry,HelpSection))
+                       for name, entry in session.help_entries.items()]
+
+    def check(self, token):
+        from devparrot.core import session
+        try:
+            return True, session.help_entries[token]
+        except KeyError:
+            return False, None
+
+    def check_direct(self, arg):
+        return hasattr(arg, "get_help"), arg

@@ -42,6 +42,7 @@ class Command(object):
 
     def __call__(self, function, section=None, functionName=None):
         from devparrot.core.commandLauncher import add_command, create_section
+        from devparrot.core.help import add_helpEntry
         if section is None:
             section = self._section
         if functionName is None:
@@ -52,6 +53,7 @@ class Command(object):
         self.wrapper._set_section(section)
         self.wrapper._set_function(function, functionName)
         add_command(functionName, self.wrapper, section)
+        add_helpEntry(self.wrapper.get_name(), self.wrapper, [section.get_name()])
         return function
 
 
@@ -78,7 +80,6 @@ class MasterCommandMeta(type):
         for attrName, attr in dct.items():
             if isinstance(attr, CommandWrapper):
                 wrapper.add_subCommand(attrName, attr)
-                attr._set_commandName("{} {}".format(name, attr.commandName))
                 # only keep the function in the class. wrapper is internal
                 new_dct[attrName] = staticmethod(attr.functionToCall)
             elif attrName == "_section":
