@@ -31,7 +31,7 @@ import menu
 import controlerEntry
 import statusBar
 
-from pkg_resources import Requirement, resource_stream
+from pkg_resources import resource_stream
 
 def quit():
     from devparrot.core import session

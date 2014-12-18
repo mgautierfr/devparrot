@@ -39,7 +39,6 @@ class Project(BaseModule):
 
     @staticmethod
     def update_config(config):
-        print "add option"
         config.add_option("projectdir")
 
     def on_pathAccess(self, path):

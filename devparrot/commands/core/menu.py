@@ -82,8 +82,7 @@ class menu(MasterCommand):
         session.commands.menu['enable' if paste else 'disable']('popupMenu.Paste')
         session.commands.menu['enable' if undo else 'disable']('popupMenu.Undo')
         session.commands.menu['enable' if redo else 'disable']('popupMenu.Redo')
-    
-    
+
         session.commands.menu['enable' if cut else 'disable']('menuBar.Edit.Cut')
         session.commands.menu['enable' if copy else 'disable']('menuBar.Edit.Copy')
         session.commands.menu['enable' if paste else 'disable']('menuBar.Edit.Paste')
