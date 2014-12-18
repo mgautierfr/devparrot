@@ -288,8 +288,9 @@ class TextView(object):
 
         #print "loopCounter %s | ilabel %s"%(nonlocal.loopCounter, nonlocal.ilabel)
     
-    def on_event_lineChanged(self, *args):
-        self.update_infos()
+    def on_event_lineChanged(self, model, *args):
+        if self.view == model:
+            self.update_infos()
 
 
     def set_model(self, model):
