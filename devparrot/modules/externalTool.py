@@ -25,11 +25,11 @@ from devparrot.core.constraints import Stream
 from devparrot.core import ui, session
 from devparrot.core.modules import BaseModule
 
-import re
+import re, os.path
 
 
 tagParsing = [re.compile(r"(error|erreur|note|warning|attention)")]
-fileParsing = [re.compile(r"(?P<file>[^:]+):(?P<line>[0-9]+):(?P<pos>[0-9]+)"),  # gcc output
+fileParsing = [re.compile(r"(^|(.* ))(?P<file>[^: ]+):(?P<line>[0-9]+):(?P<pos>[0-9]+)?"),  # gcc output
                re.compile(r'File (?P<file_link>"(?P<file>.*)", line (?P<line>[0-9]+))') # pythen exception
               ]
 
@@ -89,10 +89,10 @@ class CommandOutput(ttk.Frame):
         pos = 0
         try:
             pos = int(fileMatch.group('pos')) - 1
-        except IndexError:
+        except (IndexError, TypeError):
             pass
         def goto(event):
-            session.commandLauncher.run_command_nofail('open "{file}"\n goto {file}@{line}.{pos}'.format(file=fileMatch.group('file'), line=fileMatch.group('line'), pos=pos))
+            session.commandLauncher.run_command_nofail('open "{file}"\n goto {file}@{line}.{pos}'.format(file=os.path.abspath(fileMatch.group('file')), line=fileMatch.group('line'), pos=pos))
 
         tagName = "tag_{file}_{line}_{pos}".format(file=fileMatch.group('file'), line=fileMatch.group('line'), pos=pos)
         self.textView.tag_configure(tagName, foreground="blue", underline=True)
@@ -100,7 +100,7 @@ class CommandOutput(ttk.Frame):
         self.textView.tag_bind(tagName, "<Leave>", lambda e:self.set_normal_cursor())
         self.textView.tag_bind(tagName, "<1>", goto)
 
-        start = fileMatch.start()
+        start = fileMatch.start('file')
         end   = fileMatch.end()
         self.textView.tag_add(tagName, "{} linestart + {} c".format(index, start), "{} linestart + {} c".format(index, end))
 
@@ -147,6 +147,8 @@ def commandOutput(name, content):
 
 @Alias()
 def runtool():
-    return "shell %config(command)  | commandOutput %config(command)"
+    document = session.get_currentDocument()
+    command = session.config.get("command", document.get_config_keys())
+    return "shell {0!r}  | commandOutput {0!r}".format(command)
 
 
