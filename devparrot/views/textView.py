@@ -24,7 +24,7 @@ from devparrot.core.utils.posrange import Start
 from itertools import islice
 import ttk, Tkinter
 
-class TextView():
+class TextView(object):
     def __init__(self, document):
         self.uiContainer = ttk.Frame(session.get_globalContainer())
         self.hScrollbar = ttk.Scrollbar(session.get_globalContainer(),
@@ -84,6 +84,17 @@ class TextView():
         self.createdLines = 0
         self.createdLabels = 0
         self.idle_handle = None
+
+    def destroy(self):
+        if self.view:
+            self.view.destroy()
+        self.uiContainer.destroy()
+        self.hScrollbar.destroy()
+        self.vScrollbar.destroy()
+        self.lineNumbers.destroy()
+        self.sectionInfo.destroy()
+        self.uiContainer = self.hScrollbar = self.vScrollbar = None
+        self.lineNumbers = self.sectionInfo = self.view = self.document = None
 
     def focus(self):
         return self.view.focus()

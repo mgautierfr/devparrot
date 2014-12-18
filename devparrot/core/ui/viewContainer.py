@@ -25,7 +25,7 @@ from devparrot.core.errors import *
 
 from collections import OrderedDict
 
-class ContainerChild():
+class ContainerChild(object):
     def __init__(self):
         self.parentContainer = None
     
@@ -34,7 +34,7 @@ class ContainerChild():
     def set_parentContainer(self, parent):
         self.parentContainer = parent
 
-class TopContainer(ContainerChild, Tkinter.Frame):
+class TopContainer(Tkinter.Frame, ContainerChild):
     def __init__(self):
         ContainerChild.__init__(self)
         Tkinter.Frame.__init__(self, session.get_globalContainer()) 
@@ -85,7 +85,7 @@ class TopContainer(ContainerChild, Tkinter.Frame):
         self.container.set_as_current()
 
 
-class SplittedContainer(ContainerChild, Tkinter.PanedWindow):
+class SplittedContainer(Tkinter.PanedWindow,ContainerChild):
     def __init__(self, isVertical):
         ContainerChild.__init__(self)
         Tkinter.PanedWindow.__init__(self, session.get_globalContainer(),
@@ -194,21 +194,26 @@ def on_button_released(event):
     except TclError:
         pass
 
-class NotebookContainer(ContainerChild, ttk.Notebook):
+class NotebookContainer(ttk.Notebook, ContainerChild):
     notebookList = set()
     current = None
     initialized = False
+
+    @classmethod
+    def _set_bind_class(cls):
+        from devparrot.core import ui
+        if not cls.initialized:
+            ui.window.bind_class("Drag", "<Button-1><Button1-Motion>", on_drag_begin_notebook)
+            ui.window.bind_class("Drag", "<Button-1>", on_button_pressed)
+            ui.window.bind_class("Drag", "<ButtonRelease-1>", on_button_released)
+            cls.initialized = True
     
     def __init__(self):
         ContainerChild.__init__(self)
         ttk.Notebook.__init__(self, session.get_globalContainer(), padding=0)
         self._children = OrderedDict()
         self.drag_handler = None
-        if not NotebookContainer.initialized:
-            self.bind_class("Drag", "<Button-1><Button1-Motion>", on_drag_begin_notebook)
-            self.bind_class("Drag", "<Button-1>", on_button_pressed)
-            self.bind_class("Drag", "<ButtonRelease-1>", on_button_released)
-            NotebookContainer.initialized = True
+        self._set_bind_class()
         self.bindtags(" ".join(["Drag"]+[t for t in self.bindtags()]))
         self.bind("<Button-2>", self.on_middleClickButton)
         self.bind("<<NotebookTabChanged>>", self.on_tabChanged)
@@ -292,8 +297,13 @@ class NotebookContainer(ContainerChild, ttk.Notebook):
         if selected:
             currentDocument = self.nametowidget(selected)
             currentDocument.focus()
+            try:
+                oldSelected = self._oldSelected.document
+            except AttributeError:
+                oldSelected = None
+            self._oldSelected = None
             if self == NotebookContainer.current:
-                session.eventSystem.event("currentChanged")(currentDocument.document, self._oldSelected.document)
+                session.eventSystem.event("currentChanged")(currentDocument.document, oldSelected)
 
     def on_middleClickButton(self, event):
         documentViewIndex = self.index("@%d,%d" % (event.x, event.y))
@@ -366,6 +376,10 @@ def unsplit_notebook(notebook):
     
     goodChild.lift()
     leftnotebook.set_as_current()
+    #Destroy notebook AFTER* set_as_current.
+    #* Cause set as current may ask notebook what is the selected child
+    # to launch "currentChange" event.
+    notebook.destroy()
     return leftnotebook
 
 def find_top_neighbour_container(view, horizontal, first):
@@ -562,3 +576,6 @@ class DragHandler(ttk.Tkinter.Toplevel):
             splitted.after_idle(splitted.set_panedPos, 0.5)
     
             newNotebook.set_as_current()
+
+        if not notebook._children:
+            notebook.destroy()

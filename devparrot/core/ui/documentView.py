@@ -33,7 +33,7 @@ def get_valid_lexer_names():
         if mimetypes:
             yield name
 
-class DocumentView(ContainerChild, ttk.Frame):
+class DocumentView(ttk.Frame, ContainerChild):
     def __init__(self, document):
         ContainerChild.__init__(self)
         ttk.Frame.__init__(self, session.get_globalContainer(), padding=0, relief="flat", borderwidth=0)
@@ -59,7 +59,7 @@ class DocumentView(ContainerChild, ttk.Frame):
         self.mimeOption = ttk.Combobox(self.header, textvar=self.mimeVar, state="readonly")
         self.mimeOption.set(mimemapper.mimeMap.get(str(document.get_mimetype()), "Text only"))
         self.mimeOption['values'] = sorted(set(mimemapper.mimeMap.values()))
-        self.mimeVar.trace('w', self.on_mimeChange)
+        self.mimeChangeHandle = self.mimeVar.trace('w', self.on_mimeChange)
         self.mimeOption.pack(side='right', expand=False, fill="none")
         self._ownChange = False
 
@@ -67,6 +67,15 @@ class DocumentView(ContainerChild, ttk.Frame):
         document.mimetype_register(self.on_mimetype_changed)
 
         self.bind('<FocusIn>', self.on_focus)
+
+    def destroy(self):
+        self.mimeVar.trace_vdelete('w', self.mimeChangeHandle)
+        ttk.Frame.destroy(self)
+        self.header.destroy()
+        self.label.destroy()
+        self.mimeOption.destroy()
+        self.header = self.label = self.mimeOption = self.currentView = self.document = None
+        self.mimeChangeHandle = None
         
     def set_view(self, child):
         child.uiContainer.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)

@@ -77,7 +77,7 @@ class CompletionSystem(object):
             self.__class__.bindInitialized
         except AttributeError:
             self.__class__.bindInitialized = True
-            self.textWidget.bind_class(bindtagName, self.completionEvent, self.on_widget_key_completion)
+            Tkinter._default_root.bind_class(bindtagName, self.completionEvent, self.on_widget_key_completion)
 
     def _create_listboxWidget(self):
         self.toplevel = Tkinter.Toplevel()

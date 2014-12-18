@@ -33,4 +33,5 @@ def close(document):
         parentContainer.detach_child(document.documentView)
         if parentContainer.get_nbChildren() == 0:
             viewContainer.unsplit(parentContainer)
-    return session.get_documentManager().del_file(document)
+    session.get_documentManager().del_file(document)
+    document.destroy()

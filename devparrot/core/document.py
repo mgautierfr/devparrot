@@ -65,6 +65,11 @@ class Document(HasProperty):
         self.currentView = None
         self.set_view(TextView(self))
 
+    def destroy(self):
+        self.currentView.destroy()
+        self.documentView.destroy()
+        self.model = self.currentView = self.documentView = None
+
     def __eq__(self, other):
         if other == None:
             return False
