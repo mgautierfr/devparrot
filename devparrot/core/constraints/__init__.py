@@ -261,7 +261,13 @@ class Index(_Constraint):
         from index import parse_something, NoMatch
         splitted = text.split("@")
         if len(splitted) > 1:
-            document = get_documentManager().get_file_from_title(splitted[0])
+            try:
+                document = get_documentManager().get_file_from_title(splitted[0])
+            except KeyError:
+                try:
+                    document = get_documentManager().get_file(splitted[0])
+                except KeyError:
+                    return False, None
             text = '@'.join(splitted[1:])
         else:
             document = get_currentDocument()
