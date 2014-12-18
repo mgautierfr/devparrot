@@ -82,16 +82,16 @@ class ReadOnlyOption(object):
 
     def __str__(self):
         def get_str(value):
-            if isinstance(value, _Value):
-                return str(v)
-            return str({k:get_str(v) for k,v in value.items()})
+            if isinstance(value, dict):
+                return str({k:get_str(v) for k,v in value.items()})
+            return str(value)
         return get_str(self.values)
 
     def get_dict(self):
         def get_val(value):
-            if isinstance(value, _Value):
-                return v
-            return {k:get_val(v) for k,v in value.items()}
+            if isinstance(value, dict):
+                return {k:get_val(v) for k,v in value.items()}
+            return value
         return get_val(self.values)
 
 class Option(ReadOnlyOption):
