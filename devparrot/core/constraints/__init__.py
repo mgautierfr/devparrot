@@ -412,7 +412,7 @@ class HelpEntry(_Constraint):
         completionClass = type_to_completion[token.get_type()]
         create_completion = lambda v,f : completionClass(token.index, v, f, len(token.value))
         return [create_completion(v=entry.get_name(), f=not isinstance(entry,HelpSection))
-                       for name, entry in session.help_entries.items()]
+                       for name, entry in session.help_entries.items() if name.startswith(token.value)]
 
     def check(self, token):
         from devparrot.core import session
