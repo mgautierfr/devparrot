@@ -180,7 +180,10 @@ class SplittedContainer(Tkinter.PanedWindow,ContainerChild):
 def on_drag_begin_notebook(event):
     event.num = 1
     notebook = event.widget
-    documentViewIndex = notebook.index("@%d,%d" % (event.x, event.y))
+    try:
+        documentViewIndex = notebook.index("@%d,%d" % (event.x, event.y))
+    except TclError:
+        return
     if documentViewIndex != "":
         documentView = notebook._children.keys()[documentViewIndex]
         Tkdnd.dnd_start(documentView, event)
