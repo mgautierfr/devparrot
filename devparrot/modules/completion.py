@@ -25,15 +25,20 @@ from devparrot.core.command import MasterCommand, SubCommand
 from devparrot.core.session import bindings
 from devparrot.core import session
 import itertools
+import jedi
 
 import Tkinter
 import re
+
+completionMap = {}
 
 class TextCompletion(BaseModule):
     words = []
     @staticmethod
     def update_config(config):
-        config.add_option("completion_functions", default=infile_completions)
+        config.add_option("completion_functions", default="infile_completions")
+        config.add_option("completionName", default="BasicCompletor")
+        config._get("completionName").set("JediCompletor", keys=['Python'])
 
     def activate(self):
         with open("/usr/share/dict/words", "r") as f:
@@ -91,10 +96,22 @@ def uniqueFilter():
         return True
     return filter
 
-class BasicCompletionSystem(completion_.CompletionSystem):
-    def __init__(self, textWidget, sourcefunction):
-        completion_.CompletionSystem.__init__(self, textWidget, None)
-        self.sourcefunction = sourcefunction
+class BaseCompletionSystemMeta(type):
+    def __new__(cls, name, bases, dct):
+        if name == "BaseCompletionSystem":
+            return type.__new__(cls, name, bases, dct)
+        else:
+            _class = type.__new__(cls, name, bases, dct)
+            completionMap[name] = _class
+            return _class
+
+class BaseCompletionSystem(completion_.CompletionSystem):
+    __metaclass__ = BaseCompletionSystemMeta
+
+class BasicCompletor(BaseCompletionSystem):
+    def __init__(self, document):
+        BaseCompletionSystem.__init__(self, document.model, None)
+        self.sourcefunction = globals().get(document.get_config('completion_functions'))
 
     def get_completions(self):
         separators = session.config.get('spacechars')+session.config.get('puncchars')+"\n"
@@ -118,3 +135,58 @@ class BasicCompletionSystem(completion_.CompletionSystem):
         start = completion.start()
         self.textWidget.replace(start, 'insert', completion.name())
 
+class JediCompletion(completion_.BaseCompletion):
+    def __init__(self, jediCompletion, helpText, line, column):
+        self.jediCompletion = jediCompletion
+        self.helpText = helpText
+        self.line = line
+        self.col = column - (len(jediCompletion.name) - len(jediCompletion.complete))
+
+    def start(self):
+        return "%s.%s"%(self.line, self.col)
+
+    def name(self):
+        return self.jediCompletion.name
+
+    def description(self):
+        return "%s [%s] (%s)"%(self.jediCompletion.name, self.jediCompletion.description, self.helpText)
+
+    def complete(self):
+        return self.jediCompletion.complete
+
+    def final(self):
+        return False
+
+    def __repr__(self):
+        return "<JediCompletion %s %s %s>"%(self.start(), self.name(), self.complete())
+
+
+def comparator_key(comp):
+    return (comp.in_builtin_module(), comp.name)
+
+class JediCompletor(BaseCompletionSystem):
+    def __init__(self, document):
+        BaseCompletionSystem.__init__(self, document.model, None)
+        self.document = document
+
+    def get_completions(self):
+        index = self.document.model.index("insert")
+
+        script = jedi.api.Script(self.document.model.get_text(), line=index.line, column=index.col, path=self.document.get_path())
+        create_completion = lambda j, t="": JediCompletion(j,t, line=index.line, column=index.col)
+        call_signatures = script.call_signatures()
+        if not call_signatures:
+            char  = self.document.model.get("insert - 1c")
+            if not char or not char in set(session.config.get('wchars')+"."):
+                return []
+
+            completions = sorted(script.completions(), key=comparator_key)
+            return (create_completion(completion) for completion in completions)
+        else:
+            param_def = call_signatures[0].params[call_signatures[0].index]
+            completions = sorted(script.completions(), key=comparator_key)
+            return (create_completion(completion, "for arg %s"%param_def.description) for completion in completions)
+
+    def complete(self, completion):
+        start = completion.start()
+        self.textWidget.replace(start, 'insert', completion.name())
