@@ -51,13 +51,27 @@ class completion(MasterCommand):
         completionSystem = BasicCompletionSystem(currentDocument.model, currentDocument.get_config('completion_functions'))
         completionSystem.start_completion()
 
-class Completion(object):
-    def __init__(self, value):
-        self.value = value
-        self.final = True
+        try:
+            currentDocument = session.get_currentDocument()
+            completionSystem = currentDocument.model.document.__completionSystem
+            completionSystem.start_completion()
+        except AttributeError:
+            pass
 
-    def __str__(self):
+class Completion(completion_.BaseCompletion):
+    def __init__(self, startIndex, value, already):
+        completion_.BaseCompletion.__init__(self, startIndex=startIndex)
+        self.value = value
+        self.already = already
+
+    def name(self):
         return self.value
+
+    def complete(self):
+        return self.value[self.already:]
+
+    def final(self):
+        return True
 
 def infile_completions(currentWord, textWidget):
     all_text = textWidget.get("1.0", "end")
@@ -75,6 +89,7 @@ def uniqueFilter():
             return False
         mySet.add(value)
         return True
+    return filter
 
 class BasicCompletionSystem(completion_.CompletionSystem):
     def __init__(self, textWidget, sourcefunction):
@@ -87,17 +102,19 @@ class BasicCompletionSystem(completion_.CompletionSystem):
         separators = separators.replace("]", "\\]")
         regex =  r"[%s]"%separators
         start_sep = Tkinter.Text.search(self.textWidget, regex, "insert", stopindex="1.0", regexp=True, backwards=True)
-        if not start_sep:
-            start_sep = "1.0"
-        start_index = self.textWidget.index("%s +1c"%start_sep)
+        if start_sep:
+            start_index = self.textWidget.index("%s +1c"%start_sep)
+        else:
+            start_index = "1.0"
+
         currentWord = self.textWidget.get(str(start_index), "insert")
         if not currentWord:
-            return None, []
+            return []
         words = self.sourcefunction(currentWord, self.textWidget)
-        unique = (Completion(w) for w in itertools.ifilter(uniqueFilter(), words))
-        return str(start_index), [Completion(currentWord)]+list(itertools.islice(unique,10))
+        unique = (Completion(start_index, w, len(currentWord)) for w in itertools.ifilter(uniqueFilter(), words))
+        return unique
 
-    def complete(self, startIndex, text):
-        oldInsert = self.textWidget.index("insert")
-        self.textWidget.tk.call((self.textWidget._w, 'replace', startIndex, 'insert', text))
+    def complete(self, completion):
+        start = completion.start()
+        self.textWidget.replace(start, 'insert', completion.name())
 

@@ -21,6 +21,7 @@
 
 import Tkinter
 from devparrot.core.errors import *
+import itertools
 
 def escape_token(value):
     if set("'\"\\ ") | set(value):
@@ -28,14 +29,28 @@ def escape_token(value):
             value = value.replace(specialChar, '\\'+specialChar)
     return value
 
-class Completion(object):
-    def __init__(self, value, final):
-        self.value = value
-        self.final = final
+class BaseCompletion(object):
+    def __init__(self, startIndex):
+        self.startIndex = startIndex
 
-    def __str__(self):
-        template = "%s " if self.final else "%s"
-        return template % escape_token(self.value.encode("utf8"))
+    def name(self):
+        """return the full name of the completion"""
+        raise NotImplemented
+
+    def description(self):
+        return self.name()
+
+    def complete(self):
+        """return the text to add to finish the completion"""
+        raise NotImplemented
+
+    def final(self):
+        """return True if the completion must stop"""
+        raise NotImplemented
+
+    def start(self):
+        """return the start index of the completion"""
+        return self.startIndex
 
 def getcommonstart(seq):
     if not seq:
@@ -63,12 +78,12 @@ class CompletionSystem(object):
         self._create_listboxWidget()
         self.completionEvent = completionEvent
         self._install_binding()
-        self._update_completion("1.0", [])
+        self._update_completion([])
 
     def _install_binding(self):
         if self.completionEvent is None:
             return
-        bindtagName = "Completion_%s"%self.__class__.__name__
+        bindtagName = "Completion_%s_%d"%(self.__class__.__name__, id(self))
         bindtags = list(self.textWidget.bindtags())
         bindtags.insert(0, bindtagName)
         bindtags = " ".join(bindtags)
@@ -91,7 +106,7 @@ class CompletionSystem(object):
         self.listbox.bind('<Key>', self._on_event)
 
     def _set_position(self):
-        x, y, width, height = self.textWidget.bbox(self.startIndex)
+        x, y, width, height = self.textWidget.bbox('insert')
         xpos = self.textWidget.winfo_rootx() + x
         ypos = self.textWidget.winfo_rooty() + y + height
         self.toplevel.wm_geometry("+%d+%d"% (xpos, ypos))
@@ -110,13 +125,13 @@ class CompletionSystem(object):
         self._hide()
 
     def start_completion(self):
-        self._update_completion(*self.get_completions())
-        if len(self.completions) > 1:
-            self._show()
-            self.listbox.focus()
-            self.listbox.select_set(0)
-        else:
+        self._update_completion(self.get_completions())
+        if not self.completions or (len(self.completions)==1 and not self.completions[0].complete()):
             self._hide()
+            return
+        self._show()
+        self.listbox.focus()
+        self.listbox.select_set(0)
 
     def stop_completion(self):
         self._hide()
@@ -128,32 +143,27 @@ class CompletionSystem(object):
         except IndexError:
             return Completion("",False)
 
-    def get_common(self):
-        return self.commonString
-
     def on_widget_key_completion(self, event):
         self.start_completion()
-        if(self.commonString):
-            self.complete(self.startIndex, self.commonString)
         self.update_completion()
         return "break"
 
     def _on_event(self, event):
         from devparrot.core import session
-        validChars = set(session.config.get('wchars')+" ")
+        validChars = set(session.config.get('wchars')+session.config.get('puncchars')+session.config.get('spacechars'))
         if event.keysym == 'Escape':
             self.stop_completion()
             return
         if event.keysym == 'Return' or (event.keysym == 'Tab' and len(self.completions) == 1):
             selected = self.get_selected()
-            self.complete(self.startIndex, str(selected))
-            if selected.final:
+            self.complete(selected)
+            if selected.final():
                 self.stop_completion()
             else:
                 self.update_completion()
             return
         if event.keysym == 'Tab':
-            self.complete(self.startIndex, self.get_common() or str(self.get_selected()))
+            self.complete(self.get_selected())
             self.update_completion()
             return
         if event.keysym == 'BackSpace':
@@ -163,55 +173,47 @@ class CompletionSystem(object):
         if char in validChars:
             self.perform_insert_char(char)
 
-    def update_completion(self, autoCommon=None):
+    def update_completion(self):
         if not self.displayed:
             return
 
         text = self.textWidget.get('1.0', 'insert')
-        startIndex, completions = self.get_completions()
-        self._update_completion(startIndex, completions)
-        if autoCommon and not text.endswith(self.commonString):
-            self.complete(self.startIndex, self.commonString)
+        self._update_completion(self.get_completions())
 
-    def _update_completion(self, startIndex, completions):
-        self.startIndex = startIndex
-        self.completions = completions
-        self.commonString = getcommonstart([str(c) for c in completions])
+    def _update_completion(self, completions):
+        self.completions = completions = list(itertools.islice(completions, 10))
         self.listbox.delete('0', 'end')
-        if len(completions)<=1:
+        if not completions or (len(completions)==1 and not completions[0].complete()):
+            print "quit"
             self.stop_completion()
             return
         size = 0
         for v in self.completions:
-            size = max(size, len(v.value))
-            self.listbox.insert('end', v.value)
+            size = max(size, len(v.description()))
+            self.listbox.insert('end', v.description())
         self._set_position()
         self.listbox.configure(width=size, height=len(self.completions))
         self.listbox.select_set(0)
 
     def get_completions(self):
         """
-        analyse the text and return a tuple (startIndex, completions)
-        startIndex in a valid tk index corresponding from where the completions start
-        completions is a list of of possible completions.
+        analyse the text and return a tuple completion list
 
         This function has to be redefine in sub class
         """
         raise NotImplemented
 
-    def complete(self, startIndex, text):
+    def complete(self, completion):
         """
         effectively complete a text widget (text replace)
-        @param startIndex a valid tk index from where insert the text
-        @param the text to insert
+        @param completion the completion choosen
         This function has to be redefine in sub class
-        Most implementation will replace text from startIndex to 'insert' by the given text.
         """
         raise NotImplemented
 
     def perform_insert_char(self, char):
         self.textWidget.insert('insert', char)
-        self.update_completion(True)
+        self.update_completion()
 
     def perform_backspace(self):
         try:

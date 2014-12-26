@@ -19,39 +19,38 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.core.completion import Completion, CompletionSystem
+from devparrot.core.completion import BaseCompletion, CompletionSystem
 from devparrot.core.errors import InvalidSyntax
 
-class CommandCompletion(Completion):
-    def __init__(self, *args, **kwords):
-        Completion.__init__(self,*args, **kwords)
+class CommandCompletion(BaseCompletion):
+    def __init__(self, startIndex, name, already):
+        BaseCompletion.__init__(self, startIndex=startIndex)
+        self._name = name
+        self.already = already
 
-    def __str__(self):
-        return "%s "%self.value
+    def name(self):
+        return self._name + " "
 
-class MacroCompletion(Completion):
-    def __init__(self, *args, **kwords):
-        Completion.__init__(self, *args, **kwords)
+    def complete(self):
+        return self._name[self.already:] + " "
 
-    def __str__(self):
-        return "%%%s("%self.value
+    def final(self):
+        return True
 
-class DoubleStringCompletion(Completion):
-    def __init__(self, *args, **kwords):
-        Completion.__init__(self,*args, **kwords)
+class MacroCompletion(BaseCompletion):
+    def __init__(self, startIndex, name, already):
+        BaseCompletion.__init__(self, startIndex=startIndex)
+        self.n_ame = name
+        self.already = already
 
-    def __str__(self):
-        template = '"%s"' if self.final else '"%s'
-        return template % self.value.encode("utf8")
+    def name(self):
+        return "%%%s("%self._name
 
+    def complete(self):
+        return self._name[self.already:] + "("
 
-class SimpleStringCompletion(Completion):
-    def __init__(self, *args, **kwords):
-        Completion.__init__(self,*args, **kwords)
-
-    def __str__(self):
-        template = "'%s'" if self.final else "'%s"
-        return template % self.value.encode("utf8")
+    def final(self):
+        return True
 
 def get_command(commandName):
     from devparrot.core import session
@@ -65,24 +64,24 @@ def get_macro(macroName):
         return None
     return session.macros.get(macroName, None)
 
-def _get_callCompletions(list_,  name, CompletionType):
+def _get_callCompletions(list_, startIndex, name, CompletionType):
     ret = []
     for command in list_:
         if command.startswith(name):
-            ret.append(CompletionType(value=command, final=True))
+            ret.append(CompletionType(startIndex, name=command, already=len(name)))
     return ret
 
-def get_commandCompletions(tokenName):
+def get_commandCompletions(startIndex, token):
     from devparrot.core import session
-    return _get_callCompletions(session.commands, tokenName, CommandCompletion)
+    return _get_callCompletions(session.commands, startIndex, token, CommandCompletion)
 
-def get_macroCompletions(tokenName):
+def get_macroCompletions(startIndex, tokenName):
     from devparrot.core import session
-    return _get_callCompletions(session.macros, tokenName, MacroCompletion)
+    return _get_callCompletions(session.macros, startIndex, tokenName, MacroCompletion)
 
 def get_argumentCompletions(callObject, argumentContainer):
     if callObject is None:
-        return (0, [])
+        return []
 
     for i, value in enumerate(argumentContainer.values[:-1]):
         callObject.provide_value(i, value)
@@ -90,7 +89,7 @@ def get_argumentCompletions(callObject, argumentContainer):
     try:
         constraint = callObject.get_constraint(len(argumentContainer.values)-1)
     except IndexError:
-        return (0, [])
+        return []
     return constraint.complete_context(argumentContainer.values[-1])
 
 
@@ -100,14 +99,14 @@ def get_completions(text):
     try:
         pipe = parse_input_text(text)
     except InvalidSyntax:
-        return (None, [])
+        return []
 
     last = pipe.values[-1]
     if last.get_type() == "Identifier":
-        return (last.index, get_commandCompletions(last.name))
+        return get_commandCompletions(last.index, last.name)
 
     if last.get_type() == "New":
-        return (last.index, get_commandCompletions(""))
+        return get_commandCompletions(last.index, "")
     
     if last.get_type() == 'CommandCall':
         try:
@@ -122,14 +121,14 @@ def get_completions(text):
                 pass
             if lastArg.get_type() == 'MacroCall':
                 if not lastArg.opened:
-                    return (lastArg.index, get_macroCompletions(lastArg.name))
+                    return get_macroCompletions(lastArg.index, lastArg.name)
                 else:
                     return get_argumentCompletions(get_macro(str(lastArg.name)), lastArg)
         except IndexError:
             pass
 
         return get_argumentCompletions(get_command(str(last.name)), last)
-    return (None, [])
+    return []
 
 class ControlerEntryCompletion(CompletionSystem):
     def __init__(self, textWidget):
@@ -137,16 +136,12 @@ class ControlerEntryCompletion(CompletionSystem):
 
     def get_completions(self):
         text = self.textWidget.get('1.0', 'insert')
-        startIndex, completions = get_completions(text)
-        if startIndex is None:
-            startIndex = len(text)
-        return "1.%d"%startIndex, completions
+        return get_completions(text)
 
-    def complete(self, startIndex, text):
+    def complete(self, completion):
         oldInsert = self.textWidget.index("insert")
-        self.textWidget.tk.call((self.textWidget._w, 'replace', startIndex, 'insert', text))
-        self.textWidget.tag_remove( 'sel', '1.0', 'end' )
+        self.textWidget.tk.call(self.textWidget._w, 'insert', "insert", completion.complete())
         self.textWidget.mark_set( 'sel.first', oldInsert)
-        self.textWidget.mark_set( 'sel.last', startIndex +"+%dc"%len(text))
-        self.textWidget.tag_add( 'sel', oldInsert, startIndex +"+%dc"%len(text))
+        self.textWidget.mark_set( 'sel.last', "insert")
+        self.textWidget.tag_add( 'sel', oldInsert, "insert")
         

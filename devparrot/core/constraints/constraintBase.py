@@ -1,8 +1,61 @@
 
-from devparrot.core.completion import Completion
-from devparrot.core.command.commandCompleter import DoubleStringCompletion, SimpleStringCompletion
+from devparrot.core.completion import BaseCompletion
 from devparrot.core.errors import UserCancel, NoDefault
 from devparrot.core.command.tokens import New
+
+class DoubleStringCompletion(BaseCompletion):
+    def __init__(self, startIndex, value, final, already):
+        BaseCompletion.__init__(self, startIndex=startIndex)
+        self.value = value
+        self._final = final
+        self.already = already
+
+    def name(self):
+        template = '"%s"' if self._final else '"%s'
+        return template % self.value
+
+    def complete(self):
+        template = '"%s"' if self._final else '"%s'
+        return template % self.value[self.already:]
+
+    def final(self):
+        return self._final
+
+
+class SimpleStringCompletion(BaseCompletion):
+    def __init__(self, startIndex, value, final, already):
+        BaseCompletion.__init__(self,startIndex=startIndex)
+        self.value = value
+        self._final = final
+        self.already = already
+
+    def name(self):
+        template = "'%s'" if self._final else "'%s"
+        return template % self.value
+
+    def complete(self):
+        template = "'%s'" if self._final else "'%s"
+        return template % self.value[self.already:]
+
+    def final(self):
+        return self._final
+
+
+class Completion(BaseCompletion):
+    def __init__(self, startIndex, value, final, already):
+        BaseCompletion.__init__(self,startIndex=startIndex)
+        self.value = value
+        self._final = final
+        self.already = already
+
+    def name(self):
+        return self.value + (" " if self.final else "")
+
+    def complete(self):
+        return self.value[self.already:] + (" " if self.final else "")
+
+    def final(self):
+        return self._final
 
 type_to_completion = {
     'DoubleString'   : DoubleStringCompletion,
@@ -51,14 +104,14 @@ class _Constraint(object):
 
     def complete_context(self, context):
         if not self.multiple and context.get_type() == "List":
-            return (None, [])
+            return []
 
         if self.multiple and context.get_type() == 'New':
-            return (None, [Completion("[", False)])
+            return (None, [Completion(context.index, "[", False, 0)])
 
         if self.multiple:
             if context.get_type() != "List":
-                return (None, [])
+                return []
             if context.values:
                 context = context.values[-1]
             else:
@@ -66,9 +119,9 @@ class _Constraint(object):
 
         if context.get_type() == "List":
             # more than one open context. can't handle it (for now?)
-            return (None, [])
+            return []
 
-        return (context.index, self.complete(context))
+        return self.complete(context)
 
     def check(self, token):
         return True, token
@@ -80,9 +133,9 @@ class _Constraint(object):
 
     def complete(self, token):
         if token.get_type().endswith('String'):
-            return [type_to_completion[token.get_type()](token.values, token.closed)]
+            return [type_to_completion[token.get_type()](token.index, token.values, token.closed, len(token.values))]
         if token.get_type() == 'Identifier':
-            return [Completion(token.name, False)]
+            return [Completion(token.index, token.name, False, len(token.name))]
         return []
 
     def get_help(self):

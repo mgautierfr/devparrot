@@ -26,7 +26,6 @@ from constraintInstance import ConstraintInstance
 
 
 from constraintBase import _Constraint, type_to_completion
-from devparrot.core.completion import Completion
 from devparrot.core.errors import UserCancel
 
 class Stream(object):
@@ -56,7 +55,10 @@ class Keyword(_Constraint):
     def complete(self, token):
         if token.value is None:
             return []
-        return [Completion(k, True) for k in self.keywords if k.startswith(token.value)]
+
+        completionClass = type_to_completion[token.get_type()]
+        create_completion = lambda v: completionClass(token.index, v, True, len(token.value))
+        return [create_completion(k) for k in self.keywords if k.startswith(token.value)]
 
 class Command(_Constraint):
     """Must be a command name"""
@@ -84,10 +86,11 @@ class Command(_Constraint):
                 currentSection = currentSection[section]
         except KeyError:
             return []
+        create_completion = lambda v, f: completionClass(token.index, v, f, len(token.value))
         if subCommand is None:
             # Complete normal or master command
-            return [completionClass(value="%s%s"%(currentSection.get_name(), "%s."%k if isinstance(i,Section) else k),
-                                    final=(not isinstance(i,Section) and not isinstance(i, MasterCommandWrapper)))
+            return [create_completion(v="%s%s"%(currentSection.get_name(), "%s."%k if isinstance(i,Section) else k),
+                                      f=(not isinstance(i,Section) and not isinstance(i, MasterCommandWrapper)))
                        for k,i in currentSection.items() if k.startswith(name)]
         else:
             try:
@@ -96,8 +99,8 @@ class Command(_Constraint):
                 return []
             if not isinstance(command, MasterCommandWrapper):
                 return []
-            return [completionClass(value="%s%s"%(command.get_name(), k),
-                                    final=True)
+            return [create_completion(v="%s%s"%(command.get_name(), k),
+                                      f=True)
                        for k in command.subCommands if k.startswith(subCommand)]
 
     def check(self, token):
@@ -213,12 +216,13 @@ class File(_Constraint):
         value = token.value or ''
 
         completionClass = type_to_completion[token.get_type()]
+        create_completion = lambda v,f : completionClass(token.index, v, f, len(value))
 
         currentFile = os.path.abspath(os.path.expanduser(value))
 
         if value:
             if os.path.isdir(currentFile):
-                completions.extend(self._complete(currentFile, "", value, completionClass))
+                completions.extend(self._complete(currentFile, "", value, create_completion))
 
             directory, file_ = os.path.split(currentFile)
             prefix, tail = os.path.split(value)
@@ -230,7 +234,7 @@ class File(_Constraint):
             file_ = ""
             prefix = ""
 
-        completions.extend(self._complete(directory, file_, prefix, completionClass))
+        completions.extend(self._complete(directory, file_, prefix, create_completion))
         return completions
 
 class Index(_Constraint):
@@ -357,7 +361,9 @@ class OpenDocument(_Constraint):
         documentManager = session.get_documentManager()
         if token.value is None:
             return []
-        return [Completion(d.get_title(), True) for d in documentManager.documents if d.get_title().startswith(token.value)]
+        completionClass = type_to_completion[token.get_type()]
+        create_completion = lambda v : completionClass(token.index, v, True, len(token.value))
+        return [create_completion(d.get_title()) for d in documentManager.documents if d.get_title().startswith(token.value)]
 
 class ConfigEntry(_Constraint):
     """Must be a config entry"""
@@ -377,7 +383,6 @@ class ConfigEntry(_Constraint):
 
     def complete(self, token):
         from devparrot.core import session
-        
 
         value = token.value or ''
 
@@ -387,7 +392,9 @@ class ConfigEntry(_Constraint):
         for sectionName in sections:
             section = section._get(sectionName)
 
-        completions = [Completion(sectionName, True) for sectionName in section.options.keys() if sectionName.startswith(value)]
+        completionClass = type_to_completion[token.get_type()]
+        create_completion = lambda v : completionClass(token.index, v, True, len(value))
+        completions = [create_completion(sectionName) for sectionName in section.options.keys() if sectionName.startswith(value)]
 
         return completions
 
@@ -403,7 +410,8 @@ class HelpEntry(_Constraint):
         if token.value is None:
             return []
         completionClass = type_to_completion[token.get_type()]
-        return [completionClass(value=entry.get_name(), final=not isinstance(entry,HelpSection))
+        create_completion = lambda v,f : completionClass(token.index, v, f, len(token.value))
+        return [create_completion(v=entry.get_name(), f=not isinstance(entry,HelpSection))
                        for name, entry in session.help_entries.items()]
 
     def check(self, token):

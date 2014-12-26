@@ -99,7 +99,7 @@ class ControlerEntry(Tkinter.Text):
             self.tag_remove( 'sel', '1.0', 'end' )
             self.mark_unset( 'sel.first', 'sel.last' )
             self.insert( 'insert', char)
-            self.completionSystem.update_completion(True)
+            self.completionSystem.update_completion()
             return "break"
         
     def on_get_focus(self, event):
