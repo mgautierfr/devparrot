@@ -99,14 +99,14 @@ def get_completions(text):
     try:
         pipe = parse_input_text(text)
     except InvalidSyntax:
-        return []
+        return ("", [])
 
     last = pipe.values[-1]
     if last.get_type() == "Identifier":
-        return get_commandCompletions(last.index, last.name)
+        return ("", get_commandCompletions(last.index, last.name))
 
     if last.get_type() == "New":
-        return get_commandCompletions(last.index, "")
+        return ("", get_commandCompletions(last.index, ""))
     
     if last.get_type() == 'CommandCall':
         try:
@@ -121,14 +121,14 @@ def get_completions(text):
                 pass
             if lastArg.get_type() == 'MacroCall':
                 if not lastArg.opened:
-                    return get_macroCompletions(lastArg.index, lastArg.name)
+                    return ("", get_macroCompletions(lastArg.index, lastArg.name))
                 else:
-                    return get_argumentCompletions(get_macro(str(lastArg.name)), lastArg)
+                    return ("", get_argumentCompletions(get_macro(str(lastArg.name)), lastArg))
         except IndexError:
             pass
 
-        return get_argumentCompletions(get_command(str(last.name)), last)
-    return []
+        return ("", get_argumentCompletions(get_command(str(last.name)), last))
+    return ("", [])
 
 class ControlerEntryCompletion(CompletionSystem):
     def __init__(self, textWidget):

@@ -136,10 +136,10 @@ class BasicCompletor(BaseCompletionSystem):
 
         currentWord = self.textWidget.get(str(start_index), "insert")
         if not currentWord:
-            return []
+            return ("", [])
         words = self.sourcefunction(currentWord, self.textWidget)
         unique = (Completion(start_index, w, len(currentWord)) for w in itertools.ifilter(uniqueFilter(), words))
-        return unique
+        return ("", unique)
 
     def complete(self, completion):
         start = completion.start()
@@ -159,7 +159,7 @@ class JediCompletion(completion_.BaseCompletion):
         return self.jediCompletion.name
 
     def description(self):
-        return "%s [%s] (%s)"%(self.jediCompletion.name, self.jediCompletion.description, self.helpText)
+        return "%s [%s] %s"%(self.jediCompletion.name, self.jediCompletion.description, "(%s)"%self.helpText if self.helpText else "")
 
     def complete(self):
         return self.jediCompletion.complete
@@ -188,14 +188,21 @@ class JediCompletor(BaseCompletionSystem):
         if not call_signatures:
             char  = self.document.model.get("insert - 1c")
             if not char or not char in set(session.config.get('wchars')+"."):
-                return []
+                return ("", [])
 
             completions = sorted(script.completions(), key=comparator_key)
-            return (create_completion(completion) for completion in completions)
+            return ("", (create_completion(completion) for completion in completions))
         else:
+            call_signature = "%(name)s(%(args)s)"% {
+               'name' : call_signatures[0].name,
+               'args' : ",".join(p.name for p in call_signatures[0].params)
+            }
+            if call_signatures[0].index is None:
+                return (call_signature, [])
+
             param_def = call_signatures[0].params[call_signatures[0].index]
             completions = sorted(script.completions(), key=comparator_key)
-            return (create_completion(completion, "for arg %s"%param_def.description) for completion in completions)
+            return (call_signature, (create_completion(completion) for completion in completions))
 
     def complete(self, completion):
         start = completion.start()

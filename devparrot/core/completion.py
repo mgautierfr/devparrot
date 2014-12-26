@@ -20,6 +20,7 @@
 
 
 import Tkinter
+import ttk
 from devparrot.core.errors import *
 import itertools
 
@@ -78,7 +79,7 @@ class CompletionSystem(object):
         self._create_listboxWidget()
         self.completionEvent = completionEvent
         self._install_binding()
-        self._update_completion([])
+        self._update_completion("", [])
 
     def _install_binding(self):
         if self.completionEvent is None:
@@ -101,9 +102,11 @@ class CompletionSystem(object):
         self.toplevel.bind('<FocusOut>', self.on_lost_focus)
 
         self.listbox = Tkinter.Listbox(self.toplevel)
-        self.listbox.pack(expand=True, fill=Tkinter.BOTH)
+        self.listbox.pack(expand=True, fill=Tkinter.BOTH, side=Tkinter.BOTTOM)
         self.toplevel.pack_propagate(True)
         self.listbox.bind('<Key>', self._on_event)
+
+        self.label = ttk.Label(self.toplevel)
 
     def _set_position(self):
         x, y, width, height = self.textWidget.bbox('insert')
@@ -125,7 +128,7 @@ class CompletionSystem(object):
         self._hide()
 
     def start_completion(self):
-        self._update_completion(self.get_completions())
+        self._update_completion(*self.get_completions())
         if not self.completions or (len(self.completions)==1 and not self.completions[0].complete()):
             self._hide()
             return
@@ -178,16 +181,21 @@ class CompletionSystem(object):
             return
 
         text = self.textWidget.get('1.0', 'insert')
-        self._update_completion(self.get_completions())
+        self._update_completion(*self.get_completions())
 
-    def _update_completion(self, completions):
+    def _update_completion(self, labelText, completions):
         self.completions = completions = list(itertools.islice(completions, 10))
         self.listbox.delete('0', 'end')
         if not completions or (len(completions)==1 and not completions[0].complete()):
-            print "quit"
             self.stop_completion()
             return
         size = 0
+        self.label['text'] = labelText
+        if not labelText:
+            self.label.pack_forget()
+        else:
+            self.label.pack(expand=True, fill=Tkinter.X, anchor="w")
+
         for v in self.completions:
             size = max(size, len(v.description()))
             self.listbox.insert('end', v.description())
