@@ -54,16 +54,9 @@ class Keyword(_Constraint):
     check_direct = check
 
     def complete(self, token):
-        tokenValue = None
-        if token.get_type().endswith('String'):
-            tokenValue = token.values
-        if token.get_type() == 'Identifier':
-            tokenValue = token.name
-        if token.get_type() == 'New':
-            tokenValue = ""
-        if tokenValue is None:
+        if token.value is None:
             return []
-        return [Completion(k, True) for k in self.keywords if k.startswith(tokenValue)]
+        return [Completion(k, True) for k in self.keywords if k.startswith(token.value)]
 
 class Command(_Constraint):
     """Must be a command name"""
@@ -74,20 +67,14 @@ class Command(_Constraint):
         import devparrot.core.session as session
         from devparrot.core.command.section import Section
         from devparrot.core.command.wrappers import MasterCommandWrapper
-        tokenValue = None
-        if token.get_type().endswith('String'):
-            tokenValue = token.values
-        if token.get_type() == 'Identifier':
-            tokenValue = token.name
-        if token.get_type() == 'New':
-            tokenValue = ""
-        if tokenValue is None:
+
+        if token.value is None:
             return []
         completionClass = type_to_completion[token.get_type()]
         try:
-            masterCommand, subCommand = tokenValue.split(" ")
+            masterCommand, subCommand = token.value.split(" ")
         except ValueError:
-            masterCommand, subCommand  = tokenValue, None
+            masterCommand, subCommand  = token.value, None
         l = masterCommand.split('.')
         sections = l[:-1]
         name = l[-1]
@@ -223,12 +210,7 @@ class File(_Constraint):
 
     def complete(self, token):
         completions = []
-        value = ""
-        if token.get_type() == 'Identifier':
-            value = token.name
-
-        if token.get_type().endswith('String'):
-            value = token.values
+        value = token.value or ''
 
         completionClass = type_to_completion[token.get_type()]
 
@@ -373,16 +355,9 @@ class OpenDocument(_Constraint):
     def complete(self, token):
         from devparrot.core import session
         documentManager = session.get_documentManager()
-        tokenValue = None
-        if token.get_type().endswith('String'):
-            tokenValue = token.values
-        if token.get_type() == 'Identifier':
-            tokenValue = token.name
-        if token.get_type() == 'New':
-            tokenValue = ""
-        if tokenValue is None:
+        if token.value is None:
             return []
-        return [Completion(d.get_title(), True) for d in documentManager.documents if d.get_title().startswith(tokenValue)]
+        return [Completion(d.get_title(), True) for d in documentManager.documents if d.get_title().startswith(token.value)]
 
 class ConfigEntry(_Constraint):
     """Must be a config entry"""
@@ -403,12 +378,8 @@ class ConfigEntry(_Constraint):
     def complete(self, token):
         from devparrot.core import session
         
-        if token.get_type().endswith('String'):
-            token = token.values
-        elif token.get_type() == 'Identifier':
-            token = token.name
-        else:
-            token = ''
+
+        value = token.value or ''
 
         names = name.split('.')
         sections, name = names[:-1], names[-1]
@@ -416,7 +387,7 @@ class ConfigEntry(_Constraint):
         for sectionName in sections:
             section = section._get(sectionName)
 
-        completions = [Completion(sectionName, True) for sectionName in section.options.keys() if sectionName.startswith(token)]
+        completions = [Completion(sectionName, True) for sectionName in section.options.keys() if sectionName.startswith(value)]
 
         return completions
 
@@ -429,14 +400,7 @@ class HelpEntry(_Constraint):
     def complete(self, token):
         from devparrot.core import session
         from devparrot.core.help import HelpSection
-        tokenValue = None
-        if token.get_type().endswith('String'):
-            tokenValue = token.values
-        if token.get_type() == 'Identifier':
-            tokenValue = token.name
-        if token.get_type() == 'New':
-            tokenValue = ""
-        if tokenValue is None:
+        if token.value is None:
             return []
         completionClass = type_to_completion[token.get_type()]
         return [completionClass(value=entry.get_name(), final=not isinstance(entry,HelpSection))

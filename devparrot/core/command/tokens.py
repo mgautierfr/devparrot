@@ -27,6 +27,10 @@ class Token(object):
     def get_type(self):
         return self.__class__.__name__
 
+    @property
+    def value(self):
+        return None
+
     def __eq__(self, other):
         try:
             return self.get_type() == other.get_type() and self.index == other.index and self.len == other.len
@@ -45,6 +49,10 @@ class Identifier(Token):
         return super(Identifier, self).__eq__(other) and self.name == other.name
 
     def __str__(self):
+        return self.name
+
+    @property
+    def value(self):
         return self.name
 
     def rewrited(self):
@@ -205,6 +213,10 @@ class String(Section):
     def __str__(self):
         return self.enclose(self.values)
 
+    @property
+    def value(self):
+        return self.values
+
     def rewrited(self):
         return "%s%s%s"%('"""', self.values.replace("\\", "\\\\"), '"""')
 
@@ -287,6 +299,10 @@ class New(Token):
         return super(New, self).__eq__(other)
 
     def __str__(self):
+        return ""
+
+    @property
+    def value(self):
         return ""
 
     def rewrited(self):
