@@ -48,14 +48,24 @@ class TextCompletion(BaseModule):
     def deactivate(self):
         del bindings["<Control-space>"]
 
+    def on_documentAdded(self, document):
+        completionName = document.get_config('completionName')
+        completionClass = completionMap.get(completionName, None)
+        if not completionClass:
+            return
+        document.__completionSystem = completionClass(document)
+
+    def on_insert(self, model, index, text):
+        try:
+            completionSystem = model.document.__completionSystem
+            completionSystem.start_completion()
+        except AttributeError:
+            pass
+
 
 class completion(MasterCommand):
     @SubCommand()
     def start(type):
-        currentDocument = session.get_currentDocument()
-        completionSystem = BasicCompletionSystem(currentDocument.model, currentDocument.get_config('completion_functions'))
-        completionSystem.start_completion()
-
         try:
             currentDocument = session.get_currentDocument()
             completionSystem = currentDocument.model.document.__completionSystem
