@@ -353,7 +353,7 @@ class TextModel(Tkinter.Text, ModelInfo):
     def replace(self, index1, index2, text, updateUndo=True):
         index1 = self.index(index1)
         index2 = self.index(index2)
-        oldtext = self.get(str(index1), str(index2))
+        oldText = self.get(str(index1), str(index2))
         self.tk.call((self._w, 'replace', str(index1), str(index2), text))
         ModelInfo.delete(self, index1, index2)
         ModelInfo.insert(self, index1, text)
