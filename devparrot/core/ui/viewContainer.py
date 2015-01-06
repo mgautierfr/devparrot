@@ -309,7 +309,10 @@ class NotebookContainer(ttk.Notebook, ContainerChild):
                 session.eventSystem.event("currentChanged")(currentDocument.document, oldSelected)
 
     def on_middleClickButton(self, event):
-        documentViewIndex = self.index("@%d,%d" % (event.x, event.y))
+        try:
+            documentViewIndex = self.index("@%d,%d" % (event.x, event.y))
+        except TclError:
+            return
         if documentViewIndex != "":
             session.commands.close(self._children.keys()[documentViewIndex].document)
 
