@@ -154,16 +154,8 @@ class CompletionSystem(object):
     def _on_event(self, event):
         from devparrot.core import session
         validChars = set(session.config.get('wchars')+session.config.get('puncchars')+session.config.get('spacechars'))
-        if event.keysym == 'Escape':
+        if event.keysym in ("Escape", "Return", "KP_Enter"):
             self.stop_completion()
-            return
-        if event.keysym == 'Return' or (event.keysym == 'Tab' and len(self.completions) == 1):
-            selected = self.get_selected()
-            self.complete(selected)
-            if selected.final():
-                self.stop_completion()
-            else:
-                self.update_completion()
             return
         if event.keysym == 'Tab':
             self.complete(self.get_selected())
