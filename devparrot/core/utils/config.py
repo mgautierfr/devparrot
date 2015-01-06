@@ -143,6 +143,7 @@ class BaseSection(object):
         self.options[name] = Option(name, self.config, self, type)
         if "default" in kwords:
             self.options[name].set(kwords["default"])
+        return self.options[name]
 
     def add_section(self, name):
         self.options[name] = Section(self.config, self, name)
