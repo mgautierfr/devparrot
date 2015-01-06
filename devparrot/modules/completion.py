@@ -184,7 +184,10 @@ class JediCompletor(BaseCompletionSystem):
 
         script = jedi.api.Script(self.document.model.get_text(), line=index.line, column=index.col, path=self.document.get_path())
         create_completion = lambda j, t="": JediCompletion(j,t, line=index.line, column=index.col)
-        call_signatures = script.call_signatures()
+        try:
+            call_signatures = script.call_signatures()
+        except SyntaxError:
+            return ("", [])
         if not call_signatures:
             char  = self.document.model.get("insert - 1c")
             if not char or not char in set(session.config.get('wchars')+"."):
