@@ -60,6 +60,9 @@ def init(cmd_options):
     _config.add_option("search_tag_color", default="#FFAAAA")
     _config.add_option("currentLine_tag_color", default="#EEEEEE")
 
+    _config.add_option("completion_functions", default="infile_completions")
+    _config.add_option("completionName", default="BasicTextCompletor")
+
     dict.__setitem__(_config.options, 'hook', AutoCreateSection(_config, _config, 'hook'))
 
     _config.add_option("menuBar", default=[("File", [ ("New", "new"),

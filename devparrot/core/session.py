@@ -36,6 +36,7 @@ modules = None
 memories = {}
 controllers = {}
 bindings = None
+completionSystem = None
 help_entries = {'devparrot':help.DevparrotHelp()}
 
 eventSystem = utils.event.EventSource()

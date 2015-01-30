@@ -77,7 +77,7 @@ def _main(cmd_options):
     core.command.load()
     core.controller.load()
     core.configLoader.load(cmd_options)
-
+    core.textCompletion.init()
     core.ui.window.mainloop()
 
 

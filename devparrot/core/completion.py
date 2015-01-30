@@ -53,52 +53,27 @@ class BaseCompletion(object):
         """return the start index of the completion"""
         return self.startIndex
 
-def getcommonstart(seq):
-    if not seq:
-        return ""
-    s1, s2 = min(seq), max(seq)
-    l = min(len(s1), len(s2))
-    if l == 0 :
-        return ""
-    for i in xrange(l) :
-        if s1[i] != s2[i] :
-            return s1[:i]
-    return s1[:l]
-
 class CompletionSystem(object):
     """
     CompletionSystem Class allow a text widget to be completed.
     This class is abstract. It is intent to be inherite to provide how to find posible completion and to insert the text as wanted
     """
-    def __init__(self, textWidget, completionEvent='<Tab>', previousCompletionEvent='<Up>', nextCompletionEvent='<Down>'):
+    def __init__(self):
         """
-        @param textWidget the text widget to complete
-        @param completionEvent a tk event used to start the completion
         """
-        self.textWidget = textWidget
+        self.textWidget = None
         self._create_listboxWidget()
-        self.completionEvent = completionEvent
-        self._install_binding()
-        self._update_completion_content("", [])
+        self.completions = []
+        self.labelText = ""
         self.handle_idle = None
 
-    def _install_binding(self):
-        if self.completionEvent is None:
-            return
-        bindtagName = "Completion_%s_%d"%(self.__class__.__name__, id(self))
-        bindtags = list(self.textWidget.bindtags())
-        bindtags.insert(0, bindtagName)
-        bindtags = " ".join(bindtags)
-        self.textWidget.bindtags(bindtags)
-        try:
-            self.__class__.bindInitialized
-        except AttributeError:
-            self.__class__.bindInitialized = True
-            Tkinter._default_root.bind_class(bindtagName, self.completionEvent, self.on_widget_key_completion)
+    def set_model(self, model):
+        self.textWidget = model
 
     def _create_listboxWidget(self):
+        self.displayed = False
         self.toplevel = Tkinter.Toplevel()
-        self._hide()
+        self.toplevel.withdraw()
         self.toplevel.wm_overrideredirect(True)
 
         self.listbox = Tkinter.Listbox(self.toplevel, activestyle='none')
@@ -138,11 +113,14 @@ class CompletionSystem(object):
     def on_lost_focus(self, event):
         self._hide()
 
-    def update_completion(self):
+    def update_completion(self, now=False):
         if self.handle_idle:
             self.textWidget.after_cancel(self.handle_idle)
         self.stop_completion()
-        self.handle_idle = self.textWidget.after(250, self._update_completion)
+        if now:
+            self.handle_idle = self.textWidget.after_idle(self._update_completion)
+        else:
+            self.handle_idle = self.textWidget.after(250, self._update_completion)
 
     def _update_completion(self):
         self.handle_idle = None
@@ -154,10 +132,6 @@ class CompletionSystem(object):
 
     def get_selected(self):
         return self.completions[int(self.listbox.curselection()[0])]
-
-    def on_widget_key_completion(self, event):
-        self.update_completion()
-        return "break"
 
     def _on_event(self, event):
         if event.keysym in ("Escape",):

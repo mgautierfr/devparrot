@@ -54,8 +54,6 @@ class Document(HasProperty):
     mimetype     = Property(fget=get_mimetype)
     space_indent = Property(fget=get_space_indent)
 
-
-
     def __init__(self, documentSource):
         HasProperty.__init__(self)
         self.documentSource = documentSource

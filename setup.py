@@ -50,8 +50,7 @@ setup(name='devparrot',
             'externalTool = devparrot.modules.externalTool:ExternalTool',
             'fileExplorer = devparrot.modules.fileExplorer:FileExplorer',
             'textHighlight = devparrot.modules.textHighlight:TextHighlight',
-            'textCompletion = devparrot.modules.completion:TextCompletion',
-            'autocmd = devparrot.modules.autocmd:Autocmd',
+            'jedi = devparrot.modules.jediModule:Jedi'
         ]
       }
 )

@@ -120,6 +120,9 @@ class Option(ReadOnlyOption):
     def set(self, value, keys=None):
         self.set_container_for(keys)[None] = value
 
+    def remove(self, keys):
+        del self.set_container_for(keys)[None]
+
     def update(self, value, keys=[]):
         if not isinstance(value, dict):
             self.set(value, keys)
