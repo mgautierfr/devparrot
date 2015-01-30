@@ -100,12 +100,12 @@ class CompletionSystem(object):
         self.toplevel = Tkinter.Toplevel()
         self._hide()
         self.toplevel.wm_overrideredirect(True)
-        self.toplevel.bind('<FocusOut>', self.on_lost_focus)
 
-        self.listbox = Tkinter.Listbox(self.toplevel)
+        self.listbox = Tkinter.Listbox(self.toplevel, activestyle='none')
         self.listbox.pack(expand=True, fill=Tkinter.BOTH, side=Tkinter.BOTTOM)
         self.toplevel.pack_propagate(True)
-        self.listbox.bind('<Key>', self._on_event)
+        self.toplevel.bind_class("completion_%d"%id(self), '<Key>', self._on_event)
+        self.toplevel.bind_class("completion_%d"%id(self), '<FocusOut>', self.on_lost_focus)
 
         self.label = ttk.Label(self.toplevel)
 
@@ -114,16 +114,26 @@ class CompletionSystem(object):
         xpos = self.textWidget.winfo_rootx() + x
         ypos = self.textWidget.winfo_rooty() + y + height
         self.toplevel.wm_geometry("+%d+%d"% (xpos, ypos))
-        self.toplevel.wm_geometry("")
 
     def _show(self):
         self.displayed = True
         self._set_position()
         self.toplevel.deiconify()
+        size = max([len(self.labelText)] + [len(v.description()) for v in self.completions])
+        self.listbox.configure(width=size, height=len(self.completions))
+        bindtags = list(self.textWidget.bindtags())
+        bindtags.insert(0,"completion_%d"%id(self))
+        bindtags = " ".join(bindtags)
+        self.textWidget.bindtags(bindtags)
 
     def _hide(self):
         self.displayed = False
         self.toplevel.withdraw()
+        bindtags = list(self.textWidget.bindtags())
+        if bindtags[0] == "completion_%d"%id(self):
+            bindtags = bindtags[1:]
+        bindtags = " ".join(bindtags)
+        self.textWidget.bindtags(bindtags)
 
     def on_lost_focus(self, event):
         self._hide()
@@ -143,58 +153,59 @@ class CompletionSystem(object):
         self.textWidget.focus()
 
     def get_selected(self):
-        try:
-            return self.completions[int(self.listbox.curselection()[0])]
-        except IndexError:
-            return Completion("",False)
+        return self.completions[int(self.listbox.curselection()[0])]
 
     def on_widget_key_completion(self, event):
         self.update_completion()
         return "break"
 
     def _on_event(self, event):
-        from devparrot.core import session
-        validChars = set(session.config.get('wchars')+session.config.get('puncchars')+session.config.get('spacechars'))
-        if event.keysym in ("Escape", "Return", "KP_Enter"):
+        if event.keysym in ("Escape",):
             self.stop_completion()
-            return
+            return "break"
+        if event.keysym in ("Return", "KP_Enter"):
+            try:
+                self.complete(self.get_selected())
+                self.update_completion()
+                return "break"
+            except IndexError:
+                # no selection => let textWidget do its normal stuff.
+                pass
         if event.keysym == 'Tab':
-            self.complete(self.get_selected())
-            self.update_completion()
-            return
-        if event.keysym == 'BackSpace':
-            self.perform_backspace()
-            return
-        char = event.char.decode('utf8')
-        if char in validChars:
-            self.perform_insert_char(char)
-
-    def update_completion(self):
-        if not self.displayed:
-            return
-
-        text = self.textWidget.get('1.0', 'insert')
-        self._update_completion(*self.get_completions())
+            try:
+                cur = int(self.listbox.curselection()[0])
+            except IndexError:
+                # no selection => select the first one
+                self.listbox.select_set(0)
+            else:
+                self.listbox.select_clear(cur)
+                cur += 1
+                if cur == len(self.completions):
+                    cur = 0
+                self.listbox.select_set(cur)
+            return "break"
+        self.stop_completion()
 
     def _update_completion_content(self, labelText, completions):
         self.completions = completions = list(itertools.islice(completions, 10))
-        self.listbox.delete('0', 'end')
-        if not completions or (len(completions)==1 and not completions[0].complete()):
+        self.labelText = labelText
+        if not labelText and (not completions or (len(completions)==1 and not completions[0].complete())):
             self.stop_completion()
             return
-        size = 0
         self.label['text'] = labelText
         if not labelText:
             self.label.pack_forget()
         else:
-            self.label.pack(expand=True, fill=Tkinter.X, anchor="w")
+            self.label.pack(expand=True, fill=Tkinter.X, anchor="w", side=Tkinter.TOP)
 
-        for v in self.completions:
-            size = max(size, len(v.description()))
-            self.listbox.insert('end', v.description())
-        self._set_position()
-        self.listbox.configure(width=size, height=len(self.completions))
-        self.listbox.select_set(0)
+        self.listbox.delete('0', 'end')
+        if self.completions:
+            self.listbox.pack(expand=True, fill=Tkinter.BOTH, side=Tkinter.BOTTOM)
+            for v in self.completions:
+                self.listbox.insert('end', v.description())
+        else:
+            self.listbox.pack_forget()
+        self._show()
 
     def get_completions(self):
         """
@@ -212,15 +223,3 @@ class CompletionSystem(object):
         """
         raise NotImplemented
 
-    def perform_insert_char(self, char):
-        self.textWidget.insert('insert', char)
-        self.update_completion()
-
-    def perform_backspace(self):
-        try:
-            self.textWidget.delete( 'sel.first', 'sel.last' )
-            self.textWidget.tag_remove( 'sel', '1.0', 'end' )
-            self.textWidget.mark_unset( 'sel.first', 'sel.last' )
-        except BadArgument:
-            self.textWidget.delete( 'insert -1 chars', 'insert' )
-        self.update_completion()
