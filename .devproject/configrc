@@ -1,0 +1,4 @@
+
+command = "devparrot"
+
+bind['<Control-F7>'] = "runtool\n"
