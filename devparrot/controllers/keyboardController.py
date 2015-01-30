@@ -38,7 +38,7 @@ class KeyboardController(Controller):
         if event.keysym in ( 'Return', 'Enter', 'KP_Enter', 'BackSpace', 'Delete', 'Insert' ):
             event.widget.sel_clear()
             return "break"
-        char = event.char.decode('utf8')
+        char = event.char
         document = event.widget.document
         if char in set(document.get_config('wchars')+document.get_config('puncchars')+document.get_config('spacechars')):
             event.widget.sel_delete( )
