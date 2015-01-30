@@ -49,10 +49,10 @@ class Completion(BaseCompletion):
         self.already = already
 
     def name(self):
-        return self.value + (" " if self.final else "")
+        return self.value + (" " if self._final else "")
 
     def complete(self):
-        return self.value[self.already:] + (" " if self.final else "")
+        return self.value[self.already:] + (" " if self._final else "")
 
     def final(self):
         return self._final
