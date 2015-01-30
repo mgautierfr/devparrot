@@ -174,7 +174,6 @@ class JediCompletion(completion_.BaseCompletion):
     def __repr__(self):
         return "<JediCompletion %s %s %s>"%(self.start(), self.name(), self.complete())
 
-
 def comparator_key(comp):
     return (comp.in_builtin_module(), comp.name)
 
@@ -206,6 +205,9 @@ class JediCompletor(BaseCompletionSystem):
             }
             if call_signatures[0].index is None:
                 return (call_signature, [])
+            char  = self.document.model.get("insert - 1c")
+            if not char or not char in set(session.config.get('wchars')+"."):
+                return (call_signature, [])
 
             param_def = call_signatures[0].params[call_signatures[0].index]
             completions = sorted(script.completions(), key=comparator_key)
@@ -213,4 +215,4 @@ class JediCompletor(BaseCompletionSystem):
 
     def complete(self, completion):
         start = completion.start()
-        self.textWidget.replace(start, 'insert', completion.name())
+        self.textWidget.insert('insert', completion.complete())
