@@ -56,9 +56,7 @@ class ControlerEntry(Tkinter.Text):
             if next_:
                 self.delete("1.0", "end")
                 self.insert("end", next_)
-                self.completionSystem.update_completion()
-            else:
-                self.completionSystem.start_completion()
+            self.completionSystem.update_completion()
             return
         if event.keysym in ('Return', 'KP_Enter'):
             self.completionSystem.stop_completion()

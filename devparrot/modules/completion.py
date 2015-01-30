@@ -58,9 +58,13 @@ class TextCompletion(BaseModule):
     def on_insert(self, model, index, text):
         try:
             completionSystem = model.document.__completionSystem
-            completionSystem.start_completion()
         except AttributeError:
-            pass
+            return
+
+        if completionSystem.displayed:
+            return
+
+        completionSystem.update_completion()
 
 
 class completion(MasterCommand):
@@ -69,7 +73,7 @@ class completion(MasterCommand):
         try:
             currentDocument = session.get_currentDocument()
             completionSystem = currentDocument.model.document.__completionSystem
-            completionSystem.start_completion()
+            completionSystem.update_completion()
         except AttributeError:
             pass
 

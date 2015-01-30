@@ -79,7 +79,8 @@ class CompletionSystem(object):
         self._create_listboxWidget()
         self.completionEvent = completionEvent
         self._install_binding()
-        self._update_completion("", [])
+        self._update_completion_content("", [])
+        self.handle_idle = None
 
     def _install_binding(self):
         if self.completionEvent is None:
@@ -127,14 +128,15 @@ class CompletionSystem(object):
     def on_lost_focus(self, event):
         self._hide()
 
-    def start_completion(self):
-        self._update_completion(*self.get_completions())
-        if not self.completions or (len(self.completions)==1 and not self.completions[0].complete()):
-            self._hide()
-            return
-        self._show()
-        self.listbox.focus()
-        self.listbox.select_set(0)
+    def update_completion(self):
+        if self.handle_idle:
+            self.textWidget.after_cancel(self.handle_idle)
+        self.stop_completion()
+        self.handle_idle = self.textWidget.after(250, self._update_completion)
+
+    def _update_completion(self):
+        self.handle_idle = None
+        self._update_completion_content(*self.get_completions())
 
     def stop_completion(self):
         self._hide()
@@ -147,7 +149,6 @@ class CompletionSystem(object):
             return Completion("",False)
 
     def on_widget_key_completion(self, event):
-        self.start_completion()
         self.update_completion()
         return "break"
 
@@ -175,7 +176,7 @@ class CompletionSystem(object):
         text = self.textWidget.get('1.0', 'insert')
         self._update_completion(*self.get_completions())
 
-    def _update_completion(self, labelText, completions):
+    def _update_completion_content(self, labelText, completions):
         self.completions = completions = list(itertools.islice(completions, 10))
         self.listbox.delete('0', 'end')
         if not completions or (len(completions)==1 and not completions[0].complete()):
