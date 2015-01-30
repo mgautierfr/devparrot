@@ -62,6 +62,7 @@ def init(cmd_options):
 
     _config.add_option("completion_functions", default="infile_completions")
     _config.add_option("completionName", default="BasicTextCompletor")
+    _config.add_option("auto_completion", default=False)
 
     dict.__setitem__(_config.options, 'hook', AutoCreateSection(_config, _config, 'hook'))
 

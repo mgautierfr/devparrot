@@ -31,11 +31,11 @@ def init():
     session.eventSystem.connect('insert', on_insert)
     
 def on_insert(model, index, text):
+    if not model.document.get_config('auto_completion'):
+        return
     completionSystem = session.completionSystem
-
     if completionSystem.displayed:
         return
-
     completionSystem.set_model(model)
     completionSystem.update_completion()
 
