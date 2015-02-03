@@ -38,7 +38,8 @@ setup(name='devparrot',
                   ],
       packages=find_packages(exclude=['tests'])+['devparrot.commands', 'devparrot.modules'],
       package_data= { 'devparrot.core.ui' : [ 'resources/icon48.png' ],
-                      'devparrot' : ['default_user_configrc']},
+                      'devparrot' : ['icons/*.png'],
+                    },
       install_requires=['Pillow', 'pyxdg', 'picoparse', 'pygments', 'python-magic'],
       entry_points = {
         'gui_scripts' : [
@@ -50,7 +51,8 @@ setup(name='devparrot',
             'externalTool = devparrot.modules.externalTool:ExternalTool',
             'fileExplorer = devparrot.modules.fileExplorer:FileExplorer',
             'textHighlight = devparrot.modules.textHighlight:TextHighlight',
-            'jedi = devparrot.modules.jediModule:Jedi'
+            'jedi = devparrot.modules.jediModule:Jedi',
+            'tagExplorer = devparrot.modules.tagExplorer:TagExplorer'
         ]
       }
 )

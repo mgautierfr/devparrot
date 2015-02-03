@@ -82,12 +82,11 @@ class MainWindow(ttk.Tkinter.Tk):
         self.hpaned.pack(expand=True, fill=ttk.Tkinter.BOTH)
 
         self.vpaned = ttk.PanedWindow(self.hpaned, orient=ttk.Tkinter.VERTICAL)
-        self.vpaned.pack(expand=True, fill=ttk.Tkinter.BOTH)
 
         self.globalContainer = ttk.Frame(self.vpaned, borderwidth=1, padding=0, relief="ridge")
-        self.vpaned.add(self.globalContainer)
+        self.vpaned.add(self.globalContainer, weigh=1)
 
-        self.hpaned.add(self.vpaned)
+        self.hpaned.add(self.vpaned, weigh=1)
 
         self.statusBar = statusBar.StatusBar(self._vbox)
 

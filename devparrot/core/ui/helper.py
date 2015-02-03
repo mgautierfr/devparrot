@@ -30,9 +30,9 @@ class HelperContainer(object):
         import ttk
         if self.notebook is None:
             if not notebookForced and not self.helpers:
-                self.panned.insert(self.where, helper)
+                self.panned.insert(self.where, helper, weigh=0)
             else:
-                self.notebook = ttk.Notebook(self.panned)
+                self.notebook = ttk.Notebook(self.panned, height=150)
                 self.notebook.bind("<Button-2>", self.on_middleClickButton)
                 try:
                     oldHelper, oldName, _ = self.helpers[0]
@@ -40,7 +40,7 @@ class HelperContainer(object):
                     self.notebook.insert('end', oldHelper, text=oldName)
                 except IndexError:
                     pass
-                self.panned.insert(self.where, self.notebook)
+                self.panned.insert(self.where, self.notebook, weigh=0)
 
         if self.notebook:
             self.notebook.insert('end', helper, text=name)

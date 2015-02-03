@@ -62,6 +62,7 @@ def init():
     global bindings
     global macros
     global modules
+
     _documentManager = documentManager.DocumentManager()
     commandLauncher = _commandLauncher.CommandLauncher()
     _commandLauncher.create_section()

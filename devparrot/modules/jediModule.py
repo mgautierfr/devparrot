@@ -23,14 +23,17 @@ from devparrot.core.modules import BaseModule
 from devparrot.core.textCompletion import BaseCompletor, BaseCompletion
 from devparrot.core import session
 from jedi import settings as JediSettings
-from jedi.api import Script
+from jedi.api import Script, defined_names
+from tagExplorer import BaseProvider, BaseTag
 
 class Jedi(BaseModule):
     def activate(self):
         session.config.get_option("completionName").set("JediCompletor", keys=['Python'])
+        session.config.get_option("tagProvider").set("JediTagProvider", keys=['Python'])
 
     def deactivate(self):
         session.config.get_option("completionName").remove(keys=['Python'])
+        session.config.get_option("tagProvider").remove(keys=['Python'])
 
 class JediCompletion(BaseCompletion):
     def __init__(self, jediCompletion, helpText, line, column):
@@ -96,3 +99,40 @@ class JediCompletor(BaseCompletor):
             param_def = call_signatures[0].params[call_signatures[0].index]
             completions = sorted(script.completions(), key=comparator_key)
             return (call_signature, (create_completion(completion) for completion in completions))
+
+innerJediType2devp = {
+'function' : 'method',
+'statement': 'member'
+}
+class JediTag(object):
+    def __init__(self, jediDefinition, overtype=None):
+        self.jediDefinition = jediDefinition
+        self.overtype = overtype
+
+    @property
+    def position(self):
+        return "%d.%d"%(self.jediDefinition.line, self.jediDefinition.column)
+
+    @property
+    def name(self):
+        return self.jediDefinition.name
+
+    @property
+    def type(self):
+        if self.overtype:
+            return self.overtype
+        return self.jediDefinition.type
+
+    @property
+    def children(self):
+        return [JediTag(n, innerJediType2devp.get(n.type)) for n in self.jediDefinition.defined_names()]
+
+globalJediType2devp = {
+'statement': 'variable'
+}
+class JediTagProvider(BaseProvider):
+    def __init__(self, model):
+        self.model = model
+
+    def get_tag(self):
+        return (JediTag(n, globalJediType2devp.get(n.type)) for n in defined_names(self.model.get_text()))
