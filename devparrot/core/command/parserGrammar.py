@@ -225,13 +225,25 @@ def userCommand():
     eof()
     return pipe
 
+def remove_new(context):
+    try:
+        last = context.values[-1]
+    except IndexError:
+        return
+    if last.get_type() == "New":
+        del context.values[-1]
+    elif last.get_type() in ("CommandCall", "MacroCall"):
+        remove_new(last)
 
 def parse_input_text(text, forCompletion=True):
     from devparrot.core import session
     from devparrot.core.errors import InvalidSyntax
     session.logger.debug("parsing %s", repr(text))
     if not text.strip():
-        return Pipe(index=0, len=len(text), values=[New(index=len(text))])
+        if forCompletion:
+            return Pipe(index=0, len=len(text), values=[New(index=len(text))])
+        else:
+            raise InvalidSyntax("%s is not a valid command", text)
     try:
         ret, _ = run_parser(userCommand, text)
         if forCompletion:
@@ -244,6 +256,8 @@ def parse_input_text(text, forCompletion=True):
                  raise InvalidSyntax("Can't parse %s", text)
             if lastCommand.get_type() == "Identifier":
                 ret.values[-1] = CommandCall(index=lastCommand.index, len=lastCommand.len, name=lastCommand.name, values=[], closed=False)
+            else:
+                remove_new(ret)
         return ret
     except NoMatch:
         raise InvalidSyntax("Can't parse %s", text)

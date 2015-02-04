@@ -449,76 +449,62 @@ to_test = {
                                                                                           )]
                                                                      ),
           "function1 arg1 arg2 %macro1(arg1, %macro2, key='value ') key1=value1 | function2 arg3 %macro3(key2=%%macro4 " :
-                     Pipe(index=0,
-                          len=108,
-                          values=[CommandCall(index=0,
-                                              len=68,
-                                              name="function1",
-                                              closed=True,
-                                              values=[UnquotedString(index=10,
-                                                                     len=4,
-                                                                     closed=True,
-                                                                     values="arg1"),
-                                                      UnquotedString(index=15,
-                                                                     len=4,
-                                                                     closed=True,
-                                                                     values="arg2"),
-                                                      MacroCall(index=20,
-                                                                len=36,
-                                                                opened=True,
-                                                                closed=True,
+                     Pipe(index=0, len=108,
+                      values=[CommandCall(index=0, len=68,
+                               name="function1",
+                               closed=True,
+                               values=[UnquotedString(index=10, len=4,
+                                         closed=True,
+                                         values="arg1"),
+                                       UnquotedString(index=15, len=4,
+                                         closed=True,
+                                         values="arg2"),
+                                       MacroCall(index=20, len=36,
+                                         opened=True,
+                                         closed=True,
+                                         expanded=False,
+                                         name="macro1",
+                                         values=[UnquotedString(index=28, len=4,
+                                                  closed=True,
+                                                  values="arg1"),
+                                                 MacroCall(index=34, len=7,
+                                                  opened=False,
+                                                  closed=False,
+                                                  expanded=False,
+                                                  name="macro2",
+                                                  values=[]),
+                                                 KeywordArg(index= 43, len=12,
+                                                  name=Identifier(index=43, len=3, name="key"),
+                                                  value=SimpleString(index=47, len=8, values="value ", closed=True)
+                                                           )
+                                                ]),
+                                       KeywordArg(index=57, len=11,
+                                         name=Identifier(index=57, len=4, name="key1"),
+                                         value=UnquotedString(index=62, len=6, values="value1", closed=True)
+                                                 )
+                                      ]),
+                                 CommandCall(index=71, len=37,
+                                    name="function2",
+                                    closed=False,
+                                    values=[UnquotedString(index=81, len=4,
+                                               closed=True,
+                                               values="arg3"),
+                                            MacroCall(index=86, len=21,
+                                               opened=True,
+                                               closed=False,
+                                               expanded=False,
+                                               name="macro3",
+                                               values=[KeywordArg(index=94, len=13,
+                                                         name=Identifier(index=94, len=4, name="key2"),
+                                                         value=MacroCall(index=99, len=8,
+                                                                opened=False, closed=False,
                                                                 expanded=False,
-                                                                name="macro1",
-                                                                values=[UnquotedString(index=28,
-                                                                                       len=4,
-                                                                                       closed=True,
-                                                                                       values="arg1"),
-                                                                        MacroCall(index=34,
-                                                                                  len=7,
-                                                                                  opened=False,
-                                                                                  closed=False,
-                                                                                  expanded=False,
-                                                                                  name="macro2",
-                                                                                  values=[]),
-                                                                        KeywordArg(index= 43,
-                                                                                    len=12,
-                                                                                    name=Identifier(index=43, len=3, name="key"),
-                                                                                    value=SimpleString(index=47, len=8, values="value ", closed=True)
-                                                                                   )
-                                                                       ]),
-                                                      KeywordArg(index=57, len=11,
-                                                                 name=Identifier(index=57, len=4, name="key1"),
-                                                                 value=UnquotedString(index=62, len=6, values="value1", closed=True)
-                                                                )
-                                                     ]
-                                              ),
-                                 CommandCall(index=71,
-                                             len=37,
-                                             name="function2",
-                                             closed=False,
-                                             values=[UnquotedString(index=81,
-                                                                    len=4,
-                                                                    closed=True,
-                                                                    values="arg3"
-                                                                   ),
-                                                     MacroCall(index=86,
-                                                               len=22,
-                                                               opened=True,
-                                                               closed=False,
-                                                               expanded=False,
-                                                               name="macro3",
-                                                               values=[KeywordArg(index=94, len=14,
-                                                                                  name=Identifier(index=94, len=4, name="key2"),
-                                                                                  value=MacroCall(index=99, len=9,
-                                                                                                  opened=False, closed=False,
-                                                                                                  expanded=False,
-                                                                                                  name="macro4", values=[])
-                                                                                 )]
-                                                              )
-                                                    ]
-                                             )
-                                ]
-                         ),
+                                                                name="macro4", values=[])
+                                                      )]
+                                            ),
+                                            New(index=108)]
+                                     )
+                            ]),
               "function %macro(key=value)" : Pipe(index=0,
                                  len=26,
                                  values=[CommandCall(index=0,
@@ -569,6 +555,20 @@ to_test = {
                                                     )
                                         ]
                                 ),
+             "function %macro(arg1 arg2" : Pipe(index=0, len=25,
+                                            values=[CommandCall(index=0, len=25,
+                                                         name="function",
+                                                         closed=False,
+                                                         values=[MacroCall(index=9, len=11,
+                                                                   opened=True,
+                                                                   closed = False,
+                                                                   expanded = False,
+                                                                   name = "macro",
+                                                                   values=[UnquotedString(index=16, len=4, closed=True, values="arg1")]),
+                                                                 UnquotedString(index=21, len=4, closed=False, values="arg2")]
+                                                                )
+                                                    ]
+                                                )
           }
 
 
@@ -583,8 +583,7 @@ to_test_invalid = [
     "%macro()",
     "'string'",
     "1",
-    "1function",
-    "function %macro(arg1 arg2"
+    "1function"
 ]
 
 @pytest.fixture(params=to_test.keys())

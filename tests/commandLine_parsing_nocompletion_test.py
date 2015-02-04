@@ -8,8 +8,6 @@ from devparrot.core.errors import InvalidSyntax
 from devparrot.core.command.tokens import *
 
 to_test = {
-            ""                                                 : Pipe(index=0, len=0, values=[New(index=0, len=0)]),
-            " "                                                : Pipe(index=0, len=1, values=[New(index=1, len=0)]),
             "token"                                            : Pipe(index=0,
                                                                       len=5,
                                                                       values=[CommandCall(index=0,
@@ -24,7 +22,7 @@ to_test = {
                                                                                           len=6,
                                                                                           name="token",
                                                                                           closed=False,
-                                                                                          values=[New(index=6)])]
+                                                                                          values=[])]
                                                                      ),
              "function arg1"                                   : Pipe(index=0,
                                                                       len=13,
@@ -72,8 +70,7 @@ to_test = {
                                                                       values=[CommandCall(index=0,
                                                                                           len=14,
                                                                                           name="function",
-                                                                                          values=[UnquotedString(index=9, len=4, values="arg1", closed=True),
-                                                                                                  New(index=14)],
+                                                                                          values=[UnquotedString(index=9, len=4, values="arg1", closed=True)],
                                                                                           closed=False)]
                                                                      ),
                 "function arg1 'arg2'"                         : Pipe(index=0,
@@ -297,7 +294,7 @@ to_test = {
                                                                                                             closed=False,
                                                                                                             expanded=False,
                                                                                                             name="macro",
-                                                                                                            values=[New(index=16)])
+                                                                                                            values=[])
                                                                                                  ]
                                                                                           )]
                                                                      ),
@@ -495,14 +492,14 @@ to_test = {
                                                                     values="arg3"
                                                                    ),
                                                      MacroCall(index=86,
-                                                               len=22,
+                                                               len=21,
                                                                opened=True,
                                                                closed=False,
                                                                expanded=False,
                                                                name="macro3",
-                                                               values=[KeywordArg(index=94, len=14,
+                                                               values=[KeywordArg(index=94, len=13,
                                                                                   name=Identifier(index=94, len=4, name="key2"),
-                                                                                  value=MacroCall(index=99, len=9,
+                                                                                  value=MacroCall(index=99, len=8,
                                                                                                   opened=False, closed=False,
                                                                                                   expanded=False,
                                                                                                   name="macro4", values=[])
@@ -568,23 +565,39 @@ to_test = {
                                                      len=32,
                                                      name="section.function",
                                                      closed=False,
-                                                     values=[MacroCall(index=9,
-                                                                       len=23,
-                                                                       opened=True,
-                                                                       closed=True,
+                                                     values=[MacroCall(index=17,
+                                                                       len=6,
+                                                                       opened=False,
+                                                                       closed=False,
                                                                        expanded=False,
                                                                        name="macro",
                                                                        values=[]
                                                                       ),
-                                                             SimpleString(index=14, len=6, values="string", closed=True)
+                                                             SimpleString(index=24, len=8, values="string", closed=True)
                                                              ]
                                                     )
                                         ]
                                 ),                  
+             "function %macro(arg1 arg2" : Pipe(index=0, len=25,
+                                            values=[CommandCall(index=0, len=25,
+                                                         name="function",
+                                                         closed=False,
+                                                         values=[MacroCall(index=9, len=11,
+                                                                   opened=True,
+                                                                   closed = False,
+                                                                   expanded = False,
+                                                                   name = "macro",
+                                                                   values=[UnquotedString(index=16, len=4, closed=True, values="arg1")]),
+                                                                 UnquotedString(index=21, len=4, closed=False, values="arg2")]
+                                                                )
+                                                    ]
+                                                )
           }
 
 
 to_test_invalid = [
+    "",
+    " ",
     "|",
     "||",
     "token |",
@@ -596,8 +609,7 @@ to_test_invalid = [
     "%macro()",
     "'string'",
     "1",
-    "1function",
-    "function %macro(arg1 arg2"
+    "1function"
 ]
 
 @pytest.fixture(params=to_test.keys())

@@ -27,10 +27,6 @@ class Token(object):
     def get_type(self):
         return self.__class__.__name__
 
-    @property
-    def value(self):
-        return None
-
     def __eq__(self, other):
         try:
             return self.get_type() == other.get_type() and self.index == other.index and self.len == other.len
@@ -49,10 +45,6 @@ class Identifier(Token):
         return super(Identifier, self).__eq__(other) and self.name == other.name
 
     def __str__(self):
-        return self.name
-
-    @property
-    def value(self):
         return self.name
 
     def rewrited(self):
