@@ -478,6 +478,7 @@ class SourceBuffer(TextModel):
         self.tag_raise("search_tag", "currentLine_tag")
         self.tag_bind("autocmd_link", "<Enter>", lambda e:self.set_hand_cursor())
         self.tag_bind("autocmd_link", "<Leave>", lambda e:self.set_normal_cursor())
+        self.tag_configure("autocmd_link", underline=True)
 
     def set_hand_cursor(self):
         self.configure(cursor="hand2")
