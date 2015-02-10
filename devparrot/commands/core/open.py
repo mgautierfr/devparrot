@@ -41,11 +41,8 @@ def _open_a_file(fileToOpen):
         from devparrot.core.errors import FileAccessError
         from devparrot.core.document import Document
         from devparrot.documents.fileDocSource import FileDocSource
-        if os.path.exists(fileToOpen):
-            session.eventSystem.event('pathAccess')(fileToOpen)
-            doc = Document(FileDocSource(fileToOpen))
-            session.get_documentManager().add_file(doc)
-            doc.load()
-        else:
-            raise FileAccessError(fileToOpen)
+        session.eventSystem.event('pathAccess')(fileToOpen)
+        doc = Document(FileDocSource(fileToOpen))
+        session.get_documentManager().add_file(doc)
+        doc.load()
     session.commands.core.switch(doc)
