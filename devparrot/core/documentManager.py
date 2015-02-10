@@ -26,13 +26,6 @@ class DocumentManager:
     
     def get_nbDocuments(self):
         return len(self.documents)
-    
-    def get_nthFile(self, index):
-        index = int(index)
-        try:
-            return next(doc for (i, doc) in enumerate(sorted(self.documents)) if i==index)
-        except StopIteration:
-            raise IndexError
 
     def has_file(self, path):
         try :

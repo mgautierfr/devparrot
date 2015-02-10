@@ -60,7 +60,7 @@ class DocumentListView(tkinter.ttk.Treeview):
         bindtags = " ".join(bindtags)
         self.bindtags(bindtags)
         nb_doc = session.get_documentManager().get_nbDocuments()
-        [self._add_document(session.get_documentManager().get_nthFile(i)) for i in xrange(nb_doc)]
+        [self._add_document(doc) for doc in session.get_documentManager()]
         self.sort()
 
     def _add_document(self, document):
