@@ -95,7 +95,7 @@ def init(cmd_options):
     modules.update_config(_config)
 
     parser = ConfigParser(_config)
-    parser.add_file(os.path.expanduser("~/.devparrotrc"))
+    parser.add_file(cmd_options.configrc)
     parser.parse(with_dict={"bind":session.bindings})
 
     dict.__setitem__(_config.options, 'ARGUMENTS', ReadOnlyOption('ARGUMENTS', _config, _config, str, cmd_options.ARGUMENTS))
