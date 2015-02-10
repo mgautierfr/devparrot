@@ -31,9 +31,6 @@ import os
 
 
 class Document(HasProperty):
-    def get_title(self):
-        return self.documentSource.title
-
     def get_longTitle(self):
         return self.documentSource.longTitle
 
@@ -47,7 +44,7 @@ class Document(HasProperty):
             return session.config.space_indent
         return self._mimetype.get()
 
-    title     = Property(fget=get_title, fset=None, fdel=None)
+    title     = Property()
     longTitle = Property(fget=get_longTitle, fset=None, fdel=None)
 
     mimetype     = Property(fget=get_mimetype)

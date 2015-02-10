@@ -18,11 +18,54 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
+import os
 
+def get_path_end(path, level):
+    parts = []
+    for i in range(level):
+        if not path:
+            raise IndexError
+        path, tail = os.path.split(path)
+        parts.append(tail)
+    return os.path.join(*parts[::-1])
+
+def generate_titles(documents):
+    from devparrot.documents import FileDocSource
+    documents = {d:None for d in documents}
+    # get names for buffer and new documents
+    for document, infos in documents.items():
+        if isinstance(document.documentSource, FileDocSource):
+            continue
+        documents[document] = document.documentSource.name
+
+    # generate uniq name for file documents
+    level = 1
+    while True:
+        documents_to_test = (d for d, t in documents.items() if t is None)
+        documents_to_test = sorted(documents_to_test, key=lambda d:len(d.get_path()), reverse=True)
+
+        if not documents_to_test:
+            break
+
+        dtitles = {}
+        for document in documents_to_test:
+            t = get_path_end(document.get_path(), level)
+            dtitles.setdefault(t, []).append(document)
+
+        knowns_titles = set(t for d,t in documents.items() if t)
+        for t, ds in dtitles.items():
+            if len(ds) > 1:
+                continue
+            if t in knowns_titles:
+                continue
+            documents[ds[0]] = t
+
+        level += 1
+    return documents
 
 class DocumentManager:
     def __init__(self):
-        self.documents = set()
+        self.documents = dict()
     
     def get_nbDocuments(self):
         return len(self.documents)
@@ -36,25 +79,39 @@ class DocumentManager:
 
     def get_file(self, path):
         try:
-            return next(doc for doc in self.documents if doc.get_path()==path)
+            return next(doc for doc in self.documents.values() if doc.get_path()==path)
         except StopIteration:
             raise KeyError
 
     def get_file_from_title(self, title):
-        try:
-            return next(doc for doc in self.documents if doc.get_title()==title)
-        except StopIteration:
-            raise KeyError
+        return self.documents[title]
 
     def del_file(self, document):
         from . import session
-        self.documents.remove(document)
+        del self.documents[document.title]
+        titles = generate_titles(list(self.documents.values()))
+        for t, d in self.documents.items():
+            if titles[d] == t:
+                continue
+            else:
+                del self.documents[t]
+                self.documents[titles[d]] = d
+                d.title = titles[d]
         session.eventSystem.event('documentDeleted')(document)
         return True
 
     def add_file(self, document):
         from . import session
-        self.documents.add(document)
+        titles = generate_titles(list(self.documents.values())+[document])
+        for t, d in self.documents.items():
+            if titles[d] == t:
+                continue
+            else:
+                del self.documents[t]
+                self.documents[titles[d]] = d
+                d.title = titles[d]
+        self.documents[titles[document]] = document
+        document.title = titles[document]
         session.eventSystem.event('documentAdded')(document)
     
     def __str__(self):
@@ -63,5 +120,5 @@ class DocumentManager:
         }
 
     def __iter__(self):
-        return iter(self.documents)
+        return iter(self.documents.values())
 

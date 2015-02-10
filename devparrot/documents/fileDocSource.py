@@ -52,8 +52,6 @@ class FileDocSource:
                 pass
 
     def __getattr__(self, name):
-        if name == "title":
-            return os.path.basename(self.path)
         if name == "longTitle":
             return self.path
         raise AttributeError

@@ -1,0 +1,19 @@
+import os as _os
+
+with open('test', 'w') as _f:
+    _f.write("def stuff():\n    pass\n")
+
+_os.mkdir('dir')
+with open('dir/test', 'w') as _f:
+    _f.write("def stuff():\n    pass\nsome stuff\n")
+
+_currentdir = _os.path.basename(_os.getcwd())
+
+start_command = r"""open test dir/test
+new test
+assert_document_names test %(currentdir)s/test dir/test
+close test
+assert_document_names %(currentdir)s/test dir/test
+close dir/test
+assert_document_names test
+quit"""%{'currentdir':_currentdir}

@@ -30,7 +30,7 @@ class NewDocSource:
         self.mimetype = Mime.lookup("text", "plain")
         
     def __getattr__(self, name):
-        if name in ["title", "longTitle"]:
+        if name in ["longTitle"]:
             return self.name
         raise AttributeError
 
@@ -43,7 +43,7 @@ class NewDocSource:
         return hash((self.__class__, self.name))
         
     def get_path(self):
-        return self.title
+        return self.name
 
     def has_path(self):
         """

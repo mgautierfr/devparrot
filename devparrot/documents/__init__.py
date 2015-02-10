@@ -22,3 +22,7 @@
 """
 This module contains all the sources for documents
 """
+
+from .fileDocSource import FileDocSource
+from .bufferSource  import BufferSource
+from .newDocSource  import NewDocSource

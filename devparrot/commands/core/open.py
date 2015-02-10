@@ -40,7 +40,7 @@ def _open_a_file(fileToOpen):
     else:
         from devparrot.core.errors import FileAccessError
         from devparrot.core.document import Document
-        from devparrot.documents.fileDocSource import FileDocSource
+        from devparrot.documents import FileDocSource
         session.eventSystem.event('pathAccess')(fileToOpen)
         doc = Document(FileDocSource(fileToOpen))
         session.get_documentManager().add_file(doc)

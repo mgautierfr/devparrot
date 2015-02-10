@@ -33,8 +33,8 @@ def buffer(name, type, content):
 A buffer is not attach to any file and can't be modified"""
     from devparrot.core import session
     from devparrot.core.document import Document
-    from devparrot.documents.bufferSource import BufferSource
-    from devparrot.documents.newDocSource import NewDocSource
+    from devparrot.documents import BufferSource
+    from devparrot.documents import NewDocSource
     if type == 'buffer':
         document = Document(BufferSource(name))
     else:
