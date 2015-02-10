@@ -6,10 +6,8 @@ with open('test', 'w') as _f:
 with open('result', 'w') as _f:
     _f.write("def stuff():\n    pass\nsome stuff\n")
 
-with _os.fdopen(int(_os.environ['POSTTEST_FD']), 'w', encoding="utf8") as _f:
-    _f.write("test_file_equal('test', 'result')")
-
 start_command = r"""open test
 stream.echo "\nsome stuff" | section end
 save
+assert_file_equal test result
 quit"""
