@@ -43,8 +43,8 @@ def save(document, fileName):
     
         from devparrot.documents.fileDocSource import FileDocSource
         session.eventSystem.event('pathAccess')(fileName)
-        document.set_path(FileDocSource(fileName, guess_encoding=False))
         session.get_documentManager().del_file(document)
+        document.set_path(FileDocSource(fileName, guess_encoding=False))
         session.get_documentManager().add_file(document)
         document.write()
     except IOError:
