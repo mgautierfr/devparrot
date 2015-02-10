@@ -26,6 +26,7 @@ This is the main module of devparrot
 import sys
 import os
 import argparse
+from ast import literal_eval
 
 from . import core
 
@@ -40,6 +41,13 @@ def handle_pdb(sig, frame):
     import pdb
     pdb.Pdb().set_trace(frame)
 
+def option_split(string):
+    name, value =  string.split(',', maxsplit=1)
+    try:
+        value = literal_eval(value)
+    except ValueError:
+        pass
+    return name, value
 
 def parse_commandLine(args=sys.argv):
     parser = argparse.ArgumentParser(description="The Devparrot IDE. The one")
@@ -57,6 +65,10 @@ def parse_commandLine(args=sys.argv):
                         dest="debug",
                         action='store_true',
                         help="Run in debug mode")
+    parser.add_argument("--option", "-o", dest="options",
+                        action="append",
+                        type=option_split,
+                        default=[])
     options, args = parser.parse_known_args(args)
     options.ARGUMENTS = args
     return options

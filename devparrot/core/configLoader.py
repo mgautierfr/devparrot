@@ -98,6 +98,9 @@ def init(cmd_options):
     parser.add_file(cmd_options.configrc)
     parser.parse(with_dict={"bind":session.bindings})
 
+    for name, value in cmd_options.options:
+        _config.get_option(name).set(value)
+
     dict.__setitem__(_config.options, 'ARGUMENTS', ReadOnlyOption('ARGUMENTS', _config, _config, str, cmd_options.ARGUMENTS))
     dict.__setitem__(_config.options, 'devparrotPath', ReadOnlyOption('devparrotPath', _config, _config, str, devparrotPath))
 
