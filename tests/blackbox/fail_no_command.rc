@@ -1,0 +1,5 @@
+fail_on_command_error = True
+load_home_command = False
+
+start_command = """noneixistantcommand
+quit"""

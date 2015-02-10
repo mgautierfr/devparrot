@@ -1,0 +1,4 @@
+
+start_command = """new
+saveas test.py
+quit"""

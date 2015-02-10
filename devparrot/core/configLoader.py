@@ -64,6 +64,8 @@ def init(cmd_options):
     _config.add_option("completionName", default="BasicTextCompletor")
     _config.add_option("auto_completion", default=False)
 
+    _config.add_option("fail_on_command_error", default=False)
+
     dict.__setitem__(_config.options, 'hook', AutoCreateSection(_config, _config, 'hook'))
 
     _config.add_option("menuBar", default=[("File", [ ("New", "new"),

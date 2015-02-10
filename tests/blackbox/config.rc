@@ -1,0 +1,5 @@
+
+start_command = r"""core.config auto_indent False
+assert_equal %config(auto_indent %ast_eval(False)
+quit"""
+

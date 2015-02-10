@@ -1,0 +1,8 @@
+import os as _os
+
+start_command = r"""core.buffer test new
+stream.echo "\nsome stuff" | core.buffer test2 buffer
+stream.echo "some stuff" | core.buffer test3
+assert_nb_document 3
+assert_document_names test test2 test3
+quit"""

@@ -1,0 +1,26 @@
+import os as _os
+
+with open('file1', 'w') as _f:
+    _f.write("def stuff():\n    pass\n")
+
+with open('file2', 'w') as _f:
+    _f.write("def stuff():\n    pass\n")
+
+with open('file3', 'w') as _f:
+    _f.write("def stuff():\n    pass\n")
+
+start_command = """open file1 file2
+assert_nb_document 2
+open file2
+assert_nb_document 2
+open file3
+assert_nb_document 3
+close
+assert_nb_document 2
+close
+assert_nb_document 1
+open file3
+assert_nb_document 2
+closeall
+assert_nb_document 0
+quit"""

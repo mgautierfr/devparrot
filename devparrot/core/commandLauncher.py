@@ -186,6 +186,10 @@ class CommandLauncher:
     def run_command_nofail(self, text, kwords={}):
         from devparrot.core import session
         from devparrot.core.errors import ContextError, InvalidError
+        if session.config.get("fail_on_command_error"):
+            self.run_command(text, kwords)
+            session.userLogger.info(text)
+            return
         try:
             self.run_command(text, kwords)
             session.userLogger.info(text)

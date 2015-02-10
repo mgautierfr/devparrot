@@ -1,0 +1,9 @@
+import os as _os
+
+with open('test_endline', 'w') as _f:
+    _f.write("def stuff():\n    pass\n")
+
+start_command = """open test_endline
+saveas test_endline2
+assert_file_equal test_endline test_endline2
+quit"""
