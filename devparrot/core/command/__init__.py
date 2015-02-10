@@ -30,9 +30,11 @@ def load():
     path = os.path.join(session.config.get('devparrotPath'), "commands")
     load_directory(path)
 
-    _homedir = getpwuid(os.getuid())[5]
-    path = os.path.join(_homedir,'.devparrot', 'commands')
-    load_directory(path)
+    for dir_ in session.config.get('custom_commands_dir'):
+        dir_ = os.path.expanduser(dir_)
+        dir_ = os.path.expandvars(dir_)
+        dir_ = os.path.abspath(dir_)
+        load_directory(dir_)
 
 def load_directory(path):
     import os.path

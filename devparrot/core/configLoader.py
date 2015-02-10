@@ -90,6 +90,7 @@ def init(cmd_options):
           ])
 
     _config.add_option("start_command", default="open %%config(ARGUMENTS)")
+    _config.add_option('custom_commands_dir', default=["~/.devparrot/commands"])
 
     modules.update_config(_config)
 
