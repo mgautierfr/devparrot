@@ -22,12 +22,14 @@ def assert_equal(v1, v2):
     assert v1 == v2
 
 @Command(
-s=constraints.Stream()
+s=constraints.Stream(),
+v=constraints.Default(multiple=True)
 )
 def assert_stream_equal(s, v):
     s = list(s)
-    print(s)
-    print(v)
+    v = list(v)
+    print('s = ', s)
+    print('v = ', v)
     assert s == v
 
 @Macro()
@@ -37,3 +39,12 @@ def ast_eval(value):
         return ast.literal_eval(value)
     except ValueError:
         return value
+
+@Macro()
+def range_(text):
+    from devparrot.core.constraints import Range
+    ok, result = Range().check(text)
+
+    if ok:
+        return result
+    raise InvalidArgument()
