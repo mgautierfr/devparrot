@@ -19,16 +19,11 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-window = None
-helperManager = None
-
 def init():
-    global window
-    global helperManager
-    import mainWindow, workspace, helper
+    from . import mainWindow, workspace, helper
     from devparrot.core import session
-    window = mainWindow.MainWindow()
-    session.set_globalContainer(window.get_globalContainer())
+    session.window = mainWindow.MainWindow()
+    session.set_globalContainer(session.window.get_globalContainer())
     session.set_workspace(workspace.Workspace())
-    session.bindings.bind(window)
-    helperManager = helper.HelperManager(window)
+    session.bindings.bind(session.window)
+    session.helperManager = helper.HelperManager(session.window)

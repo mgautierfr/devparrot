@@ -21,7 +21,7 @@
 
 import tkinter, tkinter.ttk
 
-from devparrot.core import session, ui
+from devparrot.core import session
 from devparrot.core.modules import BaseModule
 
 class DocumentListView(tkinter.ttk.Treeview):
@@ -87,8 +87,8 @@ class DocumentList(BaseModule):
         self.documentListView = None
 
     def activate(self):
-        self.documentListView = DocumentListView(ui.window)
-        ui.helperManager.add_helper(self.documentListView, "documentList", 'left')
+        self.documentListView = DocumentListView(session.window)
+        session.helperManager.add_helper(self.documentListView, "documentList", 'left')
 
     def deactivate(self):
         pass

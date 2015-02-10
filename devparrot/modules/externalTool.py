@@ -22,7 +22,7 @@ import tkinter, tkinter.ttk
 from devparrot.core.command import Command, Alias
 from devparrot.core.constraints import Stream
 
-from devparrot.core import ui, session
+from devparrot.core import session
 from devparrot.core.modules import BaseModule
 
 import re, os.path
@@ -127,12 +127,12 @@ class CommandOutput(tkinter.ttk.Frame):
 
 @Command(content=Stream())
 def commandOutput(name, content):
-    output = CommandOutput(ui.window)
+    output = CommandOutput(session.window)
 
     def on_delete():
-        ui.helperManager.remove_helper(output, 'bottom')
+        session.helperManager.remove_helper(output, 'bottom')
         output.destroy()
-    ui.helperManager.add_helper(output, name, 'bottom', True, on_delete)
+    session.helperManager.add_helper(output, name, 'bottom', True, on_delete)
 
 
     def read_line():

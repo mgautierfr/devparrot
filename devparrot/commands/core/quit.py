@@ -22,7 +22,7 @@ from devparrot.core.command import Command
 
 @Command(_section='core')
 def quit():
-    from devparrot.core import ui
+    from devparrot.core import session
     def destroy():
-        ui.window.destroy()
-    ui.window.after_idle(destroy)
+        session.window.destroy()
+    session.window.after_idle(destroy)

@@ -25,7 +25,7 @@ import os, re
 from xdg.IconTheme import getIconPath
 from xdg import Mime
 
-from devparrot.core import ui, session
+from devparrot.core import session
 from devparrot.core.modules import BaseModule
 
 tkImages = {}
@@ -43,11 +43,11 @@ class FileExplorer(BaseModule):
         config.add_option("excludes", default=["*.pyc", "*.pyo", "*.o"])
 
     def activate(self):
-        self.fileExplorerView = FileExplorerView(ui.window, self)
-        ui.helperManager.add_helper(self.fileExplorerView, "fileExplorer", 'left')
+        self.fileExplorerView = FileExplorerView(session.window, self)
+        session.helperManager.add_helper(self.fileExplorerView, "fileExplorer", 'left')
 
     def deactivate(self):
-        ui.helperManager.remove_helper(self.fileExplorerView, 'left')
+        session.helperManager.remove_helper(self.fileExplorerView, 'left')
         self.fileExplorerView = None
 
     def on_configChanged(self, var, key, old):
@@ -58,7 +58,7 @@ class FileExplorer(BaseModule):
         global tkImages
         tkImages = {}
         if self.active:
-            ui.window.after_idle(self.fileExplorerView.filltree)
+            session.window.after_idle(self.fileExplorerView.filltree)
 
     def _load_icon_for_mime(self, mimeType):
         try:

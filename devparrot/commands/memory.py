@@ -34,8 +34,8 @@ def memory(name, content):
     """
 
     if name in ('CLIPBOARD',):
-        from devparrot.core import ui
-        window = ui.window
+        from devparrot.core import session
+        window = session.window
         clear_function = window.clipboard_clear
         append_function = window.clipboard_append
         def gen_function():

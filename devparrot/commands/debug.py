@@ -49,8 +49,8 @@ class debug(MasterCommand):
     )
     def after_info(ofile):
         """set a config entry to value"""
-        from devparrot.core import ui
-        content = ui.window.tk.call("after", "info")
+        from devparrot.core import session
+        content = session.window.tk.call("after", "info")
         #content = ui.window.after_info()
         with open(ofile, "w") as f:
             import pprint

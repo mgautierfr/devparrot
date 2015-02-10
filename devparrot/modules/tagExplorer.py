@@ -28,7 +28,7 @@ from pkg_resources import resource_stream
 from xdg.IconTheme import getIconPath
 from xdg import Mime
 
-from devparrot.core import ui, session
+from devparrot.core import session
 from devparrot.core.modules import BaseModule
 
 tkImages = {}
@@ -73,11 +73,11 @@ class TagExplorer(BaseModule):
         config.add_option("tagProvider", default=None)
 
     def activate(self):
-        self.tagExplorerView = TagExplorerView(ui.window)
-        ui.helperManager.add_helper(self.tagExplorerView, "tagExplorer", 'right')
+        self.tagExplorerView = TagExplorerView(session.window)
+        session.helperManager.add_helper(self.tagExplorerView, "tagExplorer", 'right')
 
     def deactivate(self):
-        ui.helperManager.remove_helper(self.tagExplorerView, 'right')
+        session.helperManager.remove_helper(self.tagExplorerView, 'right')
         self.tagExplorerView = None
 
     def on_currentChanged(self, current, old):

@@ -30,17 +30,17 @@ class BindLauncher:
         self.leftText = commands[-1]
 
     def __call__(self, kwords):
-        from devparrot.core import session, ui
+        from devparrot.core import session
         for cmd in self.commands:
             ret = session.commandLauncher.run_command_nofail(cmd, kwords)
             if not ret:
                 return "break"
-        ui.window.entry.delete("1.0", "end")
-        ui.window.entry.insert("1.0", self.leftText)
+        session.window.entry.delete("1.0", "end")
+        session.window.entry.insert("1.0", self.leftText)
         if self.leftText:
-            ui.window.entry.toClean = False
-            ui.window.entry.focus()
-            ui.window.entry.mark_set("index", "end")
+            session.window.entry.toClean = False
+            session.window.entry.focus()
+            session.window.entry.mark_set("index", "end")
         return "break"
 
 class TkBindLauncher(BindLauncher):
@@ -60,10 +60,9 @@ class Binder:
     def __setitem__(self, accel, command):
         from devparrot.core import session
         if TkEventMatcher.match(accel):
-            from devparrot.core import ui
             bindLauncher = TkBindLauncher(command)
-            if ui.window:
-                ui.window.bind_class("devparrot", accel, bindLauncher)
+            if session.window:
+                session.window.bind_class("devparrot", accel, bindLauncher)
             else:
                 self.tkBinds[accel] = bindLauncher
         else:
@@ -73,8 +72,8 @@ class Binder:
 
     def bind(self, window=None):
         if window is None:
-            from devparrot.core import ui
-            window = ui.window
+            from devparrot.core import session
+            window = session.window
         if window:
             for accel, func in self.tkBinds.items():
                 window.bind_class("devparrot", accel, func)
@@ -83,9 +82,8 @@ class Binder:
     def __delitem__(self, accel):
         from devparrot.core import session
         if TkEventMatcher.match(accel):
-            from devparrot.core import ui
-            if ui.window:
-                ui.window.unbind_class("devparrot", accel)
+            if session.window:
+                session.window.unbind_class("devparrot", accel)
             try:
                 del self.tkBinds[accel]
             except KeyError:

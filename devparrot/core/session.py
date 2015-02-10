@@ -26,6 +26,8 @@ from . import userLogging
 from .utils import event
 from . import help
 
+window = None
+helperManager = None
 _documentManager = None
 _workspace = None
 _globalContainer = None
