@@ -384,7 +384,7 @@ class ConfigEntry(_Constraint):
 
         value = token.value or ''
 
-        names = name.split('.')
+        names = value.split('.')
         sections, name = names[:-1], names[-1]
         section = session.config
         for sectionName in sections:
