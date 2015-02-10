@@ -19,13 +19,13 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import Tkinter,ttk
+import tkinter, tkinter.ttk
 
 from devparrot.core import session, ui
 from devparrot.core.modules import BaseModule
 
-class DocumentListView(ttk.Treeview):
-    class PseudoList(object):
+class DocumentListView(tkinter.ttk.Treeview):
+    class PseudoList:
         def __init__(self, ttkTreeView):
             self.view = ttkTreeView
 
@@ -48,12 +48,12 @@ class DocumentListView(ttk.Treeview):
 
 
     def __init__(self,parent):
-        ttk.Treeview.__init__(self,parent)
+        tkinter.ttk.Treeview.__init__(self,parent)
         self['columns'] = ('name')
         self.column('#0', width=30, stretch=False)
         self.heading('#0', text="id")
         self.heading('name', text="document")
-        self['selectmode'] =(Tkinter.BROWSE)
+        self['selectmode'] =(tkinter.BROWSE)
         self.bind('<Double-Button-1>', self.on_double_click)
         bindtags = list(self.bindtags())
         bindtags.insert(1,"devparrot")
@@ -64,7 +64,7 @@ class DocumentListView(ttk.Treeview):
         self.sort()
 
     def _add_document(self, document):
-        ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=('"%s"'%document.title))
+        tkinter.ttk.Treeview.insert(self, '', 'end', iid=document.get_path(), text="0", values=('"%s"'%document.title))
 
     def on_double_click(self, event):
         from devparrot.core import session

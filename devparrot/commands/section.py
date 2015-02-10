@@ -61,9 +61,9 @@ def section(rge, content):
         if startIndex.line == endIndex.line:
             yield model.get(str(startIndex), str(endIndex))
         else:
-            yield u"{}\n".format(model.get(str(startIndex), str(model.lineend(startIndex))))
-            for i in xrange(startIndex.line+1, endIndex.line):
-                yield u"{}\n".format(model.get("%d.0"%i, "%d.0 lineend"%i))
+            yield "{}\n".format(model.get(str(startIndex), str(model.lineend(startIndex))))
+            for i in range(startIndex.line+1, endIndex.line):
+                yield "{}\n".format(model.get("%d.0"%i, "%d.0 lineend"%i))
             yield model.get(str(model.linestart(endIndex)), str(endIndex))
 
     return gen()

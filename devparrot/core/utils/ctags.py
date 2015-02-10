@@ -90,7 +90,7 @@ class Tag:
                 }
         
         def pprint(self):
-            print "%(file)s:%(founders)s" % {'file': self.file, 'founders': ",".join(self.founders)}
+            print("%(file)s:%(founders)s" % {'file': self.file, 'founders': ",".join(self.founders)})
         
     
 
@@ -111,19 +111,19 @@ class Tag:
         }
         
     def pprint(self):
-        print self.name
+        print(self.name)
         for loc in self.locations:
             loc.pprint() 
 
 if __name__ == "__main__":
     import sys
-    print sys.argv
+    print(sys.argv)
     if len(sys.argv) == 1:
-        print "No arguments"
+        print("No arguments")
         sys.exit(0)
     ctagf = Ctags_file("tags")
     tag = ctagf.get_tag(sys.argv[1])
     if tag:
         tag.pprint()
     else:
-        print "No tag found"
+        print("No tag found")

@@ -19,14 +19,16 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-class ConstraintInstance(object):
+import collections
+
+class ConstraintInstance:
     def __init__(self, constraint, name):
         self.constraint = constraint
         self.name = name
 
     def __getattr__(self, name):
         attr = getattr(self.constraint, name)
-        if callable(attr):
+        if isinstance(attr, collections.Callable):
             def f(*args, **kwords):
                 return attr(*args, **kwords)
             return f

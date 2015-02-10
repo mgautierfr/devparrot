@@ -19,7 +19,8 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from variable import CbCaller
+from .variable import CbCaller
+import collections
 
 
 def hook_spawn(eventName, context):
@@ -46,7 +47,7 @@ class Event(CbCaller):
         hook_spawn(self.eventName, keys)
         self.notify(*args, **kwords)
 
-class EventSource(object):
+class EventSource:
     def __init__(self):
         self.__events = dict()
 
@@ -59,5 +60,5 @@ class EventSource(object):
 
 def auto_bind(obj, eventSource, name_prefix="on_", wrapper=lambda caller:caller):
     for name in dir(obj):
-        if name.startswith(name_prefix) and callable(getattr(obj, name)):
+        if name.startswith(name_prefix) and isinstance(getattr(obj, name), collections.Callable):
             eventSource.connect(name[len(name_prefix):], wrapper(getattr(obj, name)))

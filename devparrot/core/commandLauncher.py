@@ -19,12 +19,11 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import utils.event
 from devparrot.core.errors import InvalidName, UserCancel
 
 
 def add_command(name, command, parentSection=None):
-    import session
+    from . import session
     if parentSection is None:
         session.commands.add_command(name, command)
     else:
@@ -32,13 +31,13 @@ def add_command(name, command, parentSection=None):
 
 
 def add_macro(name, command):
-    import session
+    from . import session
     session.macros.add_command(name, command)
 
 
 def create_section(name=None):
     from devparrot.core.command.section import Section
-    import session
+    from . import session
     if not name:
         if session.commands is None:
             session.commands = Section(None, None)
@@ -59,7 +58,7 @@ class ListGenerator:
         self.index = 0
         self.bend = (len(l) == 0)
     
-    def next(self):
+    def __next__(self):
         if self.index >= len(self.l):
             self.bend = True
             return None
@@ -72,7 +71,7 @@ class ListGenerator:
     def end(self):
         return self.index >= len(self.l)
 
-class History(object):
+class History:
     def __init__(self):
         self.history = list()
         self.currentIndex = 0
@@ -151,7 +150,7 @@ class CommandLauncher:
             stream = PseudoStream()
             while True:
                 try:
-                    command = commands.next()
+                    command = next(commands)
                 except (StopIteration, UserCancel):
                     noMoreCommand = True
                     break

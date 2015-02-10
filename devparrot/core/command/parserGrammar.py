@@ -27,7 +27,7 @@ from picoparse import sep, sep1, NoMatch
 from picoparse.text import quote
 from picoparse import partial, tri, commit, fail
 
-from tokens import *
+from .tokens import *
 
 
 whitespace_char = partial(one_of, " \t")

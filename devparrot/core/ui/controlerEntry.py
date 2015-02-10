@@ -19,14 +19,14 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import Tkinter
+import tkinter
 from devparrot.core import session
 from devparrot.core.errors import *
 from devparrot.core.command.commandCompleter import ControlerEntryCompletion
 
-class ControlerEntry(Tkinter.Text):
+class ControlerEntry(tkinter.Text):
     def __init__(self, parent):
-        Tkinter.Text.__init__(self, parent, height=1)
+        tkinter.Text.__init__(self, parent, height=1)
         self.toClean = False
 
         self.bind('<FocusIn>', self.on_get_focus)
@@ -34,7 +34,7 @@ class ControlerEntry(Tkinter.Text):
 
         self.completionSystem = ControlerEntryCompletion(self)
 
-        self.pack(side=Tkinter.TOP, fill=Tkinter.X)
+        self.pack(side=tkinter.TOP, fill=tkinter.X)
 
         self.bind('<Control-Return>', lambda e: "continue")
 
@@ -92,7 +92,7 @@ class ControlerEntry(Tkinter.Text):
                 self.delete( 'insert -1 chars', 'insert' )
             self.completionSystem.update_completion()
             return "break"
-        char = event.char.decode('utf8')
+        char = event.char
         if char in set(session.config.get('wchars')+session.config.get('puncchars')+session.config.get('spacechars')):
             self.tag_remove( 'sel', '1.0', 'end' )
             self.mark_unset( 'sel.first', 'sel.last' )

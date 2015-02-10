@@ -19,10 +19,8 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import utils.event
-import session
 
-class DocumentManager(object):
+class DocumentManager:
     def __init__(self):
         self.documents = set()
     
@@ -56,11 +54,13 @@ class DocumentManager(object):
             raise KeyError
 
     def del_file(self, document):
+        from . import session
         self.documents.remove(document)
         session.eventSystem.event('documentDeleted')(document)
         return True
 
     def add_file(self, document):
+        from . import session
         self.documents.add(document)
         session.eventSystem.event('documentAdded')(document)
     

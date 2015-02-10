@@ -19,8 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import Tkinter
-import ttk
+import tkinter, tkinter.ttk
 from devparrot.core.errors import *
 import itertools
 
@@ -30,7 +29,7 @@ def escape_token(value):
             value = value.replace(specialChar, '\\'+specialChar)
     return value
 
-class BaseCompletion(object):
+class BaseCompletion:
     def __init__(self, startIndex):
         self.startIndex = startIndex
 
@@ -53,7 +52,7 @@ class BaseCompletion(object):
         """return the start index of the completion"""
         return self.startIndex
 
-class CompletionSystem(object):
+class CompletionSystem:
     """
     CompletionSystem Class allow a text widget to be completed.
     This class is abstract. It is intent to be inherite to provide how to find posible completion and to insert the text as wanted
@@ -72,17 +71,17 @@ class CompletionSystem(object):
 
     def _create_listboxWidget(self):
         self.displayed = False
-        self.toplevel = Tkinter.Toplevel()
+        self.toplevel = tkinter.Toplevel()
         self.toplevel.withdraw()
         self.toplevel.wm_overrideredirect(True)
 
-        self.listbox = Tkinter.Listbox(self.toplevel, activestyle='none')
-        self.listbox.pack(expand=True, fill=Tkinter.BOTH, side=Tkinter.BOTTOM)
+        self.listbox = tkinter.Listbox(self.toplevel, activestyle='none')
+        self.listbox.pack(expand=True, fill=tkinter.BOTH, side=tkinter.BOTTOM)
         self.toplevel.pack_propagate(True)
         self.toplevel.bind_class("completion_%d"%id(self), '<Key>', self._on_event)
         self.toplevel.bind_class("completion_%d"%id(self), '<FocusOut>', self.on_lost_focus)
 
-        self.label = ttk.Label(self.toplevel)
+        self.label = tkinter.ttk.Label(self.toplevel)
 
     def _set_position(self):
         x, y, width, height = self.textWidget.bbox('insert')
@@ -170,11 +169,11 @@ class CompletionSystem(object):
         if not labelText:
             self.label.pack_forget()
         else:
-            self.label.pack(expand=True, fill=Tkinter.X, anchor="w", side=Tkinter.TOP)
+            self.label.pack(expand=True, fill=tkinter.X, anchor="w", side=tkinter.TOP)
 
         self.listbox.delete('0', 'end')
         if self.completions:
-            self.listbox.pack(expand=True, fill=Tkinter.BOTH, side=Tkinter.BOTTOM)
+            self.listbox.pack(expand=True, fill=tkinter.BOTH, side=tkinter.BOTTOM)
             for v in self.completions:
                 self.listbox.insert('end', v.description())
         else:

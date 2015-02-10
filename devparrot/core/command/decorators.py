@@ -21,7 +21,7 @@
 from devparrot.core.command.wrappers import *
 from devparrot.core.constraints import Stream
 
-class Command(object):
+class Command:
     def __init__(self, **kwords):
         self._section = None
         self._name = None
@@ -93,8 +93,8 @@ class MasterCommandMeta(type):
         return _class
 
 
-class MasterCommand(object):
-    __metaclass__ = MasterCommandMeta
+class MasterCommand(metaclass=MasterCommandMeta):
+    pass
 
 
 class SubCommand(Command):

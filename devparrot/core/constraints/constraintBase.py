@@ -2,6 +2,7 @@
 from devparrot.core.completion import BaseCompletion
 from devparrot.core.errors import UserCancel, NoDefault
 from devparrot.core.command.tokens import New
+from functools import reduce
 
 class DoubleStringCompletion(BaseCompletion):
     def __init__(self, startIndex, value, final, already):
@@ -66,12 +67,12 @@ type_to_completion = {
 }
 
 
-class _Constraint(object):
-    class _NoDefault(object):
+class _Constraint:
+    class _NoDefault:
         def __call__(self):
             raise NoDefault()
 
-        def __nonzero__(self):
+        def __bool__(self):
             return False
 
     def __init__(self, optional=False, multiple=False, default=None, askUser=False, help=""):

@@ -21,7 +21,7 @@
 
 __all__ = ['Command', 'Alias', 'MasterCommand', 'SubCommand', 'Macro']
 
-from decorators import Command, Alias, MasterCommand, SubCommand, Macro
+from .decorators import Command, Alias, MasterCommand, SubCommand, Macro
 
 def load():
     from pwd import getpwuid
@@ -53,7 +53,7 @@ def load_module(path, name):
 
     try:
         fp, pathname, description = imp.find_module(name, [path])
-    except ImportError, err:
+    except ImportError as err:
         session.logger.error("can't import module named %s in dir %s", name, path)
         return
 
@@ -63,4 +63,4 @@ def load_module(path, name):
 
 def arg_escape(arg):
     import codecs
-    return codecs.encode(arg, "unicode_escape")
+    return codecs.encode(arg, "unicode_escape").decode()

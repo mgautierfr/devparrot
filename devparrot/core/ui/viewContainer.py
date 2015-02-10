@@ -19,13 +19,13 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import Tkinter, ttk, Tkdnd
+import tkinter, tkinter.ttk, tkinter.dnd
 from devparrot.core import session
 from devparrot.core.errors import *
 
 from collections import OrderedDict
 
-class ContainerChild(object):
+class ContainerChild:
     def __init__(self):
         self.parentContainer = None
     
@@ -34,11 +34,11 @@ class ContainerChild(object):
     def set_parentContainer(self, parent):
         self.parentContainer = parent
 
-class TopContainer(Tkinter.Frame, ContainerChild):
+class TopContainer(tkinter.Frame, ContainerChild):
     def __init__(self):
         ContainerChild.__init__(self)
-        Tkinter.Frame.__init__(self, session.get_globalContainer()) 
-        self.pack(expand=True, fill=ttk.Tkinter.BOTH)
+        tkinter.Frame.__init__(self, session.get_globalContainer())
+        self.pack(expand=True, fill=tkinter.BOTH)
         session.get_globalContainer().dnd_accept = self.dnd_accept
         self.init_default()
     
@@ -66,7 +66,7 @@ class TopContainer(Tkinter.Frame, ContainerChild):
     def attach_child(self, container):
         self.container = container
         self.container.set_parentContainer(self)
-        self.container.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)
+        self.container.pack(in_=self, expand=True, fill=tkinter.BOTH)
         try:
             container.dnd_register()
         except AttributeError:
@@ -85,18 +85,18 @@ class TopContainer(Tkinter.Frame, ContainerChild):
         self.container.set_as_current()
 
 
-class SplittedContainer(Tkinter.PanedWindow,ContainerChild):
+class SplittedContainer(tkinter.PanedWindow,ContainerChild):
     def __init__(self, isVertical):
         ContainerChild.__init__(self)
-        Tkinter.PanedWindow.__init__(self, session.get_globalContainer(),
-                                     orient=Tkinter.VERTICAL if isVertical else Tkinter.HORIZONTAL,
+        tkinter.PanedWindow.__init__(self, session.get_globalContainer(),
+                                     orient=tkinter.VERTICAL if isVertical else tkinter.HORIZONTAL,
                                      sashrelief="raised",
                                      borderwidth=0,
                                      sashwidth=3,
                                      opaqueresize=False)
-        self.uiSubContainer1 = ttk.Frame(self, borderwidth=0, padding=0)
+        self.uiSubContainer1 = tkinter.ttk.Frame(self, borderwidth=0, padding=0)
         self.add(self.uiSubContainer1)
-        self.uiSubContainer2 = ttk.Frame(self, borderwidth=0, padding=0)
+        self.uiSubContainer2 = tkinter.ttk.Frame(self, borderwidth=0, padding=0)
         self.add(self.uiSubContainer2)
         self.container1 = None
         self.container2 = None
@@ -124,11 +124,11 @@ class SplittedContainer(Tkinter.PanedWindow,ContainerChild):
             pass
         if self.container1 == None:
             self.container1 = child
-            child.pack(in_=self.uiSubContainer1, expand=True, fill=ttk.Tkinter.BOTH)
+            child.pack(in_=self.uiSubContainer1, expand=True, fill=tkinter.BOTH)
             child.set_parentContainer(self)
         elif self.container2 == None:
             self.container2 = child
-            child.pack(in_=self.uiSubContainer2, expand=True, fill=ttk.Tkinter.BOTH)
+            child.pack(in_=self.uiSubContainer2, expand=True, fill=tkinter.BOTH)
             child.set_parentContainer(self)
     
     def detach_child(self, childToDetach):
@@ -185,8 +185,8 @@ def on_drag_begin_notebook(event):
     except TclError:
         return
     if documentViewIndex != "":
-        documentView = notebook._children.keys()[documentViewIndex]
-        Tkdnd.dnd_start(documentView, event)
+        documentView = list(notebook._children.keys())[documentViewIndex]
+        tkinter.dnd.dnd_start(documentView, event)
 
 def on_button_pressed(event):
     return "break"
@@ -197,23 +197,22 @@ def on_button_released(event):
     except TclError:
         pass
 
-class NotebookContainer(ttk.Notebook, ContainerChild):
+class NotebookContainer(tkinter.ttk.Notebook, ContainerChild):
     notebookList = set()
     current = None
     initialized = False
 
     @classmethod
     def _set_bind_class(cls):
-        from devparrot.core import ui
         if not cls.initialized:
-            ui.window.bind_class("Drag", "<Button-1><Button1-Motion>", on_drag_begin_notebook)
-            ui.window.bind_class("Drag", "<Button-1>", on_button_pressed)
-            ui.window.bind_class("Drag", "<ButtonRelease-1>", on_button_released)
+            session.window.bind_class("Drag", "<Button-1><Button1-Motion>", on_drag_begin_notebook)
+            session.window.bind_class("Drag", "<Button-1>", on_button_pressed)
+            session.window.bind_class("Drag", "<ButtonRelease-1>", on_button_released)
             cls.initialized = True
     
     def __init__(self):
         ContainerChild.__init__(self)
-        ttk.Notebook.__init__(self, session.get_globalContainer(), padding=0)
+        tkinter.ttk.Notebook.__init__(self, session.get_globalContainer(), padding=0)
         self._children = OrderedDict()
         self.drag_handler = None
         self._set_bind_class()
@@ -223,14 +222,14 @@ class NotebookContainer(ttk.Notebook, ContainerChild):
 
     def select(self, *args):
         if not args:
-            return ttk.Notebook.select(self)
+            return tkinter.ttk.Notebook.select(self)
         else:
-            selected = ttk.Notebook.select(self)
+            selected = tkinter.ttk.Notebook.select(self)
             if selected :
                 self._oldSelected = self.nametowidget(selected)
             else:
                 self._oldSelected = None
-            return ttk.Notebook.select(self, *args)
+            return tkinter.ttk.Notebook.select(self, *args)
     
     def dnd_register(self):
         NotebookContainer.notebookList.add(self)
@@ -284,7 +283,7 @@ class NotebookContainer(ttk.Notebook, ContainerChild):
             self.detach_child(win)
 
     def lift(self):
-        ttk.Notebook.lift(self, self.parentContainer)
+        tkinter.ttk.Notebook.lift(self, self.parentContainer)
         for win in self._children:
             win.lift()
     
@@ -314,7 +313,7 @@ class NotebookContainer(ttk.Notebook, ContainerChild):
         except TclError:
             return
         if documentViewIndex != "":
-            session.commands.close(self._children.keys()[documentViewIndex].document)
+            session.commands.close(list(self._children.keys())[documentViewIndex].document)
 
 def split(documentView, direction, first=True):
     notebook = documentView.get_parentContainer()
@@ -438,7 +437,7 @@ def get_neighbour(documentView, position):
             else:
                 index -= 1
             index %= len(documentView._children)
-            return documentView._children.keys()[index]
+            return list(documentView._children.keys())[index]
     horizontal = position in ("left", "right")
     first      = position in ("left", "top")
 
@@ -457,10 +456,9 @@ def get_neighbour(documentView, position):
 
 
 
-class DragHandler(ttk.Tkinter.Toplevel):
+class DragHandler(tkinter.Toplevel):
     def __init__(self, container):
-        from devparrot.core import ui
-        ttk.Tkinter.Toplevel.__init__(self, ui.window)
+        tkinter.Toplevel.__init__(self, session.window)
         self.container = container
         self.init()
         

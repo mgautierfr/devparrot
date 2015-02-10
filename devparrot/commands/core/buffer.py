@@ -45,10 +45,12 @@ A buffer is not attach to any file and can't be modified"""
 
     def read_line():
         try:
-            line = content.next()
+            line = next(content)
             while line is not None:
-                if isinstance(line, basestring):
+                if isinstance(line, str):
                     model.insert("insert", line)
+                elif isinstance(line, bytes):
+                    model.insert("insert", line.decode())
                 else:
                     for tag, subcontent in line:
                         if tag:
@@ -56,7 +58,7 @@ A buffer is not attach to any file and can't be modified"""
                         else:
                             tags = []
                         model.insert("insert", subcontent, tags=tags)
-                line = content.next()
+                line = next(content)
             model.after(100, read_line)
         except StopIteration:
             pass

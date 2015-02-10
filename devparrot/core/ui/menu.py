@@ -19,16 +19,16 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import Tkinter
+import tkinter
 from devparrot.core import session
 from functools import partial
 from devparrot.core.errors import *
 from devparrot.core.configLoader import ReadOnlyOption
    
 
-class Menu(Tkinter.Menu):
+class Menu(tkinter.Menu):
     def __init__(self, parent, entries=None, **kw):
-        Tkinter.Menu.__init__(self, parent, **kw)
+        tkinter.Menu.__init__(self, parent, **kw)
         self.entries = []
         if entries is None:
             entries = []
@@ -36,9 +36,9 @@ class Menu(Tkinter.Menu):
 
     def create_entry(self, where, value):
         if where >= len(self.children):
-            tkadd = partial(Tkinter.Menu.add, self)
+            tkadd = partial(tkinter.Menu.add, self)
         else:
-            tkadd = partial(Tkinter.Menu.insert, self, where)
+            tkadd = partial(tkinter.Menu.insert, self, where)
         if value == "---":
             tkadd('separator')
             value = ("---", "---")
@@ -79,7 +79,7 @@ class Menu(Tkinter.Menu):
     def __iter__(self):
         return iter(self.entries)
 
-class MenuEntry(object):
+class MenuEntry:
     def __init__(self, cmd):
         self.cmd = cmd
 

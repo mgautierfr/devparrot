@@ -586,7 +586,7 @@ to_test_invalid = [
     "1function"
 ]
 
-@pytest.fixture(params=to_test.keys())
+@pytest.fixture(params=list(to_test.keys()))
 def string_to_test(request):
     return request.param
 

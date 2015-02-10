@@ -48,8 +48,8 @@ tagSet  = {"tagName" , "tagName2" }
 ])
 def test_parse_index(input, output):
     parsed = parse_something(input, markSet, tagSet)
-    print parsed
-    print output
+    print(parsed)
+    print(output)
     assert parsed == output
 
 
@@ -87,7 +87,7 @@ def test_parse_index(input, output):
 ])
 def test_parse_range(input, output):
 	parsed = parse_something(input, markSet, tagSet)
-	print parsed
-	print output
+	print(parsed)
+	print(output)
 	assert parsed == output
 

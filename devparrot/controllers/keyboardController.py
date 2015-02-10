@@ -19,7 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import ttk
+import tkinter
 from devparrot.core.controller import Controller, bind
 from devparrot.core.utils.posrange import Index, Tag, Mark, LineStart, LineEnd
 
@@ -52,17 +52,17 @@ class KeyboardController(Controller):
         if event.widget.readOnly:
             return
         event.widget.sel_delete()
-        count = ttk.Tkinter.IntVar()
+        count = tkinter.IntVar()
         text = "\n"
         insert = Mark('insert').resolve(event.widget)
         linestart =  LineStart(insert).resolve(event.widget)
         document = event.widget.document
         if document.get_config('remove_tail_space'):
-            match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*$", str(linestart), regexp=True)
+            match_start = tkinter.Text.search(event.widget, "[ \t]*$", str(linestart), regexp=True)
             if match_start:
                 event.widget.delete(match_start, LineEnd(insert).resolve(event.widget))
         if document.get_config('auto_indent'):
-            match_start = ttk.Tkinter.Text.search(event.widget, "[ \t]*" , str(linestart), stopindex=str(insert), regexp=True, count=count)
+            match_start = tkinter.Text.search(event.widget, "[ \t]*" , str(linestart), stopindex=str(insert), regexp=True, count=count)
             if match_start:
                 match_end = Index(insert.line, min(count.get(), insert.col))
                 text += event.widget.get(str(match_start), str(match_end))
@@ -75,9 +75,9 @@ class KeyboardController(Controller):
         if event.widget.readOnly:
             return
         document = event.widget.document
-        tabs = ['\t'] + [' '*i for i in xrange(document.get_config('tab_width'), 0, -1)]
+        tabs = ['\t'] + [' '*i for i in range(document.get_config('tab_width'), 0, -1)]
         start, stop = Tag('sel').resolve(event.widget)
-        for line in xrange(start.line, stop.line+1):
+        for line in range(start.line, stop.line+1):
             for tab in tabs:
                 if event.widget.get( '%d.0'%line, '%d.%d'%(line, len(tab)) ) == tab:
                     event.widget.delete('%d.0'%line, '%d.%d'%(line, len(tab)))
@@ -96,7 +96,7 @@ class KeyboardController(Controller):
             # no selection
             event.widget.insert( 'insert', tab )
         else:
-            for line in xrange(start.line, stop.line+1):
+            for line in range(start.line, stop.line+1):
                 event.widget.insert( '%d.0'%line, tab)
         return "break"
     

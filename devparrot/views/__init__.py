@@ -19,4 +19,4 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import textView
+from . import textView

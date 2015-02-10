@@ -19,12 +19,11 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from ui.documentView import DocumentView
+from .ui.documentView import DocumentView
 from devparrot.views.textView import TextView
 from devparrot.core import session
 
-import utils.event
-from utils.variable import Property, Variable, HasProperty
+from .utils.variable import Property, Variable, HasProperty
 from devparrot.models.sourceBuffer import SourceBuffer
 from devparrot.core import mimemapper
 
@@ -72,6 +71,9 @@ class Document(HasProperty):
         if other == None:
             return False
         return self.documentSource == other.documentSource
+
+    def __hash__(self):
+        return hash(self.documentSource)
 
     def set_view(self, view):
         view.set_model(self.model)
@@ -125,7 +127,7 @@ class Document(HasProperty):
     def on_focus_in_event(self, event):
         res = self.documentSource.need_reload()
         if res:
-            import ui
+            from . import ui
             answer = ui.helper.ask_questionYesNo("File content changed",
                  "The content of file %s has changed.\nDo you want to reload it?"%self.title)
             if answer:

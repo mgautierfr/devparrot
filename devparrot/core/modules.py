@@ -29,7 +29,7 @@ def create_auto_call(module, attr):
             return attr(*args, **kwords)
     return auto_call
 
-class BaseModule(object):
+class BaseModule:
     def __init__(self, name):
         self.name = name
         self.active = False
@@ -61,7 +61,7 @@ def update_config(config):
         module.update_config(config)
 
 def load():
-    import configLoader
+    from . import configLoader
     # Note: data is zest.releaser specific: we want to pass
     # something to the plugin
     for entrypoint in pkg_resources.iter_entry_points(group='devparrot.module'):

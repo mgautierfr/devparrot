@@ -1,8 +1,8 @@
 
-import Tkinter
-from range import Range
+import tkinter
+from .range import Range
 
-class StartEndRange(object):
+class StartEndRange:
     is_index = False
     def __init__(self, start, end):
         self.start = start
@@ -17,7 +17,7 @@ class StartEndRange(object):
     def __str__(self):
         return "<RANGE %s %s>"%(self.start, self.end)
 
-class Line(object):
+class Line:
     is_index = False
     def __init__(self, index):
         self.index = index
@@ -35,7 +35,7 @@ class Line(object):
     def __str__(self):
         return "<LINE %s>"%(self.index)
 
-class Word(object):
+class Word:
     is_index = False
     def __init__(self, index):
         self.index = index
@@ -47,7 +47,7 @@ class Word(object):
     def __eq__(self, other):
         return (self.__class__, self.index) == (other.__class__, other.index)
 
-class CharDelta(object):
+class CharDelta:
     is_index = True
     def __init__(self, index, number):
         self.index = index
@@ -63,7 +63,7 @@ class CharDelta(object):
     def __str__(self):
         return "<CHARDELTA %s %d>"%(self.index, self.number)
 
-class LineDelta(object):
+class LineDelta:
     is_index = True
     def __init__(self, index, number):
         self.index = index
@@ -79,7 +79,7 @@ class LineDelta(object):
     def __str__(self):
         return "<LINEDELTA %s %d>"%(self.index, self.number)
 
-class WordStart(object):
+class WordStart:
     is_index = True
     def __init__(self, index):
         self.index = index
@@ -87,8 +87,8 @@ class WordStart(object):
     def resolve(self, model):
         from devparrot.core import session
         start_search = self.index.resolve(model)
-        regex = u"[%(wchars)s]+[^%(wchars)s]*"%{'wchars':model.document.get_config('wchars')}
-        match_start = Tkinter.Text.search(model, regex, str(start_search), regexp=True, backwards=True)
+        regex = "[%(wchars)s]+[^%(wchars)s]*"%{'wchars':model.document.get_config('wchars')}
+        match_start = tkinter.Text.search(model, regex, str(start_search), regexp=True, backwards=True)
         return model.index(match_start)
 
     def __eq__(self, other):
@@ -97,7 +97,7 @@ class WordStart(object):
     def __str__(self):
         return "<WORDSTART %s>"%(self.index)
 
-class WordEnd(object):
+class WordEnd:
     is_index = True
     def __init__(self, index):
         self.index = index
@@ -105,9 +105,9 @@ class WordEnd(object):
     def resolve(self, model):
         from devparrot.core import session
         start_search = self.index.resolve(model)
-        regex = u"[^%(wchars)s]*[%(wchars)s]+"%{'wchars':model.document.get_config('wchars')}
-        count = Tkinter.IntVar()
-        match_start = Tkinter.Text.search(model, regex, str(start_search), regexp=True, count=count)
+        regex = "[^%(wchars)s]*[%(wchars)s]+"%{'wchars':model.document.get_config('wchars')}
+        count = tkinter.IntVar()
+        match_start = tkinter.Text.search(model, regex, str(start_search), regexp=True, count=count)
         return model.index("%s + %d c"%(match_start, count.get()))
     
     def __eq__(self, other):
@@ -116,7 +116,7 @@ class WordEnd(object):
     def __str__(self):
         return "<WORDEND %s>"%(self.index)
 
-class LineStart(object):
+class LineStart:
     is_index = True
     def __init__(self, index):
         self.index = index
@@ -131,7 +131,7 @@ class LineStart(object):
     def __str__(self):
         return "<LINESTART %s>"%(self.index)
 
-class LineEnd(object):
+class LineEnd:
     is_index = True
     def __init__(self, index):
         self.index = index
@@ -146,7 +146,7 @@ class LineEnd(object):
     def __str__(self):
         return "<LINEEND %s>"%(self.index)
 
-class RangePos(object):
+class RangePos:
     is_index = True
     def __init__(self, range, pos):
         self.range = range
@@ -169,7 +169,7 @@ class RangePos(object):
     def __str__(self):
         return "<RANGEPOS %s %s>"%(self.range, self.pos)
 
-class RegexRange(object):
+class RegexRange:
     is_index = False
     def __init__(self, index, forward, regex):
         self.index = index

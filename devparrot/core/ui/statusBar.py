@@ -19,27 +19,27 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import Tkinter, ttk
+import tkinter, tkinter.ttk
 import logging
 from devparrot.core import session, userLogging
 
-class StatusBar(Tkinter.Frame, logging.Handler):
+class StatusBar(tkinter.Frame, logging.Handler):
     def __init__(self, parent):
-        Tkinter.Frame.__init__(self, parent)
+        tkinter.Frame.__init__(self, parent)
         logging.Handler.__init__(self)
-        self.pack(side=Tkinter.BOTTOM, fill=Tkinter.X)
+        self.pack(side=tkinter.BOTTOM, fill=tkinter.X)
         self['relief'] = 'sunken'
         session.userLogger.addHandler(self)
 
-        self.label = Tkinter.Label(self)
-        self.label.pack(side='left', fill=Tkinter.BOTH, expand=True)
+        self.label = tkinter.Label(self)
+        self.label.pack(side='left', fill=tkinter.BOTH, expand=True)
         self.defaultColor = self['background']
         self.label['anchor'] = 'nw'
 
-        separator = ttk.Separator(self, orient="vertical")
+        separator = tkinter.ttk.Separator(self, orient="vertical")
         separator.pack(side='left', fill='y')
 
-        self.insertLabel = ttk.Label(self)
+        self.insertLabel = tkinter.ttk.Label(self)
         self.insertLabel.pack(side='right', expand=False, fill="none")
         session.eventSystem.connect('mark_set', self.on_mark_set)
 

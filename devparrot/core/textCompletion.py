@@ -21,7 +21,7 @@
 
 from devparrot.core.completion import BaseCompletion, CompletionSystem
 from devparrot.core import session
-import Tkinter
+import tkinter
 import re
 
 completionMap = {}
@@ -104,8 +104,8 @@ class Completion(BaseCompletion):
     def final(self):
         return True
 
-class BaseCompletor(object):
-    __metaclass__ = BaseCompletorMeta
+class BaseCompletor(metaclass=BaseCompletorMeta):
+    pass
 
 class BasicTextCompletor(BaseCompletor):
     def __init__(self, model):
@@ -117,7 +117,7 @@ class BasicTextCompletor(BaseCompletor):
         separators = separators.replace("\\", "\\\\")
         separators = separators.replace("]", "\\]")
         regex =  r"[%s]"%separators
-        start_sep = Tkinter.Text.search(self.textWidget, regex, "insert", stopindex="1.0", regexp=True, backwards=True)
+        start_sep = tkinter.Text.search(self.textWidget, regex, "insert", stopindex="1.0", regexp=True, backwards=True)
         if start_sep:
             start_index = self.textWidget.index("%s +1c"%start_sep)
         else:

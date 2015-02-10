@@ -19,7 +19,8 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import Tkinter
+import tkinter
+import collections
 
 PREFIX = "tkController"
 
@@ -29,13 +30,13 @@ def bind(*events):
         return func
     return decorator
 
-class Modifiers(object):
-    _shift, _lock, _ctrl, _alt, _numlock, _meta, _super, _altgr, _button1, _button2, _button3, _unknown1, _unknown2, _unknown3, _unknown4 = (2**i for i in xrange(0, 15))
+class Modifiers:
+    _shift, _lock, _ctrl, _alt, _numlock, _meta, _super, _altgr, _button1, _button2, _button3, _unknown1, _unknown2, _unknown3, _unknown4 = (2**i for i in range(0, 15))
     # _unknown2 seems to be activate when we are in alternate keymap (in linux/X/gnome)
     def __init__(self, event):
         state = event.state
         self.modifiers = set()
-        for level in [2**i for i in xrange(15, -1, -1)]:
+        for level in [2**i for i in range(15, -1, -1)]:
             if state >= level:
                 self.modifiers.add(level)
                 state -= level
@@ -55,19 +56,17 @@ class MetaController(type):
         return _class
             
 
-class Controller(object):
-    __metaclass__ = MetaController
-
+class Controller(metaclass=MetaController):
     def __init__(self):
         self.tag = str(self.__class__.__name__)
         self.configure()
     
     def configure(self):
         def bind(event, handler):
-            Tkinter._default_root.bind_class(self.tag, event, handler)
+            tkinter._default_root.bind_class(self.tag, event, handler)
         for key in dir(self):
             method = getattr(self, key)
-            if hasattr(method, "tkevent") and callable(method):
+            if hasattr(method, "tkevent") and isinstance(method, collections.Callable):
                 for eventSequence in method.tkevent:
                     bind(eventSequence,
                            lambda event, method=method: method(event, Modifiers(event))
@@ -104,7 +103,7 @@ def load_module(path, name):
 
     try:
         fp, pathname, description = imp.find_module(name, [path])
-    except ImportError, err:
+    except ImportError as err:
         session.logger.error("can't import module named %s in dir %s", name, path)
         return
 

@@ -19,10 +19,4 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import configLoader
-import session
-import ui
-import command
-import modules
-import controller
-import help
+from . import configLoader, session, ui, command, modules, controller, help

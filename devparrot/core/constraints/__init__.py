@@ -22,13 +22,13 @@
 import os
 
 # import for other import
-from constraintInstance import ConstraintInstance
+from .constraintInstance import ConstraintInstance
 
 
-from constraintBase import _Constraint, type_to_completion
+from .constraintBase import _Constraint, type_to_completion
 from devparrot.core.errors import UserCancel
 
-class Stream(object):
+class Stream:
     def __init__(self, help=""):
         self.help = help
 
@@ -147,7 +147,7 @@ class Boolean(_Constraint):
             
 class File(_Constraint):
     """Must be a file path"""
-    OPEN, SAVE, NEW = xrange(3)
+    OPEN, SAVE, NEW = range(3)
     def __init__(self, mode=OPEN, optional=False, multiple=False, default=None, help=""):
         try:
             (x for x in mode)
@@ -242,7 +242,7 @@ class Index(_Constraint):
 
     def check(self, text):
         from devparrot.core.session import get_documentManager, get_currentDocument
-        from index import parse_something, NoMatch
+        from .index import parse_something, NoMatch
         splitted = text.split("@")
         if len(splitted) > 1:
             try:
@@ -289,7 +289,7 @@ class Range(_Constraint):
 
     def check(self, text):
         from devparrot.core.session import get_documentManager, get_currentDocument
-        from index import parse_something, NoMatch
+        from .index import parse_something, NoMatch
         splitted = text.split("@")
         if len(splitted) > 1:
             document = get_documentManager().get_file_from_title(splitted[0])

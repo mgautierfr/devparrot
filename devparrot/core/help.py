@@ -18,7 +18,7 @@
 #
 #    Copyright 2011-2014 Matthieu Gautier
 
-class HelpSection(object):
+class HelpSection:
     def __init__(self, name):
         self.name = name
         self.entries = {}
@@ -42,7 +42,7 @@ class HelpSection(object):
         for entry in self.entries:
             yield [(None, " - "), ("autocmd.help %s"%entry, entry), (None, "\n")]
 
-class DevparrotHelp(object):
+class DevparrotHelp:
     def get_name(self):
         return "devparrot"
 

@@ -19,8 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import ttk
-from ttk import Tkinter
+import tkinter, tkinter.ttk
 
 import re
 
@@ -28,21 +27,21 @@ from devparrot.core import session, utils
 from devparrot.core.utils.posrange import Index, Start, Range
 from devparrot.core.errors import *
 
-import rangeInfo
+from . import rangeInfo
 
 
 def insert_char(event):
     if event.widget and event.char:
         event.widget.insert('insert', event.char)
 
-class LineInfo(object):
+class LineInfo:
     def __init__(self, lenght):
         self.len = lenght
 
     def __repr__(self):
         return "<LineInfo, len=%d>"%self.len
 
-class ModelInfo(object):
+class ModelInfo:
     def __init__(self):
         self.reinit()
 
@@ -165,9 +164,9 @@ class ModelInfo(object):
             distance += self.lineInfos[i].len + 1
         return distance
 
-class TextModel(Tkinter.Text, ModelInfo):
+class TextModel(tkinter.Text, ModelInfo):
     def __init__(self):
-        Tkinter.Text.__init__(self,session.get_globalContainer(),
+        tkinter.Text.__init__(self,session.get_globalContainer(),
                                   tabstyle="wordprocessor")
         ModelInfo.__init__(self)
 
@@ -224,14 +223,14 @@ class TextModel(Tkinter.Text, ModelInfo):
    
     def sel_isAnchorSet(self):
         try:
-            Tkinter.Text.index(self, 'sel.anchor')
+            tkinter.Text.index(self, 'sel.anchor')
             return True
         except TclError:
             return False
 
     def sel_isSelection(self):
         try:
-            Tkinter.Text.index(self, 'sel.first')
+            tkinter.Text.index(self, 'sel.first')
             return True
         except TclError:
             return False
@@ -273,7 +272,7 @@ class TextModel(Tkinter.Text, ModelInfo):
             split = (int(_split[0]), int(_split[1]))
         except ValueError:
             try:
-                index = Tkinter.Text.index(self, tkIndex)
+                index = tkinter.Text.index(self, tkIndex)
                 _split = index.split('.')
                 split = (int(_split[0]), int(_split[1]))
             except TclError:
@@ -293,25 +292,25 @@ class TextModel(Tkinter.Text, ModelInfo):
     def calculate_distance(self, first, second):
         if first.line == second.line:
             return second.col - first.col
-        return self.tk.call(self._w, "count", "-chars", str(first), str(second))
+        return self.count(str(first), str(second), "chars")
 
     # Overloads
     def mark_set( self, name, index ):
         index = self.index(index)
-        Tkinter.Text.mark_set(self, name, str(index) )
+        tkinter.Text.mark_set(self, name, str(index) )
         session.eventSystem.event('mark_set')(self, name, index)
         if name == 'insert':
             self.sel_update()
 
     def tag_add(self, tag_name, *indexlist):
         indexlist = [str(i) for i in indexlist]
-        Tkinter.Text.tag_add(self, tag_name, *indexlist)
+        tkinter.Text.tag_add(self, tag_name, *indexlist)
         if tag_name.startswith("autocmd."):
             def autocmd(event, cmd=tag_name[8:]):
                 from devparrot.core import session
                 session.commandLauncher.run_command_nofail(cmd)
             self.tag_bind(tag_name, "<Control-1>", autocmd)
-            Tkinter.Text.tag_add(self,"autocmd_link", *indexlist)
+            tkinter.Text.tag_add(self,"autocmd_link", *indexlist)
         
     def insert(self, index, text, **kword):
         index = self.index(index)
@@ -330,7 +329,7 @@ class TextModel(Tkinter.Text, ModelInfo):
             tag = " ".join("{%s}"%t for t in set(tags))
         except KeyError:
             tag = ""
-        Tkinter.Text.insert(self, str(index), text, tag)
+        tkinter.Text.insert(self, str(index), text, tag)
         ModelInfo.insert(self, index, text)
         if kword.get('updateUndo', True):
             self.add_change(type='insert', index=index, text=text)
@@ -343,7 +342,7 @@ class TextModel(Tkinter.Text, ModelInfo):
         index1 = self.index(index1)
         index2 = self.index(index2)
         text = self.get(str(index1), str(index2))
-        ttk.Tkinter.Text.delete(self, str(index1), str(index2))
+        tkinter.Text.delete(self, str(index1), str(index2))
         ModelInfo.delete(self, index1, index2)
         if updateUndo:
             self.add_change(type='delete', index=index1, oldText=text)
@@ -354,7 +353,7 @@ class TextModel(Tkinter.Text, ModelInfo):
         index1 = self.index(index1)
         index2 = self.index(index2)
         oldText = self.get(str(index1), str(index2))
-        self.tk.call((self._w, 'replace', str(index1), str(index2), text))
+        tkinter.Text.replace(self, str(index1), str(index2), text)
         ModelInfo.delete(self, index1, index2)
         ModelInfo.insert(self, index1, text)
         if updateUndo:
@@ -414,9 +413,9 @@ class TextModel(Tkinter.Text, ModelInfo):
 
     def set_text(self, content):
         def fast_insert(text):
-            Tkinter.Text.insert(self, "end", text)
+            tkinter.Text.insert(self, "end", text)
             ModelInfo.insert(self, self.getend(), text)
-        Tkinter.Text.delete(self, "1.0", "end")
+        tkinter.Text.delete(self, "1.0", "end")
         self.reinit()
 
         oldLine = ""
@@ -426,7 +425,7 @@ class TextModel(Tkinter.Text, ModelInfo):
                 oldLine = line
         #remove last "\n" as tkText add one automaticaly
         if oldLine.endswith("\n"):
-            ttk.Tkinter.Text.delete(self, "end -1c", "end")
+            tkinter.Text.delete(self, "end -1c", "end")
             ModelInfo.delete(self, self.index("end -1c"), self.index("end"))
 
         #self.rangeInfo.fast_parse_text(self.get("1.0", "end"))
@@ -440,15 +439,15 @@ class TextModel(Tkinter.Text, ModelInfo):
         if not text:
             return
 
-        count = ttk.Tkinter.IntVar()
-        match_start = Tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count) 
+        count = tkinter.IntVar()
+        match_start = tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count) 
         while match_start:
             match_end = "{}+{}c".format(match_start, count.get())
             yield Range(self.index(match_start), self.index(match_end))
             if not count.get():
                 # avoid infinit loop if regex match 0 len text.
                 break
-            match_start = Tkinter.Text.search(self, text, match_end, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count)
+            match_start = tkinter.Text.search(self, text, match_end, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count)
 
 class SourceBuffer(TextModel):
     def __init__(self, document):
@@ -487,7 +486,7 @@ class SourceBuffer(TextModel):
         self.configure(cursor="")
 
     def on_configChanged(self, var, key, old):
-        import tkFont
+        import tkinter.font
         mimetype = self.document.get_config_keys()
         if var.name == "currentLine_tag_color":
             self.tag_configure('currentLine_tag', background=var.get(mimetype))
@@ -497,7 +496,7 @@ class SourceBuffer(TextModel):
             self.config(font = var.get(mimetype))
 
         if var.name in ("font", "tab_width"):
-            self.config(tabs = session.config.tab_width.get()*tkFont.Font(font=session.config.font.get()).measure(" "))
+            self.config(tabs = session.config.tab_width.get()*tkinter.font.Font(font=session.config.font.get()).measure(" "))
 
     def set_currentLineTag(self):
         self.tag_remove('currentLine_tag', '1.0', 'end')
@@ -527,12 +526,12 @@ class SourceBuffer(TextModel):
         self.tag_remove(tag, "1.0","end")
 
         if text:
-            count = ttk.Tkinter.IntVar()
-            match_start = ttk.Tkinter.Text.search(self, text, "1.0", stopindex="end", forwards=True, exact=False, count=count)
+            count = tkinter.IntVar()
+            match_start = tkinter.Text.search(self, text, "1.0", stopindex="end", forwards=True, exact=False, count=count)
             while match_start:
                 match_end = "{}+{}c".format(match_start,count.get())
                 self.tag_add(tag, match_start, match_end)
-                match_start = ttk.Tkinter.Text.search(self, text, match_end, stopindex="end", forwards=True, exact=False, count=count)
+                match_start = tkinter.Text.search(self, text, match_end, stopindex="end", forwards=True, exact=False, count=count)
 
     # Overloads
     def mark_set( self, name, index ):

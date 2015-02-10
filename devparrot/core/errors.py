@@ -19,7 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from Tkinter import TclError
+from tkinter import TclError
 
 class ContextError(Exception):
     """This error representes all errors that come from the context.

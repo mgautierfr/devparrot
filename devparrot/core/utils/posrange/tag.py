@@ -18,12 +18,12 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
-from range import Range
-from index import Start, End
+from .range import Range
+from .index import Start, End
 from devparrot.core.errors import BadArgument
 
 
-class Tag(object):
+class Tag:
     is_index = False
     _reduced = {"s":"sel", "selection":"sel"}
     def __init__(self, tagName):

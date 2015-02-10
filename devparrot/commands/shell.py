@@ -41,7 +41,7 @@ def shell(command, stdinput, *args):
         os.write(master_fd, line)
 
 
-    left = ""
+    left = b""
     closed = False
     while True:
         # master_fd will not be closed by itself.
@@ -51,11 +51,11 @@ def shell(command, stdinput, *args):
         ready, _, _ = select.select([master_fd], [], [], 0.01)
         while ready:
             string = left + os.read(master_fd, 1024)
-            string = string.replace("\r\n", "\n")
-            string = string.replace("\r", "\n")
-            lines = string.split('\n')
+            string = string.replace(b"\r\n", b"\n")
+            string = string.replace(b"\r", b"\n")
+            lines = string.split(b'\n')
             for line in lines[:-1]:
-                yield line+'\n'
+                yield line+b'\n'
             left = lines[-1]
             ready, _, _ = select.select([master_fd], [], [], 0.01)
         if closed:

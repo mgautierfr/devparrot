@@ -23,7 +23,7 @@ from contextlib import contextmanager
 from devparrot.core import session
 from xdg import Mime
 
-class NewDocSource(object):
+class NewDocSource:
     """ This class is used for new document """
     def __init__(self, name):
         self.name = name
@@ -38,6 +38,9 @@ class NewDocSource(object):
         if self.__class__ == other.__class__:
             return self.name == other.name
         return False
+
+    def __hash__(self):
+        return hash((self.__class__, self.name))
         
     def get_path(self):
         return self.title
@@ -56,7 +59,7 @@ class NewDocSource(object):
     @contextmanager
     def get_content(self):
         """ return the content of the file """
-        yield [u""]
+        yield [""]
     
     def set_content(self):
         """ set the contente of the file """

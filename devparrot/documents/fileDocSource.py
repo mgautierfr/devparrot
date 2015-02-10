@@ -27,11 +27,11 @@ from contextlib import contextmanager
 from devparrot.core import session
 import subprocess
 
-coding_re = re.compile(r"coding[:=]\s*([-\w.]+)")
-charset_ret = re.compile(r"charset=([-\w.]+)")
+coding_re = re.compile(rb"coding[:=]\s*([-\w.]+)")
+charset_ret = re.compile(rb"charset=([-\w.]+)")
 
 
-class FileDocSource(object):
+class FileDocSource:
     """This class is used for document comming from a file (most of document)"""
     def __init__(self, path, guess_encoding=True):
         self.path = os.path.abspath(path)
@@ -40,7 +40,7 @@ class FileDocSource(object):
         self.mimetype = Mime.get_type_by_name(self.path)
         if not self.mimetype:
             try:
-                self.mimetype = Mime.lookup(*magic.from_file(self.path, mime=True).split("/"))
+                self.mimetype = Mime.lookup(*magic.from_file(self.path, mime=True).decode().split("/"))
             except IOError:
                 self.mimetype = Mime.lookup("text", "plain")
 
@@ -62,6 +62,9 @@ class FileDocSource(object):
         if self.__class__ == other.__class__:
             return self.path == other.path
         return False
+
+    def __hash__(self):
+        return hash((self.__class__, self.path))
         
     def get_path(self):
         """ return the path of the file """
@@ -80,24 +83,24 @@ class FileDocSource(object):
 
     def guess_encoding(self):
         i = 0
-        with open(self.path, 'r') as fileIn:
+        with open(self.path, 'rb') as fileIn:
             for line in fileIn:
                 if i < 5:
                     encoding = coding_re.search(line)
                     if encoding:
-                        self._encoding = encoding.group(1)
+                        self._encoding = encoding.group(1).decode()
                         return
                     i += 1
                 else:
                     break
         output = subprocess.check_output(["file", "-i", self.path])
         encoding = charset_ret.search(output)
-        if "x-empty" in output:
+        if b"x-empty" in output:
             encoding = None
         else:
             encoding = charset_ret.search(output)
         if encoding:
-            self._encoding = encoding.group(1)
+            self._encoding = encoding.group(1).decode()
         if self._encoding == "ascii":
             self._encoding = None
 
@@ -107,7 +110,7 @@ class FileDocSource(object):
         return the content of the file
         """
         if not os.path.exists(self.path):
-            yield [u""]
+            yield [""]
         else:
             with codecs.open(self.path, 'r', self.encoding) as fileIn:
                 yield fileIn

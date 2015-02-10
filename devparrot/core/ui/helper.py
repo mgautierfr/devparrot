@@ -19,7 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-class HelperContainer(object):
+class HelperContainer:
     def __init__(self, panned, where):
         self.panned = panned
         self.where = where
@@ -27,12 +27,12 @@ class HelperContainer(object):
         self.helpers = []
 
     def add_helper(self, helper, name, notebookForced, middleClickCallback):
-        import ttk
+        import tkinter.ttk
         if self.notebook is None:
             if not notebookForced and not self.helpers:
                 self.panned.insert(self.where, helper, weigh=0)
             else:
-                self.notebook = ttk.Notebook(self.panned, height=150)
+                self.notebook = tkinter.ttk.Notebook(self.panned, height=150)
                 self.notebook.bind("<Button-2>", self.on_middleClickButton)
                 try:
                     oldHelper, oldName, _ = self.helpers[0]
@@ -48,7 +48,7 @@ class HelperContainer(object):
         self.helpers.append((helper, name, middleClickCallback))
 
     def remove_helper(self, widget):
-        index = (i for i, data in enumerate(self.helpers) if data[0] == widget).next()
+        index = next((i for i, data in enumerate(self.helpers) if data[0] == widget))
         del self.helpers[index]
         if self.notebook:
             self.notebook.forget(widget)
@@ -69,7 +69,7 @@ class HelperContainer(object):
             pass
 
 
-class HelperManager(object):
+class HelperManager:
     def __init__(self, window):
         self.window = window
         self.containers = {'left'  : HelperContainer(window.hpaned, 0),
@@ -86,21 +86,21 @@ class HelperManager(object):
         helperContainer.remove_helper(widget)
 
 def ask_questionYesNo(title, message):
-    import tkMessageBox
-    return tkMessageBox.askyesno(title, message)
+    import tkinter.messagebox
+    return tkinter.messagebox.askyesno(title, message)
 
 def ask_questionYesNoCancel(title, message):
-    import tkMessageBox
-    return tkMessageBox.askyesnocancel(title, message)
+    import tkinter.messagebox
+    return tkinter.messagebox.askyesnocancel(title, message)
 
 def ask_filenameSave(*args, **kwords):
-    import tkFileDialog
-    response = tkFileDialog.asksaveasfilename(title="Save a file", *args, **kwords)
+    import tkinter.filedialog
+    response = tkinter.filedialog.asksaveasfilename(title="Save a file", *args, **kwords)
     return response
 
 def ask_filenameOpen(*args, **kwords):
-    import tkFileDialog
-    response = tkFileDialog.askopenfilename(title="Open a file", *args, **kwords)
+    import tkinter.filedialog
+    response = tkinter.filedialog.askopenfilename(title="Open a file", *args, **kwords)
     return response
 
 

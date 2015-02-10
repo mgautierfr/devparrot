@@ -7,7 +7,7 @@ import itertools
 
 
 test_content = "\n".join(
-" "*i for i in itertools.chain(xrange(5, 10), xrange(10, 5, -1))
+" "*i for i in itertools.chain(range(5, 10), range(10, 5, -1))
 )
 
 def test_initial_insert_one_line():
@@ -22,7 +22,7 @@ def test_initial_insert():
     model = ModelInfo()
     model.insert(Start, test_content)
     assert model.nbLine == 10
-    print [li.len for li in model.lineInfos[1:]]
+    print([li.len for li in model.lineInfos[1:]])
     assert [li.len for li in model.lineInfos[1:]] == [5, 6, 7, 8, 9, 10, 9, 8, 7, 6]
 
 @pytest.mark.parametrize(("index","content","nbLine","lineLens"), [
@@ -43,7 +43,7 @@ def test_initial_insert():
 def test_insert_content(index, content, nbLine, lineLens):
     model = ModelInfo()
     model.nbLine = 3
-    model.lineInfos = [None] + [LineInfo(5) for i in xrange(3)]
+    model.lineInfos = [None] + [LineInfo(5) for i in range(3)]
 
     model.insert(index, content)
 
@@ -70,7 +70,7 @@ def test_insert_content(index, content, nbLine, lineLens):
 def test_remove_content(index1, index2, nbLine, lineLens):
     model = ModelInfo()
     model.nbLine = 10
-    model.lineInfos = [None] + [LineInfo(i) for i in itertools.chain(xrange(5, 10), xrange(10, 5, -1))]
+    model.lineInfos = [None] + [LineInfo(i) for i in itertools.chain(range(5, 10), range(10, 5, -1))]
 
     model.delete(index1, index2)
 
@@ -91,7 +91,7 @@ def test_remove_content(index1, index2, nbLine, lineLens):
 def test_addline(index, nbLine, expected):
     model = ModelInfo()
     model.nbLine = 10
-    model.lineInfos = [None] + [LineInfo(i) for i in itertools.chain(xrange(5, 10), xrange(10, 5, -1))]
+    model.lineInfos = [None] + [LineInfo(i) for i in itertools.chain(range(5, 10), range(10, 5, -1))]
 
     assert model.addline(index, nbLine) == expected
 
@@ -107,7 +107,7 @@ def test_addline(index, nbLine, expected):
 def test_delline(index, nbLine, expected):
     model = ModelInfo()
     model.nbLine = 10
-    model.lineInfos = [None] + [LineInfo(i) for i in itertools.chain(xrange(5, 10), xrange(10, 5, -1))]
+    model.lineInfos = [None] + [LineInfo(i) for i in itertools.chain(range(5, 10), range(10, 5, -1))]
 
     assert model.delline(index, nbLine) == expected
 
@@ -127,7 +127,7 @@ def test_delline(index, nbLine, expected):
 def test_addchar(index, nbChar, expected):
     model = ModelInfo()
     model.nbLine = 10
-    model.lineInfos = [None] + [LineInfo(i) for i in itertools.chain(xrange(5, 10), xrange(10, 5, -1))]
+    model.lineInfos = [None] + [LineInfo(i) for i in itertools.chain(range(5, 10), range(10, 5, -1))]
 
     assert model.addchar(index, nbChar) == expected
 
@@ -147,7 +147,7 @@ def test_addchar(index, nbChar, expected):
 def test_delchar(index, nbChar, expected):
     model = ModelInfo()
     model.nbLine = 10
-    model.lineInfos = [None] + [LineInfo(i) for i in itertools.chain(xrange(5, 10), xrange(10, 5, -1))]
+    model.lineInfos = [None] + [LineInfo(i) for i in itertools.chain(range(5, 10), range(10, 5, -1))]
 
     assert model.delchar(index, nbChar) == expected
 

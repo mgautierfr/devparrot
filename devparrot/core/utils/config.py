@@ -20,7 +20,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-class Value(object):
+class Value:
     def __init__(self, option, keys):
         self.option = option
         self.keys =  keys
@@ -40,7 +40,7 @@ class Value(object):
         container[None] = value
 
 
-class ReadOnlyOption(object):
+class ReadOnlyOption:
     def __init__(self, name, config, parent, type, value):
         self._init_option(name, config, parent, type)
         self.values[None] = value
@@ -130,7 +130,7 @@ class Option(ReadOnlyOption):
             for k, v in value.items():
                 self.update(v, keys+[k])
 
-class BaseSection(object):
+class BaseSection:
     def __init__(self, config):
         self.options = {}
         self.config = config
@@ -165,8 +165,8 @@ class BaseSection(object):
 
     def _debug_dump(self):
         for k, v in self.options.items():
-            print "key :", k
-            print str(v)
+            print("key :", k)
+            print(str(v))
 
     def __getattr__(self, name):        
         return self._get(name)
@@ -256,7 +256,7 @@ class ProxySection(dict):
                 d[k] = v
         return d
 
-class ChaineDict(object):
+class ChaineDict:
     def __init__(self, globals_, options):
         self.globals = globals_
         self.options = options
@@ -273,7 +273,7 @@ class ChaineDict(object):
         else:
             self.options[name] = v
 
-class ConfigFile(object):
+class ConfigFile:
     def __init__(self, filename):
         self.filename = filename
 
@@ -281,13 +281,13 @@ class ConfigFile(object):
         options = ProxySection(config)
         #globals_ = {'source' : self.source_file}
         globals_ = with_dict
-        execfile(self.filename, {}, ChaineDict(globals_, options))
+        exec(compile(open(self.filename).read(), self.filename, 'exec'), {}, ChaineDict(globals_, options))
         return options._has_dict()
 
     def source_file(self, filename):
         pass
 
-class ConfigParser(object):
+class ConfigParser:
     def __init__(self, config):
         self.config = config
         self.configFiles = []

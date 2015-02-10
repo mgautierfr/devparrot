@@ -27,13 +27,13 @@ import sys
 import os
 import argparse
 
-import core
+from . import core
 
 
 def info(type, value, tb):
     import traceback, pdb
     traceback.print_exception(type, value, tb)
-    print
+    print()
     pdb.pm()
 
 def handle_pdb(sig, frame):
@@ -63,7 +63,7 @@ def parse_commandLine(args=sys.argv):
 
 def set_signal_handler():
     import signal
-    print "running in debug mode"
+    print("running in debug mode")
     sys.excepthook = info
     signal.signal(signal.SIGUSR1, handle_pdb)
 

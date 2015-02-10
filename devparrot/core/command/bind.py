@@ -23,7 +23,7 @@ import re
 
 TkEventMatcher = re.compile(r"<.*>")
 
-class BindLauncher(object):
+class BindLauncher:
     def __init__(self, command):
         commands = command.split('\n')
         self.commands = commands[:-1]
@@ -52,7 +52,7 @@ class CommandBindLauncher(BindLauncher):
         kwords = {str(i):arg for i, arg in enumerate(args)}
         return BindLauncher.__call__(self, kwords)
 
-class Binder(object):
+class Binder:
     def __init__(self):
         """ used for later bind if ui.window is not set """
         self.tkBinds = {}

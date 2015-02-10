@@ -20,7 +20,7 @@
 
 
 
-import Tkinter,ttk
+import tkinter, tkinter.ttk
 import os
 from pkg_resources import resource_stream
 
@@ -64,8 +64,8 @@ class BaseProviderMeta(type):
             tagMap[name] = _class
             return _class
 
-class BaseProvider(object):
-    __metaclass__ = BaseProviderMeta
+class BaseProvider(metaclass=BaseProviderMeta):
+    pass
 
 class TagExplorer(BaseModule):
     @staticmethod
@@ -95,7 +95,7 @@ class TagExplorer(BaseModule):
             self.tagExplorerView.filltree(tagProvider)
 
 
-class BaseTag(object):
+class BaseTag:
     def __init__(self, position, name, type):
         self.position = position
         self.name = name
@@ -103,7 +103,7 @@ class BaseTag(object):
         self.children = []
 
 def TagComparator(rootpath):
-    class PseudoKey(object):
+    class PseudoKey:
         def __init__(self, entry, *args):
             self.entry = entry
             self.isdir = os.path.isdir(os.path.join(rootpath, entry))
@@ -129,19 +129,19 @@ def TagComparator(rootpath):
             return self.entry != other.entry
     return PseudoKey
 
-class TagExplorerView(ttk.Frame):
+class TagExplorerView(tkinter.ttk.Frame):
     def __init__(self,parent):
-        ttk.Frame.__init__(self,parent)
-        self.vScrollbar = ttk.Scrollbar(self, orient=ttk.Tkinter.VERTICAL)
+        tkinter.ttk.Frame.__init__(self,parent)
+        self.vScrollbar = tkinter.ttk.Scrollbar(self, orient=tkinter.VERTICAL)
         self.vScrollbar.grid(column=1, row=0, sticky="nsew")
-        self.treeView = ttk.Treeview(self)
+        self.treeView = tkinter.ttk.Treeview(self)
         self.treeView.grid(column=0, row=0, sticky="nsew")
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=0)
         self.rowconfigure(0, weight=1)
 
         self.treeView.column('#0')
-        self.treeView['selectmode'] =(Tkinter.BROWSE)
+        self.treeView['selectmode'] =(tkinter.BROWSE)
         self.treeView.bind('<Double-Button-1>', self.on_double_click)
 
         self.vScrollbar['command'] = self.treeView.yview

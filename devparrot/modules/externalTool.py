@@ -18,7 +18,7 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
-import Tkinter, ttk
+import tkinter, tkinter.ttk
 from devparrot.core.command import Command, Alias
 from devparrot.core.constraints import Stream
 
@@ -28,9 +28,9 @@ from devparrot.core.modules import BaseModule
 import re, os.path
 
 
-tagParsing = [re.compile(r"(error|erreur|note|warning|attention)")]
-fileParsing = [re.compile(r"(^|(.* ))(?P<file>[^: ]+):(?P<line>[0-9]+):(?P<pos>[0-9]+)?"),  # gcc output
-               re.compile(r'File (?P<file_link>"(?P<file>.*)", line (?P<line>[0-9]+))') # pythen exception
+tagParsing = [re.compile(br"(error|erreur|note|warning|attention)")]
+fileParsing = [re.compile(br"(^|(.* ))(?P<file>[^: ]+):(?P<line>[0-9]+):(?P<pos>[0-9]+)?"),  # gcc output
+               re.compile(br'File (?P<file_link>"(?P<file>.*)", line (?P<line>[0-9]+))') # pythen exception
               ]
 
 class ExternalTool(BaseModule):
@@ -38,12 +38,12 @@ class ExternalTool(BaseModule):
     def update_config(config):
         config.add_option("command", default="make")
 
-class CommandOutput(ttk.Frame):
+class CommandOutput(tkinter.ttk.Frame):
     def __init__(self, parent):
-        ttk.Frame.__init__(self, parent)
-        self.vScrollbar = ttk.Scrollbar(self, orient=ttk.Tkinter.VERTICAL)
+        tkinter.ttk.Frame.__init__(self, parent)
+        self.vScrollbar = tkinter.ttk.Scrollbar(self, orient=tkinter.VERTICAL)
         self.vScrollbar.grid(column=1, row=0, sticky="nsew")
-        self.textView = Tkinter.Text(self)
+        self.textView = tkinter.Text(self)
         self.textView.grid(column=0, row=0, sticky="nsew")
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=0)
@@ -92,7 +92,10 @@ class CommandOutput(ttk.Frame):
         except (IndexError, TypeError):
             pass
         def goto(event):
-            session.commandLauncher.run_command_nofail('open "{file}"\n goto {file}@{line}.{pos}'.format(file=os.path.abspath(fileMatch.group('file')), line=fileMatch.group('line'), pos=pos))
+            command = 'open "{file}"\n goto {file}@{line}.{pos}'.format(file=os.path.abspath(fileMatch.group('file')).decode(),
+                                                                        line=fileMatch.group('line').decode(),
+                                                                        pos=pos)
+            session.commandLauncher.run_command_nofail(command)
 
         tagName = "tag_{file}_{line}_{pos}".format(file=fileMatch.group('file'), line=fileMatch.group('line'), pos=pos)
         self.textView.tag_configure(tagName, foreground="blue", underline=True)
@@ -134,10 +137,10 @@ def commandOutput(name, content):
 
     def read_line():
         try:
-            line = content.next()
+            line = next(content)
             while line is not None:
                 output.insert_line(line)
-                line = content.next()
+                line = next(content)
             output.after(100, read_line)
         except StopIteration:
             pass

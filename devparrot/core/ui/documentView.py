@@ -19,9 +19,9 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import ttk, Tkinter
+import tkinter, tkinter.ttk, tkinter.font
 from xdg import Mime
-from viewContainer import NotebookContainer, ContainerChild
+from .viewContainer import NotebookContainer, ContainerChild
 from devparrot.core import mimemapper
 from pygments.lexers import get_all_lexers, get_lexer_for_mimetype
 from pygments.util import ClassNotFound
@@ -33,30 +33,28 @@ def get_valid_lexer_names():
         if mimetypes:
             yield name
 
-class DocumentView(ttk.Frame, ContainerChild):
+class DocumentView(tkinter.ttk.Frame, ContainerChild):
     def __init__(self, document):
         ContainerChild.__init__(self)
-        ttk.Frame.__init__(self, session.get_globalContainer(), padding=0, relief="flat", borderwidth=0)
+        tkinter.ttk.Frame.__init__(self, session.get_globalContainer(), padding=0, relief="flat", borderwidth=0)
         self.document = document
         self.currentView = None
-        
-        import tkFont
 
-        self.header = ttk.Frame(self)
+        self.header = tkinter.ttk.Frame(self)
         self.header.pack(fill='x')
 
-        self.label = ttk.Label(self.header)
-        self.label.font = tkFont.Font(font="TkDefaultFont")
+        self.label = tkinter.ttk.Label(self.header)
+        self.label.font = tkinter.font.Font(font="TkDefaultFont")
         self.label.documentView = self
         self.label['text'] = document.longTitle
         self.label['font'] = self.label.font
         self.label.pack(side='left', expand=True, fill="x")
 
-        separator = ttk.Separator(self.header, orient="vertical")
+        separator = tkinter.ttk.Separator(self.header, orient="vertical")
         separator.pack(side='left', fill='y')
 
-        self.mimeVar = Tkinter.StringVar()
-        self.mimeOption = ttk.Combobox(self.header, textvar=self.mimeVar, state="readonly")
+        self.mimeVar = tkinter.StringVar()
+        self.mimeOption = tkinter.ttk.Combobox(self.header, textvar=self.mimeVar, state="readonly")
         self.mimeOption.set(mimemapper.mimeMap.get(str(document.get_mimetype()), "Text only"))
         self.mimeOption['values'] = sorted(set(mimemapper.mimeMap.values()))
         self.mimeChangeHandle = self.mimeVar.trace('w', self.on_mimeChange)
@@ -70,7 +68,7 @@ class DocumentView(ttk.Frame, ContainerChild):
 
     def destroy(self):
         self.mimeVar.trace_vdelete('w', self.mimeChangeHandle)
-        ttk.Frame.destroy(self)
+        tkinter.ttk.Frame.destroy(self)
         self.header.destroy()
         self.label.destroy()
         self.mimeOption.destroy()
@@ -78,7 +76,7 @@ class DocumentView(ttk.Frame, ContainerChild):
         self.mimeChangeHandle = None
         
     def set_view(self, child):
-        child.uiContainer.pack(in_=self, expand=True, fill=ttk.Tkinter.BOTH)
+        child.uiContainer.pack(in_=self, expand=True, fill=tkinter.BOTH)
         self.currentView = child
         child.view.bind('<FocusIn>', self.on_focus_child)
 
@@ -94,7 +92,7 @@ class DocumentView(ttk.Frame, ContainerChild):
         self._ownChange = False
     
     def lift(self):
-        ttk.Frame.lift(self, self.parentContainer)
+        tkinter.ttk.Frame.lift(self, self.parentContainer)
         if self.currentView != None: 
             self.currentView.lift(self)
     

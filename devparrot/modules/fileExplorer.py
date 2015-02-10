@@ -19,7 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import Tkinter,ttk
+import tkinter, tkinter.ttk
 import os, re
 
 from xdg.IconTheme import getIconPath
@@ -31,7 +31,7 @@ from devparrot.core.modules import BaseModule
 tkImages = {}
 
 def _generate_all_mime_combination(mimeType):
-    for i in xrange(len(mimeType), 0, -1):
+    for i in range(len(mimeType), 0, -1):
         yield tuple(mimeType[:i]), "-".join(mimeType[:i])
         yield tuple(mimeType[:i]), "%s%s"%("gnome-mime-", "-".join(mimeType[:i]))
 
@@ -102,7 +102,7 @@ class FileExplorer(BaseModule):
 
 
 def FileComparator(rootpath):
-    class PseudoKey(object):
+    class PseudoKey:
         def __init__(self, entry, *args):
             self.entry = entry
             self.isdir = os.path.isdir(os.path.join(rootpath, entry))
@@ -128,20 +128,20 @@ def FileComparator(rootpath):
             return self.entry != other.entry
     return PseudoKey
 
-class FileExplorerView(ttk.Frame):
+class FileExplorerView(tkinter.ttk.Frame):
     def __init__(self,parent, module):
-        ttk.Frame.__init__(self, parent)
+        tkinter.ttk.Frame.__init__(self, parent)
         self.module = module
-        self.vScrollbar = ttk.Scrollbar(self, orient=ttk.Tkinter.VERTICAL)
+        self.vScrollbar = tkinter.ttk.Scrollbar(self, orient=tkinter.VERTICAL)
         self.vScrollbar.grid(column=1, row=0, sticky="nsew")
-        self.treeView = ttk.Treeview(self)
+        self.treeView = tkinter.ttk.Treeview(self)
         self.treeView.grid(column=0, row=0, sticky="nsew")
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=0)
         self.rowconfigure(0, weight=1)
 
         self.treeView.column('#0')
-        self.treeView['selectmode'] =(Tkinter.BROWSE)
+        self.treeView['selectmode'] =(tkinter.BROWSE)
         self.treeView.bind('<Double-Button-1>', self.on_double_click)
 
         self.vScrollbar['command'] = self.treeView.yview

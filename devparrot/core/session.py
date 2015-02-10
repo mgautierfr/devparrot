@@ -19,14 +19,14 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import documentManager
-import commandLauncher as _commandLauncher
+from . import documentManager
+from . import commandLauncher as _commandLauncher
 import logging
-import userLogging
-import utils.event
-import help
+from . import userLogging
+from .utils import event
+from . import help
 
-_documentManager = documentManager.DocumentManager()
+_documentManager = None
 _workspace = None
 _globalContainer = None
 config = None
@@ -39,7 +39,7 @@ bindings = None
 completionSystem = None
 help_entries = {'devparrot':help.DevparrotHelp()}
 
-eventSystem = utils.event.EventSource()
+eventSystem = event.EventSource()
 
 userLogger = userLogging.UserLogger()
 

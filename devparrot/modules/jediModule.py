@@ -24,7 +24,7 @@ from devparrot.core.textCompletion import BaseCompletor, BaseCompletion
 from devparrot.core import session
 from jedi import settings as JediSettings
 from jedi.api import Script, defined_names
-from tagExplorer import BaseProvider, BaseTag
+from .tagExplorer import BaseProvider, BaseTag
 
 class Jedi(BaseModule):
     def activate(self):
@@ -104,7 +104,7 @@ innerJediType2devp = {
 'function' : 'method',
 'statement': 'member'
 }
-class JediTag(object):
+class JediTag:
     def __init__(self, jediDefinition, overtype=None):
         self.jediDefinition = jediDefinition
         self.overtype = overtype

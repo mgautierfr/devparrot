@@ -22,13 +22,13 @@
 from devparrot.core import session
 from devparrot.core.utils.posrange import Start
 from itertools import islice
-import ttk, Tkinter
+import tkinter, tkinter.ttk
 
-class TextView(object):
+class TextView:
     def __init__(self, document):
-        self.uiContainer = ttk.Frame(session.get_globalContainer())
-        self.hScrollbar = ttk.Scrollbar(session.get_globalContainer(),
-                                        orient=ttk.Tkinter.HORIZONTAL)
+        self.uiContainer = tkinter.ttk.Frame(session.get_globalContainer())
+        self.hScrollbar = tkinter.ttk.Scrollbar(session.get_globalContainer(),
+                                        orient=tkinter.HORIZONTAL)
         self.hScrollbar.grid(column=0,
                              row=1,
                              columnspan=10,
@@ -37,15 +37,15 @@ class TextView(object):
                             )
         self.hScrollbar.grid_remove()
 
-        self.vScrollbar = ttk.Scrollbar(session.get_globalContainer(),
-                                        orient=ttk.Tkinter.VERTICAL)
+        self.vScrollbar = tkinter.ttk.Scrollbar(session.get_globalContainer(),
+                                        orient=tkinter.VERTICAL)
         self.vScrollbar.grid(column=100,
                              row=0,
                              in_=self.uiContainer,
                              sticky="nsew")
         self.vScrollbar.grid_remove()
 
-        self.lineNumbers = ttk.Tkinter.Canvas(session.get_globalContainer(),
+        self.lineNumbers = tkinter.Canvas(session.get_globalContainer(),
                                               highlightthickness = 0,
                                               takefocus = 0,
                                               bd=0,
@@ -56,7 +56,7 @@ class TextView(object):
                               in_=self.uiContainer,
                               sticky="nsw")
 
-        self.sectionInfo = ttk.Tkinter.Canvas(session.get_globalContainer(),
+        self.sectionInfo = tkinter.Canvas(session.get_globalContainer(),
                                               highlightthickness = 0,
                                               takefocus = 0,
                                               bd=0,
@@ -151,7 +151,7 @@ class TextView(object):
         self.lineNumbers.config(state='normal')
 
         ilabel = 1
-        for i in xrange( firstLine , lastLine+1 ):
+        for i in range( firstLine , lastLine+1 ):
             pos = self.view.bbox("{}.0".format(i))
             if not pos:
                 continue
@@ -164,7 +164,7 @@ class TextView(object):
             self.lineNumbers.coords(label, "0", str(pos[1]))
             self.lineNumbers.itemconfig(label, state="disable", text=str(i))
 
-        for i in xrange(ilabel, self.createdLabels+1):
+        for i in range(ilabel, self.createdLabels+1):
             self.lineNumbers.itemconfig("t%d"%i, state="hidden")
 
         bbox = self.lineNumbers.bbox('all')
@@ -177,12 +177,12 @@ class TextView(object):
         self.lineNumbers.config(state='disable')
 
     def set_rangeInfo(self, firstIndex, lastIndex):
-        class NonLocal: pass
-        nonlocal = NonLocal()
-        nonlocal.ilabel = 1
-        nonlocal.loopCounter = 0
+        ilabel = 1
+        loopCounter = 0
 
         def inner(sectionStart, visibleStart, visibleStop, sections, depth):
+            nonlocal ilabel
+            nonlocal loopCounter
             pixelDepth = 4*depth
 
             if not sections:
@@ -197,7 +197,7 @@ class TextView(object):
             while True:
                 if needBreak:
                     break
-                nonlocal.loopCounter += 1
+                loopCounter += 1
                 middle = (start+end)/2
                 #print " "*depth, visibleIndex[1], start, middle, end
                 # we need to stop
@@ -265,11 +265,11 @@ class TextView(object):
                 #print " "*depth, "visibleIndex %s | sectionStart %s | sectionEnd %s | startIndex %s | endIndex %s | startPos %s | endPos %s"%(visibleIndex, section.startIndex, section.startIndex+section.length, startIndex, endIndex, startPos, endPos)
 
                 # Now get the tag corresponding to a available line else create a line.
-                label = "t%d"%nonlocal.ilabel
-                if nonlocal.ilabel > self.createdLines:
+                label = "t%d"%ilabel
+                if ilabel > self.createdLines:
                     self.sectionInfo.create_line(pixelDepth, startPos, pixelDepth, endPos, tags=[label])
                     self.createdLines += 1
-                nonlocal.ilabel += 1
+                ilabel += 1
 
                 # Display the lines where we need to.
                 self.sectionInfo.itemconfig(label, state="disable")
@@ -282,11 +282,11 @@ class TextView(object):
 
         inner(Start, firstIndex, lastIndex, self.view.rangeInfo.innerSections, 0)
 
-        for i in xrange(nonlocal.ilabel, self.createdLines+1):
+        for i in range(ilabel, self.createdLines+1):
             self.sectionInfo.itemconfig("t%d"%i, state="hidden")
         self.sectionInfo.config(width=self.maxDepth+2)
 
-        #print "loopCounter %s | ilabel %s"%(nonlocal.loopCounter, nonlocal.ilabel)
+        #print "loopCounter %s | ilabel %s"%(loopCounter, ilabel)
     
     def on_event_lineChanged(self, model, *args):
         if self.view == model:
@@ -298,7 +298,7 @@ class TextView(object):
         self.view['yscrollcommand'] = self.proxy_yscrollcommand
         self.view['xscrollcommand'] = self.proxy_xscrollcommand
         self.hScrollbar['command'] = self.view.xview
-        self.view.grid(column=10, row=0, in_=self.uiContainer, sticky=(ttk.Tkinter.N, ttk.Tkinter.S, ttk.Tkinter.E, ttk.Tkinter.W))
+        self.view.grid(column=10, row=0, in_=self.uiContainer, sticky=(tkinter.N, tkinter.S, tkinter.E, tkinter.W))
         self.view.lift(self.uiContainer)
         session.eventSystem.connect('insert', self.on_event_lineChanged)
         session.eventSystem.connect('delete', self.on_event_lineChanged)
@@ -307,7 +307,7 @@ class TextView(object):
         self.uiContainer.lift(above)
         self.vScrollbar.lift(self.uiContainer)
         self.hScrollbar.lift(self.uiContainer)
-        ttk.Tkinter.Misc.lift(self.lineNumbers, aboveThis=self.uiContainer)
+        tkinter.Misc.lift(self.lineNumbers, aboveThis=self.uiContainer)
         self.view.lift(self.uiContainer)
     
     def get_context(self):

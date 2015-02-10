@@ -37,7 +37,7 @@ def identifier():
 	return ident
 
 def integer():
-	return int(u''.join(many1(partial(one_of, "0123456789"))))
+	return int(''.join(many1(partial(one_of, "0123456789"))))
 
 def sinteger():
 	signe = optional( partial(one_of, "-+"), "+")
@@ -65,7 +65,7 @@ def userMark(markSet):
 
 @tri
 def mark(markSet):
-	l = [ lambda i=i: u''.join(string(i)) for i in ("insert", "i", "current", "c", "start", "end")]
+	l = [ lambda i=i: ''.join(string(i)) for i in ("insert", "i", "current", "c", "start", "end")]
 	l.append( partial(userMark, markSet) )
 	markName = choice(*l)
 	return Mark( markName )
@@ -79,7 +79,7 @@ def userTag(tagSet):
 
 @tri
 def tag(tagSet):
-	l = [ lambda i=i: u''.join(string(i)) for i in ("selection", "sel", "s", "all")]
+	l = [ lambda i=i: ''.join(string(i)) for i in ("selection", "sel", "s", "all")]
 	l.append( partial(userTag, tagSet) )
 	tagName = choice(*l)
 	return Tag( tagName )
@@ -108,7 +108,7 @@ indexModifiers_ = {
 
 @tri
 def directIndexModifier():
-	what = u''.join(choice( *[partial(string, i) for i in indexModifiers_.keys() ]))
+	what = ''.join(choice( *[partial(string, i) for i in indexModifiers_.keys() ]))
 	return lambda index, t=indexModifiers_[what] : t(index)
 
 
@@ -119,7 +119,7 @@ rangeModifiers_ = {
 
 @tri
 def directRangeModifier():
-	what = u''.join(choice( *[partial(string, i) for i in rangeModifiers_.keys() ]))
+	what = ''.join(choice( *[partial(string, i) for i in rangeModifiers_.keys() ]))
 	return lambda index, t=rangeModifiers_[what] : t(index)
 
 def regexModifier(direction):
@@ -127,7 +127,7 @@ def regexModifier(direction):
 	return lambda index : RegexRange(index, direction, regex)
 
 def rangePos():
-	what = choice( sinteger, lambda : u''.join(string("first")), lambda:u''.join(string("last")) )
+	what = choice( sinteger, lambda : ''.join(string("first")), lambda:''.join(string("last")) )
 	return lambda index : RangePos(index, what)
 
 @tri

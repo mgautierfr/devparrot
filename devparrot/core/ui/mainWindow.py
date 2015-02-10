@@ -19,7 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import ttk
+import tkinter, tkinter.ttk
 try:
     from PIL.ImageTk import PhotoImage
     from PIL import Image
@@ -27,9 +27,9 @@ except ImportError:
     PhotoImage = None
 from os.path import join
 
-import menu
-import controlerEntry
-import statusBar
+from . import menu
+from . import controlerEntry
+from . import statusBar
 
 from pkg_resources import resource_stream
 
@@ -37,10 +37,10 @@ def quit():
     from devparrot.core import session
     session.commandLauncher.run_command_nofail("quit")
 
-class MainWindow(ttk.Tkinter.Tk):
+class MainWindow(tkinter.Tk):
     def __init__(self):
         from devparrot.core import session
-        ttk.Tkinter.Tk.__init__(self, className='Devparrot')
+        tkinter.Tk.__init__(self, className='Devparrot')
         geom = self.wm_geometry()
         w = int(geom.split('+')[0].split('x')[0])
         try:
@@ -70,20 +70,19 @@ class MainWindow(ttk.Tkinter.Tk):
         if PhotoImage:
             resource = resource_stream(__name__, 'resources/icon48.png')
             img = PhotoImage(Image.open(resource))
-            self.tk.call('wm', 'iconphoto', self._w, img)
+            self.wm_iconphoto(False, img)
 
-
-        self._vbox = ttk.Tkinter.Frame(self)
-        self._vbox.pack(expand=True, fill=ttk.Tkinter.BOTH)
+        self._vbox = tkinter.Frame(self)
+        self._vbox.pack(expand=True, fill=tkinter.BOTH)
         
         self.entry = controlerEntry.ControlerEntry(self._vbox)
 
-        self.hpaned = ttk.PanedWindow(self._vbox, orient=ttk.Tkinter.HORIZONTAL)
-        self.hpaned.pack(expand=True, fill=ttk.Tkinter.BOTH)
+        self.hpaned = tkinter.ttk.PanedWindow(self._vbox, orient=tkinter.HORIZONTAL)
+        self.hpaned.pack(expand=True, fill=tkinter.BOTH)
 
-        self.vpaned = ttk.PanedWindow(self.hpaned, orient=ttk.Tkinter.VERTICAL)
+        self.vpaned = tkinter.ttk.PanedWindow(self.hpaned, orient=tkinter.VERTICAL)
 
-        self.globalContainer = ttk.Frame(self.vpaned, borderwidth=1, padding=0, relief="ridge")
+        self.globalContainer = tkinter.ttk.Frame(self.vpaned, borderwidth=1, padding=0, relief="ridge")
         self.vpaned.add(self.globalContainer, weigh=1)
 
         self.hpaned.add(self.vpaned, weigh=1)
@@ -104,10 +103,10 @@ class MainWindow(ttk.Tkinter.Tk):
 
     def report_callback_exception(self, *args):
         from devparrot.core import session
-        import traceback, tkMessageBox
+        import traceback, tkinter.messagebox
         err = ''.join(traceback.format_exception(*args))
         session.logger.error(err)
-        tkMessageBox.showerror('Exception', "An exception occurs\nPlease report to devparrot team", detail=err)
+        tkinter.messagebox.showerror('Exception', "An exception occurs\nPlease report to devparrot team", detail=err)
     
     def get_globalContainer(self):
         return self.globalContainer

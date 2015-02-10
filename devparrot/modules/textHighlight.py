@@ -19,7 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import tkFont
+import tkinter.font
 import os.path
 
 from devparrot.core import session
@@ -29,13 +29,13 @@ from devparrot.core.utils.posrange import Index, Start
 
 from pygments.token import Token
 
-import Tkinter
+import tkinter
 import weakref
 
 _tokens_name = {}
 _lexers_cache = {}
 
-class HighlightContext(object):
+class HighlightContext:
     def __init__(self):
         self.lexer = None
         self.idle_handle = None
@@ -72,7 +72,7 @@ class TextHighlight(BaseModule):
 
     def _create_fonts(self):
         self._fonts = {}
-        self._fonts[(False,False)] = tkFont.Font(font=session.config.get('font'))
+        self._fonts[(False,False)] = tkinter.font.Font(font=session.config.get('font'))
         self._fonts[(True,False)] = self._fonts[(False,False)].copy()
         self._fonts[(True,False)].configure(weight='bold')
         self._fonts[(False,True)] = self._fonts[(False,False)].copy()
@@ -273,7 +273,7 @@ def update_tokens(model, tokens, start, stop, safe_zone):
                 extraTests = True
             if t is Token.Text and v.isspace() and extraTests:
 
-                for line in xrange(lastSafeLine+1, currentPos_line):
+                for line in range(lastSafeLine+1, currentPos_line):
                     model.lineInfos[line]._hlsafe = False
 
                 try:
@@ -291,7 +291,7 @@ def update_tokens(model, tokens, start, stop, safe_zone):
             else:
                 #we change line without syncpoint, clean the safe line
                 try:
-                    for line in xrange(token_start.line+1, currentPos_line+1):
+                    for line in range(token_start.line+1, currentPos_line+1):
                         model.lineInfos[line]._hlsafe = False
                 except IndexError:
                     pass
@@ -326,5 +326,5 @@ def clean_tokens(model, start, end, token_name):
                 tags.add(name)
 
         model.dump(start, end, command=process_dump, tag=True)
-        map(lambda n : model.tag_remove(n, start, end), tags)
+        [model.tag_remove(t, start, end) for t in tags]
 

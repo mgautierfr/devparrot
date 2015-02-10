@@ -24,7 +24,7 @@ from devparrot.core.command.stream import StreamEater
 from devparrot.core.errors import *
 import inspect
 
-class CommandWrapper(object):
+class CommandWrapper:
     def __init__(self, constraints, streamName=None):
         self.constraints = constraints
         self.streamName = streamName
@@ -171,7 +171,7 @@ class AliasWrapper(CommandWrapper):
         call_list, call_kwords = self._get_call_args(args, kwords)
         return self.functionToCall(*call_list, **call_kwords)
 
-class MasterCommandWrapper(object):
+class MasterCommandWrapper:
     def __init__(self):
         self._class = None
         self.subCommands = {}
@@ -189,7 +189,7 @@ class MasterCommandWrapper(object):
 
     def get_constraint(self, index):
         if index == 0:
-            return ConstraintInstance(Keyword(self.subCommands.keys()), "subCommand")
+            return ConstraintInstance(Keyword(list(self.subCommands.keys())), "subCommand")
         else:
             return self.subCommands[self.currentSubCommand].get_constraint(index-1)
 
@@ -244,7 +244,7 @@ class MacroDict(MacroWrapper):
         return self.kwords[args[0]]
 
 
-class MacroResult(object):
+class MacroResult:
     def __init__(self, result):
         self.result = result
 

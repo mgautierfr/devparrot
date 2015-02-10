@@ -19,24 +19,22 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import new
+import types
 
 from weakref import ref
 import inspect
 
-class MethodeCb(object):
+class MethodeCb:
     def __init__(self, mtd):
         try:
             try:
-                self.inst = ref(mtd.im_self)
+                self.inst = ref(mtd.__self__)
             except TypeError:
                 self.inst = None
-            self.func = mtd.im_func
-            self.klass = mtd.im_class
+            self.func = mtd.__func__
         except AttributeError:
             self.inst = None
-            self.func = mtd.im_func
-            self.klass = None
+            self.func = mtd.__func__
     
     def __call__(self, *args, **kwargs):
         '''
@@ -51,7 +49,7 @@ class MethodeCb(object):
                 raise ReferenceError
     
             # build a new instance method with a strong reference to the instance
-            mtd = new.instancemethod(self.func, inst, self.klass)
+            mtd = types.MethodType(self.func, inst)
         else:
             # not a bound method, just return the func
             mtd = self.func
@@ -87,9 +85,9 @@ class CbList(list):
                 callback(*args, **kwords)
             except ReferenceError:
                 to_remove.add(callback)
-        map(lambda cb: cb.unregister(), to_remove)
+        [cb.unregister() for cb in to_remove]
 
-class CbHandler(object):
+class CbHandler:
     def __init__(self, source, function):
         self.source = source
         self.function = function
@@ -102,7 +100,7 @@ class CbHandler(object):
         if source is not None:
             source.unregister(self)
 
-class CbCaller(object):
+class CbCaller:
     def __init__(self):
         self._callbacks = CbList()
     
@@ -158,7 +156,7 @@ class ProxyVar(Variable):
 
 default = object()
 
-class Property(object):
+class Property:
     def __init__(self, doc=None, **kwords):
         self.fget = kwords.get('fget', default)
         self.fset = kwords.get('fset', default)
@@ -216,9 +214,7 @@ class HasPropertyMeta(type):
 
         return type.__new__(cls, name, bases, newdct)
 
-class HasProperty(object):
-    __metaclass__ = HasPropertyMeta
-
+class HasProperty(metaclass=HasPropertyMeta):
     def __init__(self):
         for name in self.__property_list:
             setattr(self, "_%s"%name, Variable())

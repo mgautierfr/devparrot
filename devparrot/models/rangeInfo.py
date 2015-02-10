@@ -45,9 +45,7 @@ def filter_enclosing(index):
         return section.startIndex - index
     return filter_
 
-class SectionDef(object):
-    __metaclass__ = SectionDefMeta
-
+class SectionDef(metaclass=SectionDefMeta):
     def __init__(self, startIndex):
         self.length = None
         self.startIndex = startIndex

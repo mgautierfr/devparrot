@@ -19,7 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-class Token(object):
+class Token:
     def __init__(self, **kw):
         self.index = kw['index']
         self.len = kw['len']
@@ -34,7 +34,7 @@ class Token(object):
             return False
 
     def pprint(self, ident):
-        print ident, "%s : %s(%s)"%(self.__class__.__name__, self.index, self.len)
+        print(ident, "%s : %s(%s)"%(self.__class__.__name__, self.index, self.len))
 
 class Identifier(Token):
     def __init__(self, **kw):
@@ -53,10 +53,10 @@ class Identifier(Token):
     def pprint(self, ident):
         super(Identifier, self).pprint(ident)
         if isinstance(self.name, Token):
-            print ident, " -name:"
+            print(ident, " -name:")
             self.name.pprint(ident+"    ")
         else:
-            print ident, " -name :", self.name
+            print(ident, " -name :", self.name)
 
 class Number(Token):
     def __init__(self, **kw):
@@ -74,7 +74,7 @@ class Number(Token):
 
     def pprint(self, ident):
         super(Number, self).pprint(ident)
-        print ident, " - value :",self.value
+        print(ident, " - value :",self.value)
 
 
 class Section(Token):
@@ -88,16 +88,16 @@ class Section(Token):
 
     def pprint(self, ident):
         super(Section, self).pprint(ident)
-        print ident, " - closed:", self.closed
-        print ident, " - values:"
+        print(ident, " - closed:", self.closed)
+        print(ident, " - values:")
         if isinstance(self.values, list):
             for v in self.values:
                 if isinstance(v, Token):
                     v.pprint(ident+"    ")
                 else:
-                    print ident,"    ", repr(v)
+                    print(ident,"    ", repr(v))
         else:
-            print ident+"    ", repr(self.values)
+            print(ident+"    ", repr(self.values))
 
     def enclose(self, text):
         return "%s%s%s"%(self.__class__.opener, text, self.__class__.closer if self.closed else "")
@@ -164,8 +164,8 @@ class MacroCall(CommandCall):
 
     def pprint(self, ident):
         super(MacroCall, self).pprint(ident)
-        print ident, " - opened:", self.opened
-        print ident, " - expanded:", self.expanded
+        print(ident, " - opened:", self.opened)
+        print(ident, " - expanded:", self.expanded)
 
 class Pipe(Token):
     def __init__(self, **kw):
@@ -177,15 +177,15 @@ class Pipe(Token):
 
     def pprint(self, ident):
         super(Pipe, self).pprint(ident)
-        print ident, " - values:"
+        print(ident, " - values:")
         if isinstance(self.values, list):
             for v in self.values:
                 if isinstance(v, Token):
                     v.pprint(ident+"    ")
                 else:
-                    print ident, "    ", repr(v)
+                    print(ident, "    ", repr(v))
         else:
-            print ident+"    ", self.values
+            print(ident+"    ", self.values)
 
     def __str__(self):
         text = " | ".join((str(v) for v in self.values))
@@ -276,11 +276,11 @@ class KeywordArg(Identifier):
 
     def pprint(self, ident):
         super(KeywordArg, self).pprint(ident)
-        print ident, " - value:"
+        print(ident, " - value:")
         try:
             self.value.pprint(ident+"    ")
         except AttributeError:
-            print ident+"    ", self.value
+            print(ident+"    ", self.value)
 
 class New(Token):
     def __init__(self, **kw):

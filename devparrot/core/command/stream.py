@@ -28,24 +28,25 @@ def DefaultStreamEater(stream):
         pass
         
 
-class Stream(object):
+class Stream:
     def __init__(self, stream):
         self.stream = stream
+        self._iter = iter(stream) if stream else None
 
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if self.stream is None:
             raise StopIteration
 
-        return self.stream.next()
+        return next(self._iter)
 
 class PseudoStream(Stream):
     def __init__(self):
         Stream.__init__(self, None)
 
-class StreamEater(object):
+class StreamEater:
     def __init__(self, function, streamName, args, kwords, argsorder):
         self.function = function
         self.streamName = streamName

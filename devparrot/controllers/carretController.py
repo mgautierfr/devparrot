@@ -19,7 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import ttk
+import tkinter
 from devparrot.core.controller import Controller, bind
 from devparrot.core.utils.posrange import WordStart, WordEnd, Mark
 
@@ -45,7 +45,7 @@ class CarretController( Controller ):
         if modifiers.ctrl:
             newPos = '1.0'
         elif document.get_config('smart_home_end'):
-            match_start = ttk.Tkinter.Text.search(event.widget, "[^ \t]" , 'insert linestart', stopindex='insert lineend', regexp=True)
+            match_start = tkinter.Text.search(event.widget, "[^ \t]" , 'insert linestart', stopindex='insert lineend', regexp=True)
             if match_start:
                 if event.widget.compare(match_start, '!=', 'insert'):
                     newPos = match_start
@@ -110,7 +110,7 @@ class CarretController( Controller ):
 
     @staticmethod
     def find_nbLine(widget):
-        nbLine = widget.tk.call(widget._w, "count", "-displaylines", "@0,0", "@%d,%d" % (widget.winfo_width(), widget.winfo_height()))
+        nbLine = widget.count("@0,0", "@%d,%d" % (widget.winfo_width(), widget.winfo_height()), "displaylines")
         return nbLine
 
     @bind("<Prior>", "<KP_Prior>")

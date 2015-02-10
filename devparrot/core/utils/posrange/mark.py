@@ -18,9 +18,9 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
-from index import Start
+from .index import Start
 
-class Mark(object):
+class Mark:
 	is_index = True
 	_reduced = {"i":"insert", "c":"current"}
 	def __init__(self, markName):

@@ -19,7 +19,7 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-import ttk
+import tkinter
 from devparrot.core.controller import Controller, bind
 from devparrot.core.utils.posrange import WordStart, WordEnd, Mark
 from devparrot.core.errors import TclError
