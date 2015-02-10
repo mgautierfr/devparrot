@@ -137,7 +137,7 @@ def list_(excluded):
     whitespace()
     idx = index()
     special('[')
-    st = many(partial(string_literal, excluded+'[]'))
+    st = many(partial(choice,partial(string_literal, excluded+'[]'), partial(macroCall, excluded)))
     closed=optspecial(']')
     return List(index=idx, len=index()-idx, values=st, closed=closed )
     
