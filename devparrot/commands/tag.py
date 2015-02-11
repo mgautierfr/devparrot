@@ -26,9 +26,12 @@ from devparrot.core.constraints import Range
 class tag(MasterCommand):
     """ Tag help stuff"""
 
-    @SubCommand()
-    def clean(tagName):
-        session.get_currentDocument().model.tag_remove(tagName, "1.0", "end")
+    @SubCommand(
+    where = Range(default=Range.DEFAULT('all'))
+    )
+    def clean(tagName, where):
+        document, where = where
+        document.model.tag_remove(tagName, where.first, where.end)
 
     @SubCommand(
     ranges = Range()

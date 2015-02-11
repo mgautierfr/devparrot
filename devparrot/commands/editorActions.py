@@ -19,23 +19,35 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from devparrot.core.command import Command, Alias
+from devparrot.core.command import Command
+from devparrot.core import session
 from devparrot.core.session import bindings, get_currentDocument
+from devparrot.core.constraints import OpenDocument, Range
 
-@Alias()
-def cut():
+@Command(
+what = Range(default=Range.DEFAULT('sel'))
+)
+def cut(what):
     """cut selection to clipboard"""
-    return "section sel | memory CLIPBOARD\nstream.empty | section sel"
+    content = session.commands.section(what)
+    session.commands.memory('CLIPBOARD', content)
+    session.commands.section(what, session.commands.stream.empty())
 
-@Alias()
-def copy():
+@Command(
+what = Range(default=Range.DEFAULT('sel'))
+)
+def copy(what):
     """copy selection to clipboard"""
-    return "section sel | memory CLIPBOARD"
+    content = session.commands.section(what)
+    session.commands.memory('CLIPBOARD', content)
 
-@Alias()
-def paste():
+@Command(
+where = Range(default=Range.DEFAULT('sel'))
+)
+def paste(where):
     """paste clipboard content at "insert" mark"""
-    return "memory CLIPBOARD | section sel"
+    content = session.commands.memory('CLIPBOARD')
+    session.commands.section(where, content)
 
 @Alias()
 def undo():

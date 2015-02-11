@@ -20,39 +20,42 @@
 
 
 from devparrot.core.command import Command, Alias, Macro
-from devparrot.core.constraints import Boolean, Default
+from devparrot.core.constraints import Boolean, Default, Range
 from devparrot.core.session import bindings, get_currentDocument
 
 from itertools import dropwhile, takewhile
 
 lastSearch = None
 
-@Command(_section='core')
-@Macro()
-def search(searchText):
+@Command(_section='core',
+         where = Range(default=Range.DEFAULT('all'))
+        )
+@Macro(where = Range(default=Range.DEFAULT('all')))
+def search(searchText, where):
+    document, where = where
     if not searchText:
         return []
 
-    document = get_currentDocument()
-    return [(document, r) for r in document.model.search(searchText)]
+    return [(document, r) for r in document.model.search(searchText, where.first, where.last)]
 
 
 @Command(
     searchText = Default(default=lambda : lastSearch),
+    where = Range(default=Range.DEFAULT('all')),
     backward = Boolean(default=lambda :False)
 )
-def search(searchText, backward):
-    """search for searchText in currentDocument
+def search(searchText, where, backward):
+    """search for searchText in document
     """
     from devparrot.core import session
     searchChar = "?" if backward else "/"
+    document, where = where
 
     global lastSearch
     lastSearch = searchText
 
-    session.commands.tag.subCommands['clean']('search_tag')
-    document = get_currentDocument()
-    searches_results = list(document.model.search(searchText))
+    session.commands.tag.subCommands['clean']('search_tag', document)
+    searches_results = list(document.model.search(searchText, where.first, where.last))
     if searches_results:
         document.model.tag_add('search_tag', *(item for tag in searches_results for item in tag))
 

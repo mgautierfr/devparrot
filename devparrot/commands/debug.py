@@ -20,7 +20,7 @@
 
 
 from devparrot.core.command import MasterCommand, SubCommand
-from devparrot.core.constraints import File, Integer
+from devparrot.core.constraints import File, Integer, Range
 from devparrot.core.session import get_currentDocument
 from pprint import pprint
 import gc
@@ -34,11 +34,13 @@ def count():
 class debug(MasterCommand):
 
     @SubCommand(
+       where = Range(default=Range.DEFAULT('all')),
        ofile= File(mode=File.SAVE, default=lambda: "dump.txt")
     )
-    def dump_buffer(ofile):
+    def dump_buffer(where, ofile):
         """set a config entry to value"""
-        content = get_currentDocument().model.dump("1.0", "end", all=True)
+        document, where = where
+        content = document.model.dump(where.first, where.end, all=True)
         with open(ofile, "w") as f:
             import pprint
             printer = pprint.PrettyPrinter(stream=f)

@@ -1,6 +1,6 @@
 
 
-from devparrot.core.command import Command, Macro, Alias
+from devparrot.core.command import Command, Macro
 from devparrot.core.errors import InvalidArgument
 
 from devparrot.core.ui.viewContainer import get_neighbour
