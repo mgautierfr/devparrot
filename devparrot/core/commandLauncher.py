@@ -136,7 +136,7 @@ class CommandLauncher:
     def __init__(self):
         self.history = History()
 
-    def run_command(self, text, kwords={}):
+    def run_command(self, text, kwords={}, history_store=False):
         from devparrot.core import session
         from devparrot.core.command.parserGrammar import parse_input_text
         from devparrot.core.command.stream import PseudoStream, DefaultStreamEater
@@ -151,8 +151,12 @@ class CommandLauncher:
             while True:
                 try:
                     command = next(commands)
-                except (StopIteration, UserCancel):
+                except StopIteration:
                     noMoreCommand = True
+                    break
+                except UserCancel:
+                    noMoreCommand = True
+                    history_store = False
                     break
                 if command == "\n":
                     DefaultStreamEater(stream)
@@ -166,7 +170,7 @@ class CommandLauncher:
                         lastSection = lastSection[section]
                     lastSection[commandName]
                 except KeyError:
-                     raise InvalidName("{0} is not a valid command name".format(command.name))
+                    raise InvalidName("{0} is not a valid command name".format(command.name))
                 try:
                     _globals = dict(session.commands)
                     _globals["_macros"] = dict(session.macros)
@@ -176,22 +180,25 @@ class CommandLauncher:
                     streamEater = eval(command.rewrited(), _globals, {})
                     stream = streamEater(stream)
                 except UserCancel:
+                    history_store = False
                     noMoreCommand = True
                     break
             if noMoreCommand:
                 break
 
-        self.history.push(text)
+        if history_store:
+            self.history.push(text)
 
-    def run_command_nofail(self, text, kwords={}):
+    def run_command_nofail(self, text, kwords={}, history_store=False):
         from devparrot.core import session
         from devparrot.core.errors import ContextError, InvalidError
         if session.config.get("fail_on_command_error"):
-            self.run_command(text, kwords)
+            # this case in mainly use by automatical test.
+            self.run_command(text, kwords, history_store)
             session.userLogger.info(text)
             return
         try:
-            self.run_command(text, kwords)
+            self.run_command(text, kwords, history_store)
             session.userLogger.info(text)
         except ContextError as err:
             session.userLogger.error(err)

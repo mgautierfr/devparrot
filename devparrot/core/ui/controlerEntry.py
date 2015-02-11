@@ -63,7 +63,7 @@ class ControlerEntry(tkinter.Text):
             text = self.get("1.0", "end")
             try:
                 try:
-                    session.commandLauncher.run_command(text[:-1])
+                    session.commandLauncher.run_command(text[:-1], history_store=True)
                     session.userLogger.info(text[:-1])
                     self.toClean = True
                 except ContextError as err:
