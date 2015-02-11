@@ -39,7 +39,15 @@ class Index(namedtuple('Index', "line col")):
         return "<Index instance pos %s>"%str(self)
 
 Start = Index(1, 0)
-End   = Index(-1, -1)
+
+class _End(Index):
+    def __gt__(self, other):
+        return True
+
+    def __lt__(self, other):
+        return False
+
+End   = _End(-1, -1)
 
 _str_cache = {End:"end"}
 
