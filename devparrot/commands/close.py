@@ -42,7 +42,7 @@ def close(*documents):
     documents_must_save = [d for d in documents_modified if ask_save_question(d)]
     for document in documents_must_save:
         if document.has_a_path():
-            session.commands.core.save(document)
+            session.commands.core.save(document, document.get_path())
         else:
             answer = ui.helper.ask_filenameSave()
             if not answer:
