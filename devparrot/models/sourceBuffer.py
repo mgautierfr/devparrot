@@ -438,6 +438,7 @@ class TextModel(tkinter.Text, ModelInfo):
     def search(self, text, start_search="1.0", end_search="end"):
         if not text:
             return
+        start_search, end_search = str(start_search), str(end_search)
 
         count = tkinter.IntVar()
         match_start = tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count) 
