@@ -36,4 +36,7 @@ class Section(dict):
         if self.parentSection:
             return "%s%s."%(self.parentSection.get_name(), self.name)
         return "%s."%self.name
+
+    def get_constraint(self, *args):
+        raise IndexError
     
