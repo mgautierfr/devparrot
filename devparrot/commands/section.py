@@ -28,7 +28,7 @@ from devparrot.core.utils.posrange import Index
 rge = Range(),
 content = Stream()
 )
-def section(rge, content):
+def section(rge, content=set()):
     """
     represent a section of the current document starting from startIndex and ending at endIndex.
 

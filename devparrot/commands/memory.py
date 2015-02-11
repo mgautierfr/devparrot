@@ -25,7 +25,7 @@ from devparrot.core.constraints import Stream
 @Command(
 content = Stream()
 )
-def memory(name, content):
+def memory(name, content=set()):
     """
     represent a memory space where you can put data or take data from.
     the memory can be used as stream sink or stream source. (but not both)
