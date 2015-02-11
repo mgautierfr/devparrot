@@ -1,0 +1,218 @@
+import os as _os
+
+with open('file1', 'w') as _f:
+    _f.write('''
+
+def fonction(a, b, c, d):
+    test.
+
+class Test(object):
+    def __init__(self, some):
+        self.toto = some
+
+
+    def print(self):
+        print self.toto.a_method(t, self)
+
+function()
+
+def full():
+    pass
+
+def aste():
+    pass
+
+class Some(object):
+    def __init__(self):
+        self.ok = list()
+        self
+
+    def a_method(self, arg, arg1):
+        """amethod
+        
+        @type arg: Test
+        """
+        prins self.ok
+
+# nuietuie
+# nuieae
+# neituae ae
+''')
+
+with open('result_simple_full', 'w') as _f:
+    _f.write('''
+
+class fonction(a, b, c, d):
+    test.
+
+class Test(object):
+    class __init__(self, some):
+        self.toto = some
+
+
+    class print(self):
+        print self.toto.a_method(t, self)
+
+function()
+
+class full():
+    pass
+
+class aste():
+    pass
+
+class Some(object):
+    class __init__(self):
+        self.ok = list()
+        self
+
+    class a_method(self, arg, arg1):
+        """amethod
+        
+        @type arg: Test
+        """
+        prins self.ok
+
+# nuietuie
+# nuieae
+# neituae ae
+''')
+
+with open('result_simple_ranged', 'w') as _f:
+    _f.write('''
+
+class fonction(a, b, c, d):
+    test.
+
+class Test(object):
+    class __init__(self, some):
+        self.toto = some
+
+
+    class print(self):
+        print self.toto.a_method(t, self)
+
+function()
+
+class full():
+    pass
+
+def aste():
+    pass
+
+class Some(object):
+    def __init__(self):
+        self.ok = list()
+        self
+
+    def a_method(self, arg, arg1):
+        """amethod
+        
+        @type arg: Test
+        """
+        prins self.ok
+
+# nuietuie
+# nuieae
+# neituae ae
+''')
+
+with open('result_complex_full', 'w') as _f:
+    _f.write('''
+
+def fonction(a, b, c, d):
+    test.
+
+class Test(object):
+    def __init__(self, some):
+        self.toto = some
+
+
+    def print(self):
+        print self.toto.a_method(t, self)
+
+function()
+
+class full:
+    pass
+
+class aste:
+    pass
+
+class Some(object):
+    def __init__(self):
+        self.ok = list()
+        self
+
+    def a_method(self, arg, arg1):
+        """amethod
+        
+        @type arg: Test
+        """
+        prins self.ok
+
+# nuietuie
+# nuieae
+# neituae ae
+''')
+
+with open('result_complex_ranged', 'w') as _f:
+    _f.write('''
+
+def fonction(a, b, c, d):
+    test.
+
+class Test(object):
+    def __init__(self, some):
+        self.toto = some
+
+
+    def print(self):
+        print self.toto.a_method(t, self)
+
+function()
+
+class full:
+    pass
+
+def aste():
+    pass
+
+class Some(object):
+    def __init__(self):
+        self.ok = list()
+        self
+
+    def a_method(self, arg, arg1):
+        """amethod
+        
+        @type arg: Test
+        """
+        prins self.ok
+
+# nuietuie
+# nuieae
+# neituae ae
+''')
+
+start_command = r"""open file1
+replace def class
+saveas file2
+assert_file_equal result_simple_full file2
+close file2
+open file1
+replace def class start:17.0
+saveas file3
+assert_file_equal result_simple_ranged file3
+close file3
+open file1
+replace "def ([a-z]+)\(\)" "class \1"
+saveas file4
+assert_file_equal result_complex_full file4
+close file4
+open file1
+replace "def ([a-z]+)\(\)" "class \1" start:17.0
+saveas file5
+assert_file_equal result_complex_ranged file5
+quit"""
+

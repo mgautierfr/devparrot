@@ -20,18 +20,21 @@
 
 
 from devparrot.core.command import Command, Alias
-from devparrot.core.constraints import Stream
+from devparrot.core.constraints import Stream, Range
 from devparrot.core import session
+import re
 
 class inner:
     @staticmethod
     def replace(pattern, repl, ranges):
-        import re
-        model = session.get_currentDocument().model
-        for start, stop in ranges:
-            text = model.get(str(start), str(stop))
-            new = re.sub(pattern, repl, text)
-            model.replace(str(start), str(stop), new)
+        print('pattern', pattern)
+        pattern = re.compile(pattern)
+        for document, rge in ranges:
+            text = document.model.get(str(rge.first), str(rge.last))
+            print('text', text)
+            new = pattern.sub(repl, text)
+            print('new', new)
+            document.model.replace(str(rge.first), str(rge.last), new)
 
 Command(
 _section='core',
@@ -39,7 +42,10 @@ ranges=Stream()
 )(inner.replace)
 
 
-@Alias()
-def replace(regex, subst):
-    return "core.search {0!r} | core.replace {0!r} {1!r}".format(regex, subst)
+@Command(
+where = Range(default=Range.DEFAULT('all'))
+)
+def replace(regex, subst, where):
+    ranges = session.commands.core.search(regex, where)
+    session.commands.core.replace(regex, subst, ranges)
 
