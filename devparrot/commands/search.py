@@ -21,7 +21,7 @@
 
 from devparrot.core.command import Command, Alias, Macro
 from devparrot.core.constraints import Boolean, Default, Range
-from devparrot.core.session import bindings, get_currentDocument
+from devparrot.core.session import bindings
 
 from itertools import dropwhile, takewhile
 

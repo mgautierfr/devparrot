@@ -381,6 +381,11 @@ class OpenDocument(_Constraint):
         create_completion = lambda v : completionClass(token.index, v, True, len(token.value))
         return [create_completion(d.get_title()) for d in documentManager.documents if d.get_title().startswith(token.value)]
 
+    @staticmethod
+    def CURRENT():
+        from devparrot.core import session
+        return session.get_currentDocument()
+
 class ConfigEntry(_Constraint):
     """Must be a config entry"""
     def __init__(self, *args, **kwords):

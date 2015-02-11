@@ -33,7 +33,7 @@ def ask_save_question(document):
     return answer
 
 @Command(
-    documents = OpenDocument(default=session.get_currentDocument, help="documents to close")
+    documents = OpenDocument(default=OpenDocument.CURRENT, help="documents to close")
 )
 def close(*documents):
     "close one or several documents"

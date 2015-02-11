@@ -21,7 +21,7 @@
 
 from devparrot.core.command import Command
 from devparrot.core import session
-from devparrot.core.session import bindings, get_currentDocument
+from devparrot.core.session import bindings
 from devparrot.core.constraints import OpenDocument, Range
 
 @Command(
@@ -49,12 +49,12 @@ def paste(where):
     content = session.commands.memory('CLIPBOARD')
     session.commands.section(where, content)
 
-@Command(document=OpenDocument(default=get_currentDocument))
+@Command(document=OpenDocument(default=OpenDocument.CURRENT))
 def undo(document):
     """undo last command"""
     document.get_model().undo()
 
-@Command(document=OpenDocument(default=get_currentDocument))
+@Command(document=OpenDocument(default=OpenDocument.CURRENT))
 def redo(document):
     """redo last undone command"""
     document.get_model().redo()

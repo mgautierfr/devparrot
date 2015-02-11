@@ -21,7 +21,6 @@
 
 from devparrot.core.command import MasterCommand, SubCommand
 from devparrot.core.constraints import File, Integer, Range
-from devparrot.core.session import get_currentDocument
 from pprint import pprint
 import gc
 

@@ -24,7 +24,7 @@ from devparrot.core import session
 
 @Command(
 _section='core',
-document=OpenDocument(default=session.get_currentDocument, help="documents to close")
+document=OpenDocument(default=OpenDocument.CURRENT, help="documents to close")
 )
 def close(document):
     from devparrot.core.ui import viewContainer
