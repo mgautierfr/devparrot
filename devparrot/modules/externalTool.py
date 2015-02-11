@@ -20,7 +20,7 @@
 
 import tkinter, tkinter.ttk
 from devparrot.core.command import Command, Alias
-from devparrot.core.constraints import Stream
+from devparrot.core.constraints import Stream, OpenDocument
 
 from devparrot.core import session
 from devparrot.core.modules import BaseModule
@@ -148,9 +148,8 @@ def commandOutput(name, content):
     output.after(100, read_line)
 
 
-@Alias()
-def runtool():
-    document = session.get_currentDocument()
+@Alias(document = OpenDocument(default=session.get_currentDocument))
+def runtool(document):
     command = session.config.get("command", document.get_config_keys())
     return "shell {0!r}  | commandOutput {0!r}".format(command)
 

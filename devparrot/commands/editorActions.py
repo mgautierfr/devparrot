@@ -49,15 +49,15 @@ def paste(where):
     content = session.commands.memory('CLIPBOARD')
     session.commands.section(where, content)
 
-@Alias()
-def undo():
+@Command(document=OpenDocument(default=get_currentDocument))
+def undo(document):
     """undo last command"""
-    get_currentDocument().get_model().undo()
+    document.get_model().undo()
 
-@Command()
-def redo():
+@Command(document=OpenDocument(default=get_currentDocument))
+def redo(document):
     """redo last undone command"""
-    get_currentDocument().get_model().redo()
+    document.get_model().redo()
 
 bindings["<<Cut>>"] = "cut\n"
 bindings["<<Copy>>"] = "copy\n"
