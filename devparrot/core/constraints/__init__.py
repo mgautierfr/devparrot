@@ -144,6 +144,14 @@ class Boolean(_Constraint):
     def check(self, token):
         from ast import literal_eval
         return True, bool(literal_eval(token))
+
+    @staticmethod
+    def TRUE():
+        return True
+
+    @staticmethod
+    def FALSE():
+        return False
             
 class File(_Constraint):
     """Must be a file path"""
@@ -235,39 +243,45 @@ class File(_Constraint):
         completions.extend(self._complete(directory, file_, prefix, create_completion))
         return completions
 
+def parse_range_index_text(text):
+    from devparrot.core.session import get_documentManager, get_currentDocument
+    from .index import parse_something
+    splitted = text.split("@")
+    if len(splitted) > 1:
+        try:
+            document = get_documentManager().get_file_from_title(splitted[0])
+        except KeyError:
+            try:
+                document = get_documentManager().get_file(splitted[0])
+            except KeyError:
+                return False, None
+        text = '@'.join(splitted[1:])
+    else:
+        document = get_currentDocument()
+
+    model = document.model
+    tags = set(model.tag_names())
+    marks = set(model.mark_names())
+
+    unresolved_idx = parse_something(text, marks, tags)
+    idx = unresolved_idx.resolve(model)
+    return document, idx
+
 class Index(_Constraint):
     """Must be a index"""
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
     def check(self, text):
-        from devparrot.core.session import get_documentManager, get_currentDocument
-        from .index import parse_something, NoMatch
-        splitted = text.split("@")
-        if len(splitted) > 1:
-            try:
-                document = get_documentManager().get_file_from_title(splitted[0])
-            except KeyError:
-                try:
-                    document = get_documentManager().get_file(splitted[0])
-                except KeyError:
-                    return False, None
-            text = '@'.join(splitted[1:])
-        else:
-            document = get_currentDocument()
-
-        model = document.model
-        tags = set(model.tag_names())
-        marks = set(model.mark_names())
-
+        from .index import NoMatch
         try:
-            unresolved_idx = parse_something(text, marks, tags)
-            idx = unresolved_idx.resolve(model)
+            document, idx = parse_range_index_text(text)
             return self.check_direct((document, idx))
         except NoMatch:
             return False, None
 
-    def check_direct(self, arg):
+    @classmethod
+    def check_direct(cls, arg):
         from devparrot.core.utils.posrange import Range, Index
         from devparrot.core.document import Document
         try:
@@ -282,33 +296,29 @@ class Index(_Constraint):
         except TypeError:
             return False, None
 
+    @staticmethod
+    def DEFAULT(text):
+        def _default():
+            document, idx = parse_range_index_text(text)
+            ok, result = Index.check_direct((document, idx))
+            return result
+        return _default
+
 class Range(_Constraint):
     """Must be a range"""
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
     def check(self, text):
-        from devparrot.core.session import get_documentManager, get_currentDocument
-        from .index import parse_something, NoMatch
-        splitted = text.split("@")
-        if len(splitted) > 1:
-            document = get_documentManager().get_file_from_title(splitted[0])
-            text = '@'.join(splitted[1:])
-        else:
-            document = get_currentDocument()
-
-        model = document.model
-        tags = set(model.tag_names())
-        marks = set(model.mark_names())
-
+        from .index import NoMatch
         try:
-            unresolved_idx = parse_something(text, marks, tags)
-            idx = unresolved_idx.resolve(model)
+            document, idx = parse_range_index_text(text)
             return self.check_direct((document, idx))
         except NoMatch:
             return False, None
 
-    def check_direct(self, arg):
+    @classmethod
+    def check_direct(cls, arg):
         from devparrot.core.utils.posrange import Range, Index
         from devparrot.core.document import Document
         try:
@@ -322,6 +332,14 @@ class Range(_Constraint):
             return False, None
         except TypeError:
             return False, None
+
+    @staticmethod
+    def DEFAULT(text):
+        def _default():
+            document, idx = parse_range_index_text(text)
+            ok, result = Range.check_direct((document, idx))
+            return result
+        return _default
     
 class Integer(_Constraint):
     """Must be a integer"""
