@@ -25,8 +25,11 @@ import os, re
 from xdg.IconTheme import getIconPath
 from xdg import Mime
 
+from fnmatch import fnmatch
+
 from devparrot.core import session
 from devparrot.core.modules import BaseModule
+
 
 tkImages = {}
 
@@ -40,7 +43,7 @@ class FileExplorer(BaseModule):
     def update_config(config):
         config.add_option("iconTheme", default=None)
         config.add_option("showIcon", default=False)
-        config.add_option("excludes", default=["*.pyc", "*.pyo", "*.o"])
+        config.add_option("excludes", default=["*.pyc", "*.pyo", "*.o", "__pycache__", ".git*"])
 
     def activate(self):
         self.fileExplorerView = FileExplorerView(session.window, self)
@@ -94,39 +97,10 @@ class FileExplorer(BaseModule):
         return None
 
     def apply_exclude(self, entry):
-        from fnmatch import fnmatch
         for filter_ in session.config.get('excludes'):
             if fnmatch(entry, filter_):
                 return False
         return True
-
-
-def FileComparator(rootpath):
-    class PseudoKey:
-        def __init__(self, entry, *args):
-            self.entry = entry
-            self.isdir = os.path.isdir(os.path.join(rootpath, entry))
-        def __lt__(self, other):
-            if self.isdir and not other.isdir:
-                return True
-            if not self.isdir and other.isdir:
-                return False
-            return self.entry < other.entry
-        def __gt__(self, other):
-            return not self<other
-        def __eq__(self, other):
-            return self.entry == other.entry
-        def __le__(self, other):
-            if self.entry == other.entry:
-                return True
-            return self<other
-        def __ge__(self, other):
-            if self.entry == other.entry:
-                return True
-            return not self<other
-        def __ne__(self, other):
-            return self.entry != other.entry
-    return PseudoKey
 
 class FileExplorerView(tkinter.ttk.Frame):
     def __init__(self,parent, module):
@@ -146,6 +120,8 @@ class FileExplorerView(tkinter.ttk.Frame):
 
         self.vScrollbar['command'] = self.treeView.yview
         self.treeView['yscrollcommand'] = self.vScrollbar.set
+
+        self.treeView.bind('<<TreeviewOpen>>', self.on_open)
 
         bindtags = list(self.treeView.bindtags())
         bindtags.insert(1,"devparrot")
@@ -167,33 +143,51 @@ class FileExplorerView(tkinter.ttk.Frame):
             else:
                 session.commandLauncher.run_command_nofail('open "{}"'.format(fullPath))
 
-    def insert_child(self, iid, text, image):
-        args = {'iid':iid, 'text':text}
+    def insert_child(self, parent, name, image):
+        parent = os.path.relpath(parent, self.currentPath)
+        if parent == '.':
+            parent = ''
+        iid = os.path.join(parent, name)
+        args = {'iid':iid, 'text':name}
         if image:
             args['image'] = image
-        self.treeView.insert('', 'end', **args)
+        self.treeView.insert(parent, 'end', **args)
+
+    def on_open(self, event):
+        selection = self.treeView.selection()
+        if not selection:
+            return
+        fullPath = os.path.join(self.currentPath, selection[0])
+        fullPath = os.path.abspath(fullPath)
+        parent = os.path.relpath(fullPath, self.currentPath)
+        self._filltree(parent)
 
     def filltree(self):
         if self._pending_filltree:
             return
         self._pending_filltree = self.after_idle(self._filltree)
 
-    def _filltree(self):
+    def _filltree(self, root=''):
         self._pending_filltree = None
         self.treeView.heading('#0', text=os.path.basename(self.currentPath))
-        while len(self.treeView.get_children('')):
-            self.treeView.delete(self.treeView.get_children('')[0])
-        children = os.listdir(self.currentPath)
-        children = [ c for c in children if self.module.apply_exclude(c) ]
-        children = sorted(children, key=FileComparator(self.currentPath))
-        image = self.module._get_icon_for_mime(("folder",))
-        self.insert_child(os.path.join(self.currentPath, ".."), "..", image)
-        for child in children:
-            fullPath = os.path.join(self.currentPath, child)
-            if os.path.isdir(fullPath):
+        while len(self.treeView.get_children(root)):
+            self.treeView.delete(self.treeView.get_children(root)[0])
+        if not root:
+            image = self.module._get_icon_for_mime(("folder",))
+            self.insert_child(self.currentPath, '..', image)
+        for current, dirs, files in os.walk(os.path.join(self.currentPath, root)):
+            for dir_ in sorted(dirs):
+                if not self.module.apply_exclude(dir_):
+                    continue
                 image = self.module._get_icon_for_mime(("folder",))
-            else:
+                self.insert_child(current,  dir_, image)
+                self.insert_child(os.path.join(current, dir_), '.', image=None)
+            dirs[:] = []
+            for file_ in sorted(files):
+                if not self.module.apply_exclude(file_):
+                    continue
+                fullPath = os.path.join(current, file_)
                 mime = str(Mime.get_type_by_name(fullPath)).split('/')
                 image = self.module._get_icon_for_mime(mime)
-            self.insert_child(fullPath, child, image)
+                self.insert_child(current, file_, image)
 
