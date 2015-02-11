@@ -313,7 +313,8 @@ class NotebookContainer(tkinter.ttk.Notebook, ContainerChild):
         except TclError:
             return
         if documentViewIndex != "":
-            session.commands.close(list(self._children.keys())[documentViewIndex].document)
+            document = list(self._children.keys())[documentViewIndex].document
+            session.commandLauncher.run_command_nofail("close '%s'"%document.title)
 
 def split(documentView, direction, first=True):
     notebook = documentView.get_parentContainer()
