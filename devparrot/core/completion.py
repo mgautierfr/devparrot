@@ -101,6 +101,9 @@ class CompletionSystem:
         self.textWidget.bindtags(bindtags)
 
     def _hide(self):
+        if self.handle_idle:
+            self.textWidget.after_cancel(self.handle_idle)
+            self.handle_idle = None
         self.displayed = False
         self.toplevel.withdraw()
         bindtags = list(self.textWidget.bindtags())
