@@ -164,19 +164,19 @@ def something(default, markSet, tagSet):
 	base = optional( partial( choice, partial(mark, markSet), partial(tag, tagSet), line), None)
 	if base is None:
 		base = default()
-	non_local = {'base':base}
 
 	def inner():
-		if non_local['base'].is_index:
-			modifier = index_modifier(non_local['base'], markSet, tagSet)
+		nonlocal base
+		if base.is_index:
+			modifier = index_modifier(base, markSet, tagSet)
 		else:
 			# range to index ?
 			modifier = range_modifier(markSet, tagSet)
-		non_local['base'] = modifier(non_local['base'])
+		base = modifier(base)
 
 	many(inner)
 	eof()
-	return non_local['base']
+	return base
 
 def parse_something(text, markSet, tagSet):
 	ret, left = run_parser(partial(something, lambda:Mark("insert"), markSet, tagSet), text)
