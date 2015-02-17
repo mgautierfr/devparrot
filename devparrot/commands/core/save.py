@@ -28,6 +28,7 @@ document=OpenDocument(help="document to save"),
 fileName=File(mode=File.SAVE)
 )
 def save(document, fileName):
+    """Save the document to fileName"""
     from devparrot.core import session
     from devparrot.core.errors import ContextError
     try:

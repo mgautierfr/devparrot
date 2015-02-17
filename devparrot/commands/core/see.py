@@ -26,5 +26,6 @@ _section='core',
 index = Index()
 )
 def see(index):
+    """Move the insert cursor to index. And ensure user can see it"""
     document, index = index
     document.get_model().after(300, lambda : document.goto_index(index))

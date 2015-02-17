@@ -20,7 +20,7 @@
 
 
 from devparrot.core.command import Command, Alias
-from devparrot.core.constraints import Stream, Range
+from devparrot.core.constraints import Stream, Range, Default
 from devparrot.core import session
 import re
 
@@ -40,9 +40,22 @@ ranges=Stream()
 
 
 @Command(
-where = Range(default=Range.DEFAULT('all'))
+regex = Default(help="A text (or regex to look for"),
+subst = Default(help="A substitution expression to use to replace texts found by regex"),
+where = Range(default=Range.DEFAULT('all'), help="The range specifying where to do the replace")
 )
 def replace(regex, subst, where):
+    """Replace a text by an other.
+
+    The regex expression is used twice:
+
+     - First, to search where the text appear in the buffer.
+        This search is done using Tkinter. So the regex must be valid with tcl/tk syntax
+     - Second, to found potential match groups in the regex (to be used by subst)
+        This search is done using re. So the regex must also be a valid re regex.
+
+    Subst can use references to groups defined in the regex. (See python re.sub function)
+    """
     ranges = session.commands.core.search(regex, where)
     session.commands.core.replace(regex, subst, ranges)
 

@@ -25,17 +25,14 @@ from devparrot.core.errors import *
 from devparrot.core.utils.posrange import Index
 
 @Command(
-rge = Range(),
+rge = Range(help="The range corresponding to the section"),
 content = Stream()
 )
 def section(rge, content=set()):
     """
-    represent a section of the current document starting from startIndex and ending at endIndex.
+    represent a section of the current document.
 
     the section use as stream sink or stream source. (but not both)
-
-    If endIndex is not provided, startIndex must be a tag name.
-    The special tag name "standardInsert" can be used to represent the insert mark or the sel tag depending of context
     """
     document, rge = rge
     model = document.get_model()

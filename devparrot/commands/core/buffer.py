@@ -24,13 +24,16 @@ from devparrot.core.constraints import Keyword, Stream
 
 @Command(
 _section='core',
-type=Keyword(('new','buffer'), default=lambda:'buffer'),
+type=Keyword(('new','buffer'), default=lambda:'buffer', help="The type of buffer to create"),
 content=Stream()
 )
 def buffer(name, type, content):
-    """Open a buffer and fill it with comment
+    """Create a new buffer and fill it with content
 
-A buffer is not attach to any file and can't be modified"""
+    There are two type of buffer:
+      - buffer : A buffer is not attach to any file and can't be modified
+      - new    : This corresponding to a new file. It is not attached to a existing file, but can be modified
+    """
     from devparrot.core import session
     from devparrot.core.document import Document
     from devparrot.documents import BufferSource

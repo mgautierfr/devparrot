@@ -24,19 +24,12 @@ from devparrot.core.constraints import Index
 from devparrot.core import session
 
 @Command(
-index = Index()
+index = Index(help="The index where to go")
 )
 def goto(index):
     """
     goto to index
-    set insert mare to index and see it.
-
-    index can be:
-        - a string that tk will understand :
-         . "lineNumber.charNumber" (line start from 1, char start from 0"
-         . a mark name
-        - a ex search syntax :
-         . [?/]regex
+    set insert mark to index and see it.
     """
     document, _ = index
     session.commands.core.switch(document)

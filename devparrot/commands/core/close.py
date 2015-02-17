@@ -27,6 +27,7 @@ _section='core',
 document=OpenDocument(default=OpenDocument.CURRENT, help="documents to close")
 )
 def close(document):
+    """Close a document"""
     from devparrot.core.ui import viewContainer
     if document.documentView.is_displayed():
         parentContainer = document.documentView.get_parentContainer()

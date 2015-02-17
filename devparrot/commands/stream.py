@@ -24,14 +24,17 @@ from devparrot.core.command import Command
 
 @Command(_section='stream')
 def empty():
+    """This is a stream containing only one empty string"""
     yield ""
 
 @Command(_section='stream')
 def null():
+    """This is a stream containing no element"""
     raise StopIteration
 
 @Command(_section='stream')
 def echo(*args):
+    """Transform its arguments into a stream"""
     for arg in args:
         yield arg
 

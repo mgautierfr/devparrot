@@ -23,9 +23,10 @@ from devparrot.core.command import Alias
 from devparrot.core.constraints import Boolean
 
 @Alias(
-vertical = Boolean(default= lambda : False)
+vertical = Boolean(default= lambda : False, help="Do we split vertically")
 )
 def split(vertical):
+    """Split workspace at the current view position and create a new pane"""
     return "core.split %s"%vertical
 
 

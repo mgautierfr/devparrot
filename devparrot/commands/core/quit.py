@@ -22,6 +22,7 @@ from devparrot.core.command import Command
 
 @Command(_section='core')
 def quit():
+    """Really quit devparrot. No check or whatever is made."""
     from devparrot.core import session
     def destroy():
         session.window.destroy()

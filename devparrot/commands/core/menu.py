@@ -33,7 +33,7 @@ def _get_section(menu, sections):
 class menu(MasterCommand):
     @SubCommand()
     def add(entry, command):
-        #import pdb; pdb.set_trace()
+        """Add a menu entry"""
         sections = entry.split('.')
         menu, sections, name = sections[0], sections[1:-1], sections[-1]
         menu = session.config.get(menu)
@@ -42,6 +42,7 @@ class menu(MasterCommand):
 
     @SubCommand()
     def disable(entry):
+        """Disable a entry (it will be greyout)"""
         sections = entry.split('.')
         menu, sections, name = sections[0], sections[1:-1], sections[-1]
         menu = session.config.get(menu)
@@ -50,6 +51,7 @@ class menu(MasterCommand):
 
     @SubCommand()
     def enable(entry):
+        """Enable a entry (it will be greyout)"""
         sections = entry.split('.')
         menu, sections, name = sections[0], sections[1:-1], sections[-1]
         menu = session.config.get(menu)

@@ -20,10 +20,12 @@
 
 
 from devparrot.core.command import Command
-from devparrot.core.constraints import Stream
+from devparrot.core.constraints import Stream, Default
 
 @Command(
-stdinput = Stream()
+command = Default(help="The command to launch"),
+stdinput = Stream(help="A content to send to the stdinput of the subprocess"),
+args  = Default(help="A list of arguments to use when launching the command")
 )
 def shell(command, stdinput, *args):
     """
@@ -78,6 +80,8 @@ def shell(command, stdinput, *args):
 stream =Stream()
 )
 def stdoutput(stream):
+    """Echo a stream to stdout
+    """
     import sys
     for line in stream:
         sys.stdout.write(line.encode())

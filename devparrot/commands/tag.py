@@ -30,6 +30,7 @@ class tag(MasterCommand):
     where = Range(default=Range.DEFAULT('all'))
     )
     def clean(tagName, where):
+        """Remove all tagName tag in the where range"""
         document, where = where
         document.model.tag_remove(tagName, str(where.first), str(where.last))
 
@@ -37,6 +38,7 @@ class tag(MasterCommand):
     ranges = Range()
     )
     def set(tagName, *ranges):
+        """Set the tagName at all ranges"""
         for doc, _range in ranges:
             doc.model.tag_add(tagName, str(range.first), str(_range.last))
 

@@ -25,7 +25,8 @@ from devparrot.core.constraints import Index
 
 class mark(MasterCommand):
 
-    @SubCommand(index=Index())
+    @SubCommand(index=Index(help="Where to place the mark"))
     def set(markName, index):
+        """Place a mark a the index position"""
         document, index = index
         document.model.mark_set(markName, index)

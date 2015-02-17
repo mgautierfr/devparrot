@@ -22,39 +22,41 @@
 from devparrot.core.command import Command
 from devparrot.core import session
 from devparrot.core.session import bindings
-from devparrot.core.constraints import OpenDocument, Range
+from devparrot.core.constraints import OpenDocument, Range, Index, Default
 
 @Command(
-what = Range(default=Range.DEFAULT('sel'))
+what = Range(default=Range.DEFAULT('sel'), help="The range to cut")
 )
 def cut(what):
-    """cut selection to clipboard"""
+    """cut a range of text to clipboard
+
+    This means also removing it from the buffer"""
     content = session.commands.section(what)
     session.commands.memory('CLIPBOARD', content)
     session.commands.section(what, session.commands.stream.empty())
 
 @Command(
-what = Range(default=Range.DEFAULT('sel'))
+what = Range(default=Range.DEFAULT('sel'), help="The range to copy")
 )
 def copy(what):
-    """copy selection to clipboard"""
+    """copy a range of text to clipboard"""
     content = session.commands.section(what)
     session.commands.memory('CLIPBOARD', content)
 
 @Command(
-where = Range(default=Range.DEFAULT('sel'))
+where = Range(default=Range.DEFAULT('sel'), help="Where to insert the text from the clipboard")
 )
 def paste(where):
-    """paste clipboard content at "insert" mark"""
+    """paste clipboard content at the "where" position."""
     content = session.commands.memory('CLIPBOARD')
     session.commands.section(where, content)
 
-@Command(document=OpenDocument(default=OpenDocument.CURRENT))
+@Command(document=OpenDocument(default=OpenDocument.CURRENT), help="The document on which do the undo")
 def undo(document):
     """undo last command"""
     document.get_model().undo()
 
-@Command(document=OpenDocument(default=OpenDocument.CURRENT))
+@Command(document=OpenDocument(default=OpenDocument.CURRENT), help="The document on which do the redo")
 def redo(document):
     """redo last undone command"""
     document.get_model().redo()

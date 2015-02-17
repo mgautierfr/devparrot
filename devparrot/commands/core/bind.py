@@ -25,8 +25,10 @@ from devparrot.core import session
 class bind(MasterCommand):
     @SubCommand()
     def add(event, command):
+        """Bind a event to a command"""
         session.bindings[event] = command
 
     @SubCommand(_name="del")
     def _del(event):
+        """Unbind all command associated to a event"""
         del session.bindings[event]

@@ -20,19 +20,28 @@
 
 from devparrot.core.command import MasterCommand, SubCommand
 from devparrot.core import session
+from devparrot.core.constraints import Default
 import importlib
 
 class module(MasterCommand):
     @SubCommand()
     def activate(module):
+        """activate a module"""
         session.modules[module]._activate()
 
     @SubCommand()
     def deactivate(module):
+        """deactivate a module"""
         session.modules[module]._deactivate()
 
-    @SubCommand()
+    @SubCommand(
+    name       = Default(help="The name to use for the devparrot module"),
+    modulePath = Default(help="""The python module path.
+This must follow the same syntax than setuptools entrypoint
+aka : PathToModule:ObjectEntryPoint"""),
+    )
     def load(name, modulePath):
+        """load a python module/package as a devparrot module"""
         modulePath, creatorName = modulePath.split(':')
         loader =importlib.machinery.SourceFileLoader(name, modulePath)
         try:

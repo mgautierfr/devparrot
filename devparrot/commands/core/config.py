@@ -26,7 +26,7 @@ from devparrot.core.constraints import ConfigEntry, Default
 _section='core',
 _name='config',
 configEntry = ConfigEntry(),
-key=Default(default=lambda:None)
+key=Default(default=lambda:None, help="A key to use to specialize the config entry")
 )
 def configset(configEntry, value, key):
     """set a config entry to value"""
@@ -43,4 +43,5 @@ configEntry=ConfigEntry(),
 key=Default(default=lambda:None)
 )
 def configget(configEntry, key):
+    """Get the value of a configEntry"""
     return configEntry.get(keys=[key])

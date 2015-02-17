@@ -29,10 +29,14 @@ from itertools import dropwhile, takewhile
 lastSearch = None
 
 @Command(_section='core',
-         where = Range(default=Range.DEFAULT('all'))
+         where = Range(default=Range.DEFAULT('all'), help="Where to search")
         )
-@Macro(where = Range(default=Range.DEFAULT('all')))
+@Macro(where = Range(default=Range.DEFAULT('all'), help="Where to search"))
 def search(searchText, where):
+    """Generate a series of (document, range) corresponding to the searched text
+
+    The generated iterable is usable for argument waiting Range constraints
+    """
     document, where = where
     if not searchText:
         return []
@@ -41,12 +45,18 @@ def search(searchText, where):
 
 
 @Command(
-    searchText = Default(default=lambda : lastSearch),
-    where = Range(default=Range.DEFAULT('all')),
-    backward = Boolean(default=lambda :False)
+    searchText = Default(default=lambda : lastSearch, help="What to search"),
+    where = Range(default=Range.DEFAULT('all'), help="Where to search"),
+    backward = Boolean(default=lambda :False, help="Do we need to got backward")
 )
 def search(searchText, where, backward):
-    """search for searchText in document
+    """search for searchText in document.
+
+    This command do two stuff:
+     - Highlight all corresponding text to searchText in the where region.
+     - Goto the the next (previous if backward is True) corresponding text
+
+    If searchText is not provide, the text from the last search is used.
     """
     from devparrot.core import session
     searchChar = "?" if backward else "/"
