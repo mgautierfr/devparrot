@@ -117,8 +117,8 @@ class CommandWrapper:
                 except NoDefault:
                     if constraint.askUser:
                         call_list.extend(constraint.ask_user())
-                    else:
-                        raise InvalidArgument("missing argument for constraint {}".format(constraint))
+                    #No default, no ask_user and no args. Well nothing to do !
+                    pass
             else:
                 for arg in args:
                     valid, newVal = constraint.check_arg(arg)
