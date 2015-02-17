@@ -38,7 +38,7 @@ class ConstraintInstance:
         return '"%s" (of type %s)' % (self.name, self.constraint.__class__.__name__)
 
     def get_help(self):
-        attr_text = ",".join( (attribute for attribute in ("optional", "askUser", "default", "multiple", "isVararg") if getattr(self.constraint, attribute) ) )
+        attr_text = ",".join( (attribute for attribute in ("askUser", "default", "multiple", "isVararg") if getattr(self.constraint, attribute) ) )
         text = " - %(name)s: (%(attr)s)\n      [%(constraintHelp)s]\n     %(userHelp)s"%{'name':self.name, 'attr':attr_text, 'constraintHelp':self.constraint.__class__.__doc__ or "", 'userHelp':self.constraint.get_help()}
         return text
                 

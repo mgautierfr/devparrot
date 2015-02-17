@@ -38,8 +38,8 @@ class Stream:
 
 class Default(_Constraint):
     """No particular constraint"""
-    def __init__(self, optional=False, multiple=False, default=None, help=""):
-        _Constraint.__init__(self, optional=optional, multiple=multiple, default=default, help=help)
+    def __init__(self, multiple=False, default=None, help=""):
+        _Constraint.__init__(self, multiple=multiple, default=default, help=help)
 
 class Keyword(_Constraint):
     """Must be a particular keyword"""
@@ -156,13 +156,13 @@ class Boolean(_Constraint):
 class File(_Constraint):
     """Must be a file path"""
     OPEN, SAVE, NEW = range(3)
-    def __init__(self, mode=OPEN, optional=False, multiple=False, default=None, help=""):
+    def __init__(self, mode=OPEN, multiple=False, default=None, help=""):
         try:
             (x for x in mode)
         except TypeError:
             mode = (mode,)
 
-        _Constraint.__init__(self, optional=optional, multiple=multiple, default=default, askUser=True, help=help)
+        _Constraint.__init__(self, multiple=multiple, default=default, askUser=True, help=help)
         self.mode = mode
 
     def check(self, _file):

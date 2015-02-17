@@ -75,8 +75,7 @@ class _Constraint:
         def __bool__(self):
             return False
 
-    def __init__(self, optional=False, multiple=False, default=None, askUser=False, help=""):
-        self.optional = optional
+    def __init__(self, multiple=False, default=None, askUser=False, help=""):
         self.askUser = askUser
         if default is None:
             self.default = _Constraint._NoDefault()
