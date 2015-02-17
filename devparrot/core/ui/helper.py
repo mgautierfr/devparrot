@@ -18,6 +18,8 @@
 #
 #    Copyright 2011-2013 Matthieu Gautier
 
+from devparrot.core.errors import *
+
 
 class HelperContainer:
     def __init__(self, panned, where):
@@ -60,7 +62,10 @@ class HelperContainer:
             self.panned.forget(widget)
 
     def on_middleClickButton(self, event):
-        child = self.notebook.index("@%d,%d" % (event.x, event.y))
+        try:
+            child = self.notebook.index("@%d,%d" % (event.x, event.y))
+        except TclError:
+            return
         try:
             _, _, callback = self.helpers[child]
             callback()
