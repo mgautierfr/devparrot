@@ -14,5 +14,6 @@ another definition
 
 start_command = """open file1
 core.search def | assert_stream_equal [%range_(file1@1.0:+3c) %range_(file1@4.0:+3c) %range_(file1@6.4:+3c) %range_(file1@9.8:+3c)]
+search def
 quit"""
 
