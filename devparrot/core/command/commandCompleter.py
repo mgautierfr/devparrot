@@ -40,7 +40,7 @@ class CommandCompletion(BaseCompletion):
 class MacroCompletion(BaseCompletion):
     def __init__(self, startIndex, name, already):
         BaseCompletion.__init__(self, startIndex=startIndex)
-        self.n_ame = name
+        self._name = name
         self.already = already
 
     def name(self):
