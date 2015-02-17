@@ -152,12 +152,14 @@ def index_modifier(base, markSet, tagSet):
 	
 # modifier applied to a range
 def range_modifier(markSet, tagSet):
-	sep = one_of(".?/")
-	if sep == ".":
-		modifier = rangePos()
-	else:
-		modifier = regexModifier(sep=="/")
-	return modifier
+    modifier = optional( partial( choice, charDelta, lineDelta), None)
+    if modifier is None:
+        sep = one_of(".?/")
+        if sep == ".":
+            modifier = rangePos()
+        else:
+            modifier = regexModifier(sep=="/")
+    return modifier
 
 def something(default, markSet, tagSet):
 	# try base

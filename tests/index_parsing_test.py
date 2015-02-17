@@ -9,7 +9,7 @@ tagSet  = {"tagName" , "tagName2" }
 
 @pytest.mark.parametrize(("input", "output"), [	
 # mark
-#(""                           , Mark("insert")                                                 ),
+(""                           , Mark("insert")                                                 ),
 ("i"                          , Mark("insert")                                                 ),
 ("insert"                     , Mark("insert")                                                 ),
 ("c"                          , Mark("current")                                                ),
@@ -41,7 +41,7 @@ tagSet  = {"tagName" , "tagName2" }
 # "index modifier" apply by default to insert
 ("+1c"                        , CharDelta(Mark("insert"), 1)                                   ),
 ("-10l"                       , LineDelta(Mark("insert") , -10)                                ),
-("~we"                         , WordEnd(Mark("insert"))                                        ),
+("~we"                        , WordEnd(Mark("insert"))                                        ),
 
 #this can be composed
 
@@ -69,7 +69,7 @@ def test_parse_index(input, output):
 ("markName:markName2"         , StartEndRange(Mark("markName"), Mark("markName2"))                     ),
 ("markName:line"              , Line(Mark("markName"))                                         ),
 ("markName:word"              , Word(Mark("markName"))                                         ),
-#
+
 ## "index to range" apply by default to insert
 ("?'regex'"                    , RegexRange(Mark("insert"), False, "regex")     ),
 (":markName"                  , StartEndRange(Mark("insert"), Mark("markName"))         ),
@@ -78,6 +78,12 @@ def test_parse_index(input, output):
 ("i:"                        , StartEndRange(Mark("insert"), Mark("insert"))           ),
 (":i"                        , StartEndRange(Mark("insert"), Mark("insert"))           ),
 (":"                        , StartEndRange(Mark("insert"), Mark("insert"))           ),
+
+## Range to range
+("10+4l"                     , LineDelta(Line(10), 4)                 ),
+("1+4c"                      , CharDelta(Line(1), 4)                  ),
+("tagName-3l"                , LineDelta(Tag("tagName"), -3)          ),
+
 
 ##this can be composed
 ("insert:insert+1c"           , StartEndRange(Mark("insert"), CharDelta(Mark("insert"), 1))            ),

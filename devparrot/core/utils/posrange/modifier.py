@@ -48,14 +48,21 @@ class Word:
         return (self.__class__, self.index) == (other.__class__, other.index)
 
 class CharDelta:
-    is_index = True
     def __init__(self, index, number):
         self.index = index
         self.number = number
 
     def resolve(self, model):
-        idx = self.index.resolve(model)
-        return model.addchar(idx, self.number)
+        if self.index.is_index:
+            idx = self.index.resolve(model)
+            return model.addchar(idx, self.number)
+        else:
+            rang = self.index.resolve(model)
+            return Range(model.addchar(rang.first, self.number), model.addchar(rang.last, self.number))
+
+    @property
+    def is_index(self):
+        return self.index.is_index
 
     def __eq__(self, other):
         return (self.__class__, self.index) == (other.__class__, other.index)
@@ -64,14 +71,21 @@ class CharDelta:
         return "<CHARDELTA %s %d>"%(self.index, self.number)
 
 class LineDelta:
-    is_index = True
     def __init__(self, index, number):
         self.index = index
         self.number = number
 
     def resolve(self, model):
-        idx = self.index.resolve(model)
-        return model.addline(idx, self.number)
+        if self.index.is_index:
+            idx = self.index.resolve(model)
+            return model.addline(idx, self.number)
+        else:
+            rang = self.index.resolve(model)
+            return Range(model.addline(rang.first, self.number), model.addline(rang.last, self.number))
+
+    @property
+    def is_index(self):
+        return self.index.is_index
 
     def __eq__(self, other):
         return (self.__class__, self.index) == (other.__class__, other.index)
