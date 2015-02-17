@@ -22,6 +22,7 @@
 from devparrot.core.command import Command, Alias, Macro
 from devparrot.core.constraints import Boolean, Default, Range
 from devparrot.core.session import bindings
+from devparrot.core.utils import posrange
 
 from itertools import dropwhile, takewhile
 
@@ -54,7 +55,7 @@ def search(searchText, where, backward):
     global lastSearch
     lastSearch = searchText
 
-    session.commands.tag.subCommands['clean']('search_tag', document)
+    session.commands.tag.subCommands['clean']('search_tag', (document, posrange.Range(posrange.Start,posrange.End)))
     searches_results = list(document.model.search(searchText, where.first, where.last))
     if searches_results:
         document.model.tag_add('search_tag', *(item for tag in searches_results for item in tag))
