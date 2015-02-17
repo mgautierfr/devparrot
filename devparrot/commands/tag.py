@@ -31,14 +31,14 @@ class tag(MasterCommand):
     )
     def clean(tagName, where):
         document, where = where
-        document.model.tag_remove(tagName, where.first, where.end)
+        document.model.tag_remove(tagName, str(where.first), str(where.last))
 
     @SubCommand(
     ranges = Range()
     )
     def set(tagName, *ranges):
         for doc, _range in ranges:
-            doc.model.tag_add(tagName, _range.first, _range.last)
+            doc.model.tag_add(tagName, str(range.first), str(_range.last))
 
 
 
