@@ -40,7 +40,6 @@ class CommandWrapper:
     def _vararg_name(self):
         from inspect import Parameter
         for argument in self.signature.parameters.values():
-            print(argument)
             if argument.kind == Parameter.VAR_POSITIONAL:
                 return argument.name
         return None

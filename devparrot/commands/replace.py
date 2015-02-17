@@ -27,13 +27,10 @@ import re
 class inner:
     @staticmethod
     def replace(pattern, repl, ranges):
-        print('pattern', pattern)
         pattern = re.compile(pattern)
         for document, rge in ranges:
             text = document.model.get(str(rge.first), str(rge.last))
-            print('text', text)
             new = pattern.sub(repl, text)
-            print('new', new)
             document.model.replace(str(rge.first), str(rge.last), new)
 
 Command(
