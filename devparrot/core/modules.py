@@ -53,22 +53,17 @@ class BaseModule:
     def update_config(config):
         pass
 
-_modules = {}
-
 def update_config(config):
     for entrypoint in pkg_resources.iter_entry_points(group='devparrot.module'):
         module = entrypoint.load()
         module.update_config(config)
 
 def load():
-    from . import configLoader
-    # Note: data is zest.releaser specific: we want to pass
-    # something to the plugin
     for entrypoint in pkg_resources.iter_entry_points(group='devparrot.module'):
         # get the module creator (class or fonction)
         name = entrypoint.name
         module = entrypoint.load()
         # create the associated config section
         # create the module instance
-        _modules[name] = module(name)
+        session.modules[name] = module(name)
 

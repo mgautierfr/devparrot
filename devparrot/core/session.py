@@ -34,7 +34,7 @@ _globalContainer = None
 config = None
 commands = None
 macros = None
-modules = None
+modules = {}
 memories = {}
 controllers = {}
 bindings = None
@@ -58,19 +58,16 @@ logger.addHandler(handler)
 def init():
     from devparrot.core.command import bind
     from devparrot.core.command.section import Section
-    from devparrot.core import modules as _modules
     global _documentManager
     global commandLauncher
     global bindings
     global macros
-    global modules
 
     _documentManager = documentManager.DocumentManager()
     commandLauncher = _commandLauncher.CommandLauncher()
     _commandLauncher.create_section()
     bindings = bind.Binder()
     macros = Section(None, None)
-    modules = _modules._modules
 
 def set_config(_config):
     global config

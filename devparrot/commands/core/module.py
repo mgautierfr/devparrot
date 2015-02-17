@@ -20,7 +20,7 @@
 
 from devparrot.core.command import MasterCommand, SubCommand
 from devparrot.core import session
-
+import importlib
 
 class module(MasterCommand):
     @SubCommand()
@@ -30,4 +30,16 @@ class module(MasterCommand):
     @SubCommand()
     def deactivate(module):
         session.modules[module]._deactivate()
+
+    @SubCommand()
+    def load(name, modulePath):
+        modulePath, creatorName = modulePath.split(':')
+        loader =importlib.machinery.SourceFileLoader(name, modulePath)
+        try:
+            module = loader.load_module()
+        except ImportError:
+            raise InvalidArgument("%r is not a valid module path"%modulePath)
+        creator = getattr(module, creatorName)
+        creator.update_config(session.config)
+        session.modules[name] = creator(name)
 
