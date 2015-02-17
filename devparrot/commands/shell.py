@@ -38,7 +38,7 @@ def shell(command, stdinput, *args):
 
     for line in stdinput:
         line = "{}\n".format(line)
-        os.write(master_fd, line)
+        os.write(master_fd, line.encode())
 
 
     left = b""
@@ -80,4 +80,4 @@ stream =Stream()
 def stdoutput(stream):
     import sys
     for line in stream:
-        sys.stdout.write(line)
+        sys.stdout.write(line.encode())
