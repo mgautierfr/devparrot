@@ -47,19 +47,18 @@ class PseudoStream(Stream):
         Stream.__init__(self, None)
 
 class StreamEater:
-    def __init__(self, function, streamName, args, kwords, argsorder):
+    def __init__(self, function, streamName, args, kwords, signature):
         self.function = function
         self.streamName = streamName
         self.args = args
         self.kwords = kwords
-        self.argsorder = argsorder
+        self.signature = signature
 
     def __call__(self, stream):
         if self.streamName:
             self.kwords[self.streamName] = stream
-        call_list = [self.kwords[name] for name in self.argsorder]
-        call_list.extend(self.args)
-        stream_ = self.function(*call_list)
+        bound = self.signature.bind(*self.args, **self.kwords)
+        stream_ = self.function(*bound.args, **bound.kwargs)
         return Stream(stream_)
 
 

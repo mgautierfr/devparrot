@@ -37,14 +37,24 @@ class CommandWrapper:
     def _set_masterCommand(self, masterCommand):
         self.masterCommand = masterCommand
 
+    def _vararg_name(self):
+        from inspect import Parameter
+        for argument in self.signature.parameters.values():
+            print(argument)
+            if argument.kind == Parameter.VAR_POSITIONAL:
+                return argument.name
+        return None
+
     def _set_function(self, function, commandName):
-        from inspect import getargspec
+        from inspect import signature
         self.functionToCall = function
         self.commandName = commandName
-        self.argSpec = getargspec(function)
-        varargConstraint = self.constraints.get(self.argSpec.varargs, None)
-        if varargConstraint:
-            varargConstraint.isVararg = True
+        self.signature = signature(function)
+        self.varargName = self._vararg_name()
+        if self.varargName:
+            varargConstraint = self.constraints.get(self.varargName, None)
+            if varargConstraint:
+                varargConstraint.isVararg = True
 
     def _set_commandName(self, name):
         self.commandName = name
@@ -53,16 +63,19 @@ class CommandWrapper:
         return self.constraints.get(name, Default())
 
     def _get_all_constraints(self):
-        for name in  self.argSpec.args:
-            if name != self.streamName:
-                yield ConstraintInstance(self._get_constraint(name), name)
+        from inspect import Parameter
+        for parameter in self.signature.parameters.values():
+            if parameter.kind not in (Parameter.POSITIONAL_ONLY, Parameter.POSITIONAL_OR_KEYWORD):
+                continue
+            if parameter.name != self.streamName:
+                yield ConstraintInstance(self._get_constraint(parameter.name), parameter.name)
 
     def get_constraint(self, index):
         try:
             return list(self._get_all_constraints())[index]
         except IndexError:
-            if self.argSpec.varargs:
-                return ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
+            if self.varargName:
+                return ConstraintInstance(self._get_constraint(self.varargName), self.varargName)
             raise
 
     def provide_value(self, index, token):
@@ -97,8 +110,8 @@ class CommandWrapper:
                             raise InvalidArgument("Command {} : missing argument for constraint {}".format(self.commandName, constraint))
 
         # bind left positional arguments
-        if self.argSpec.varargs and self.argSpec.varargs in self.constraints:
-            constraint = ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
+        if self.varargName and self.varargName in self.constraints:
+            constraint = ConstraintInstance(self._get_constraint(self.varargName), self.varargName)
             if not args:
                 try:
                     call_list.append(constraint.default())
@@ -125,7 +138,7 @@ class CommandWrapper:
 
     def resolve(self, *args, **kwords):
         call_list, call_kwords = self._get_call_args(args, kwords)
-        return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords, self.argSpec.args)
+        return StreamEater(self.functionToCall, self.streamName, call_list, call_kwords, self.signature)
 
     def __call__(self, *args, **kwords):
         return self.functionToCall(*args, **kwords)
@@ -145,8 +158,8 @@ class CommandWrapper:
         for constraint in self._get_all_constraints():
             yield constraint.get_help()+"\n"
 
-        if self.argSpec.varargs and self.argSpec.varargs in self.constraints:
-            constraint = ConstraintInstance(self._get_constraint(self.argSpec.varargs), self.argSpec.varargs)
+        if self.varargName and self.varargName in self.constraints:
+            constraint = ConstraintInstance(self._get_constraint(self.varargName), self.varargName)
             yield constraint.get_help()+"\n\n"
 
         yield " - stream : %s\n"%self.streamName
