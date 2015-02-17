@@ -133,6 +133,16 @@ class CommandWrapper:
         # bind left keyword arguments
         call_kwords.update(kwords)
 
+        # Finally check is generated arguments list and dict are valide for commandCall.
+        # This allow us to repport earlier
+        try:
+            _fakedict = dict(call_kwords)
+            if self.streamName:
+                _fakedict[self.streamName] = None
+            self.signature.bind(*call_list, **_fakedict)
+        except TypeError as e:
+            # This have to be "to many arguments" else we should have raise before
+            raise InvalidArgument("There are to many argument for command {}".format(self.commandName))
 
         return call_list, call_kwords
 
