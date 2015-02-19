@@ -24,10 +24,6 @@ import tkinter, tkinter.ttk
 import os
 from pkg_resources import resource_stream
 
-
-from xdg.IconTheme import getIconPath
-from xdg import Mime
-
 from devparrot.core import session
 from devparrot.core.modules import BaseModule
 

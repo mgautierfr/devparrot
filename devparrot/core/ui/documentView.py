@@ -23,15 +23,8 @@ import tkinter, tkinter.ttk, tkinter.font
 from xdg import Mime
 from .viewContainer import NotebookContainer, ContainerChild
 from devparrot.core import mimemapper
-from pygments.lexers import get_all_lexers, get_lexer_for_mimetype
-from pygments.util import ClassNotFound
 
 from devparrot.core import session
-
-def get_valid_lexer_names():
-    for name, aliases, filetype, mimetypes in get_all_lexers():
-        if mimetypes:
-            yield name
 
 class DocumentView(tkinter.ttk.Frame, ContainerChild):
     def __init__(self, document):

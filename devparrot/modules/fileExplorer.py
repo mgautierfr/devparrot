@@ -22,13 +22,24 @@
 import tkinter, tkinter.ttk
 import os, re
 
-from xdg.IconTheme import getIconPath
-from xdg import Mime
-
 from fnmatch import fnmatch
-
 from devparrot.core import session
 from devparrot.core.modules import BaseModule
+
+hasImageSupport = True
+try:
+    from PIL import Image, ImageTk
+except ImportError:
+    try:
+        import Image, ImageTk
+    except ImportError:
+        hasImageSupport = False
+try:
+    from xdg import Mime
+    from xdg.IconTheme import getIconPath
+except ImportError:
+    # we cannot get icon for a mime
+    hasImageSupport = False
 
 
 tkImages = {}
@@ -64,13 +75,8 @@ class FileExplorer(BaseModule):
             session.window.after_idle(self.fileExplorerView.filltree)
 
     def _load_icon_for_mime(self, mimeType):
-        try:
-            from PIL import Image, ImageTk
-        except ImportError:
-            try:
-                import Image, ImageTk
-            except ImportError:
-                return None
+        if not hasImageSupport:
+            return None
         iconPath = getIconPath(mimeType, size=16, theme=session.config.get('iconTheme'), extensions=["png", "xpm"])
         if iconPath:
             iconImage = Image.open(iconPath)
@@ -186,8 +192,10 @@ class FileExplorerView(tkinter.ttk.Frame):
             for file_ in sorted(files):
                 if not self.module.apply_exclude(file_):
                     continue
-                fullPath = os.path.join(current, file_)
-                mime = str(Mime.get_type_by_name(fullPath)).split('/')
-                image = self.module._get_icon_for_mime(mime)
+                image = None
+                if hasImageSupport:
+                    fullPath = os.path.join(current, file_)
+                    mime = str(Mime.get_type_by_name(fullPath)).split('/')
+                    image = self.module._get_icon_for_mime(mime)
                 self.insert_child(current, file_, image)
 

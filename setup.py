@@ -40,7 +40,16 @@ setup(name='devparrot',
       package_data= { 'devparrot.core.ui' : [ 'resources/icon48.png' ],
                       'devparrot' : ['icons/*.png'],
                     },
-      install_requires=['Pillow', 'pyxdg', 'picoparse', 'pygments', 'python-magic'],
+
+      # pyxdg and pygments are used for file type detection.
+      # Maybe we should remove those strong requirements by using custom algorithm.
+      install_requires=['tkinter', 'pyxdg', 'picoparse', 'pygments' 'python-magic','pytest'],
+      extras_require = {
+         'JEDI'     :   ['jedi'],
+         'PYGMENTS' :   ['pygments'],
+         'XDG'      :   ['pyxdg'],
+         'IMAGE'    :   ['Pillow']
+      },
       entry_points = {
         'gui_scripts' : [
             'devparrot = devparrot:main'
@@ -49,9 +58,9 @@ setup(name='devparrot',
             'project = devparrot.modules.project:Project',
             'documentList = devparrot.modules.documentList:DocumentList',
             'externalTool = devparrot.modules.externalTool:ExternalTool',
-            'fileExplorer = devparrot.modules.fileExplorer:FileExplorer',
-            'textHighlight = devparrot.modules.textHighlight:TextHighlight',
-            'jedi = devparrot.modules.jediModule:Jedi',
+            'fileExplorer = devparrot.modules.fileExplorer:FileExplorer [XDG]',
+            'textHighlight = devparrot.modules.textHighlight:TextHighlight [PYGMENTS]',
+            'jedi = devparrot.modules.jediModule:Jedi [JEDI]',
             'tagExplorer = devparrot.modules.tagExplorer:TagExplorer'
         ]
       }

@@ -3,7 +3,7 @@ import pytest
 import devparrot
 import os
 import collections
-import imp, gc, logging
+import gc, logging
 from subprocess import check_call, CalledProcessError
 
 def all_valid_rc():
