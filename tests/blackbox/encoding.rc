@@ -1,0 +1,26 @@
+import os as _os
+import codecs as _codecs
+
+encoding = "utf8"
+
+with _codecs.open('test_ascii', mode='w', encoding='ascii') as _f:
+    _f.write("def stuff():\n    pass\n")
+
+with open('test_utf8', mode='w', encoding='utf8') as _f:
+    _f.write("def stuff():\n    passé\n")
+
+with open('test_latin1', mode='w', encoding='latin1') as _f:
+    _f.write("def stuff():\n    pàss\n")
+
+with open('orig_latin1', mode='w', encoding='latin1') as _f:
+    _f.write("def stuff():\n    pàssé\n")
+
+start_command = r"""open test_ascii
+stream.echo "é" | section end
+save
+assert_file_equal test_ascii test_utf8
+open test_latin1
+stream.echo "é" | section end
+save
+assert_file_equal test_latin1 orig_latin1
+quit"""
