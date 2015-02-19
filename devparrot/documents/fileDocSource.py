@@ -94,7 +94,7 @@ class FileDocSource:
             encoding = charset_ret.search(output)
         if encoding:
             self._encoding = encoding.group(1).decode()
-        if self._encoding == "ascii":
+        if self._encoding in ("ascii", "us-ascii"):
             self._encoding = None
 
     @contextmanager
