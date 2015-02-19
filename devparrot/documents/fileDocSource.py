@@ -75,6 +75,9 @@ class FileDocSource:
         return self._encoding or session.config.encoding.get([self.mimetype])
 
     def guess_encoding(self):
+        if not os.path.exists(self.path):
+            self._encoding = None
+            return
         i = 0
         with open(self.path, 'rb') as fileIn:
             for line in fileIn:
@@ -87,7 +90,6 @@ class FileDocSource:
                 else:
                     break
         output = subprocess.check_output(["file", "-i", self.path])
-        encoding = charset_ret.search(output)
         if b"x-empty" in output:
             encoding = None
         else:
