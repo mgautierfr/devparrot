@@ -56,6 +56,12 @@ class Menu(tkinter.Menu):
                 tkadd('command', label=name, command=entry)
         return value
 
+    def __contains__(self, name):
+        for n, _ in self.entries:
+            if name == n:
+                return True
+        return False
+
     def append(self, value):
         value = self.create_entry(len(self), value)
         self.entries.append(value)
@@ -65,7 +71,13 @@ class Menu(tkinter.Menu):
         return len(self.entries)
 
     def __getitem__(self, key):
-        return self.entries[key]
+        try:
+            return self.entries[key]
+        except TypeError:
+            for n, e in self.entries:
+                if n == key:
+                    return e
+        raise KeyError("%r is not a valid entry in the menu"%key)
 
     def __setitem__(self, key, value):
         value = self.create_entry(key, value)
