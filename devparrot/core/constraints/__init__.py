@@ -136,14 +136,27 @@ class Command(_Constraint):
         from devparrot.core.command.wrappers import CommandWrapper
         return isinstance(arg, CommandWrapper), arg
 
+booleanMap = {
+'true' : True,
+'on'   : True,
+'1'    : True,
+'yes'  : True,
+'false': False,
+'off'  : False,
+'0'    : False,
+'no'   : False
+}
+
 class Boolean(_Constraint):
     """Must be a boolean"""
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
     def check(self, token):
-        from ast import literal_eval
-        return True, bool(literal_eval(token))
+        try:
+            return True, booleanMap[token.lower()]
+        except KeyError:
+            return False, None
 
     @staticmethod
     def TRUE():
