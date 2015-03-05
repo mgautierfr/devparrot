@@ -39,23 +39,30 @@ class BaseModule:
         pass
 
     def _activate(self):
+        ret = self.activate()
         self.active = True
-        return self.activate()
+        session.config.modules[self.name].activate.set(True)
+        return ret
 
     def deactivate(self):
         pass
 
     def _deactivate(self):
+        ret = self.deactivate()
         self.active = False
-        return self.deactivate()
+        session.config.modules[self.name].activate.set(False)
+        return ret
 
     @staticmethod
     def update_config(config, name):
         pass
 
 def update_config(config):
+    global_module_section = config.add_section('modules')
     for entrypoint in pkg_resources.iter_entry_points(group='devparrot.module'):
         module = entrypoint.load()
+        module_section = global_module_section.add_section(entrypoint.name)
+        module_section.add_option("activate", default=False)
         module.update_config(config, entrypoint.name)
 
 def load():
