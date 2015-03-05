@@ -171,6 +171,9 @@ class BaseSection:
     def __getattr__(self, name):        
         return self._get(name)
 
+    def __getitem__(self, name):
+        return self._get(name)
+
     def __setattr__(self, name, value):
         if name == "options":
             object.__setattr__(self, name, value)
@@ -230,6 +233,8 @@ class Config(BaseSection):
 
 
 class ProxySection(dict):
+    __slots__ = ('_section',)
+
     def __init__(self, section):
         dict.__init__(self)
         self._section = section
@@ -244,8 +249,20 @@ class ProxySection(dict):
                 return proxy
         raise KeyError
 
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError
+
     def __setitem__(self, name, v):
         dict.__setitem__(self,name, v)
+
+    def __setattr__(self, name, v):
+        try:
+            return object.__setattr__(self, name, v)
+        except AttributeError:
+            return self.__setitem__(name, v)
 
     def _has_dict(self):
         d = {}
