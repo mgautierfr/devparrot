@@ -108,8 +108,8 @@ def init(cmd_options):
 
     return _config
 
-def load(cmd_options):
-    for line in _config.start_command.get().split("\n"):
+def run_startup_commands(commands):
+    for line in commands.split("\n"):
         line = line.strip()
         if not line or line.startswith("#"):
             continue

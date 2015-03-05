@@ -88,8 +88,9 @@ def _main(cmd_options):
     core.modules.load()
     core.command.load()
     core.controller.load()
-    core.configLoader.load(cmd_options)
+    core.modules.activate_modules()
     core.textCompletion.init()
+    core.configLoader.run_startup_commands(config.start_command.get())
     core.session.window.mainloop()
 
 

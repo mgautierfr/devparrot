@@ -74,3 +74,7 @@ def load():
         # create the module instance
         session.modules[name] = module(name)
 
+def activate_modules():
+    for name, module in session.modules.items():
+        if session.config.modules[name].activate.get():
+            module._activate()
