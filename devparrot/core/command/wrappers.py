@@ -224,7 +224,11 @@ class MasterCommandWrapper:
     def resolve(self, *args, **kwords):
         subCommandName = args[0]
         args = args[1:]
-        return self.subCommands[subCommandName].resolve(*args, **kwords)
+        try:
+            subCommand = self.subCommands[subCommandName]
+        except KeyError:
+            raise InvalidName("{0} is not a valid subCommand name".format(subCommandName))
+        return subCommand.resolve(*args, **kwords)
 
     def get_help(self):
         last = "%s master command:"%self.get_name()

@@ -88,7 +88,7 @@ def get_argumentCompletions(callObject, argumentContainer):
 
     try:
         constraint = callObject.get_constraint(len(argumentContainer.values)-1)
-    except IndexError:
+    except (IndexError, KeyError):
         return []
     return constraint.complete_context(argumentContainer.values[-1])
 
