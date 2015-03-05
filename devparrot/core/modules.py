@@ -39,6 +39,8 @@ class BaseModule:
         pass
 
     def _activate(self):
+        if self.active:
+            return
         ret = self.activate()
         self.active = True
         session.config.modules[self.name].activate.set(True)
@@ -48,6 +50,8 @@ class BaseModule:
         pass
 
     def _deactivate(self):
+        if not self.active:
+            return
         ret = self.deactivate()
         self.active = False
         session.config.modules[self.name].activate.set(False)
