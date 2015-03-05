@@ -86,6 +86,7 @@ class TagExplorer(BaseModule):
         document = session.get_currentDocument()
         tagProviderName = document.get_config('tagProvider')
         tagProviderClass = tagMap.get(tagProviderName, None)
+        self.tagExplorerView.cleantree()
         if tagProviderClass:
             tagProvider = tagProviderClass(document.model)
             self.tagExplorerView.filltree(tagProvider)
@@ -167,8 +168,10 @@ class TagExplorerView(tkinter.ttk.Frame):
             for child in tag.children:
                 self.insert_child(args['iid'], child)
 
-    def filltree(self, provider):
+    def cleantree(self):
         while len(self.treeView.get_children('')):
             self.treeView.delete(self.treeView.get_children('')[0])
+
+    def filltree(self, provider):
         for tag in provider.get_tag():
             self.insert_child('', tag)
