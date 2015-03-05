@@ -108,4 +108,8 @@ def ask_filenameOpen(*args, **kwords):
     response = tkinter.filedialog.askopenfilename(title="Open a file", *args, **kwords)
     return response
 
+def ask_directory(*args, **kwords):
+    import tkinter.filedialog
+    response = tkinter.filedialog.askdirectory(title="Choose a directory", *args, **kwords)
+    return response
 
