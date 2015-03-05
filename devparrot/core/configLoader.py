@@ -68,27 +68,27 @@ def init(cmd_options):
 
     dict.__setitem__(_config.options, 'hook', AutoCreateSection(_config, _config, 'hook'))
 
-    _config.add_option("menuBar", default=[("File", [ ("New", "new"),
-                    ("Open", "open"),
+    _config.add_option("menuBar", default=[("File", [ ("New", "new\n"),
+                    ("Open", "open\n"),
                     "---",
-                    ("Save", "save"),
-                    ("Save as", "saveas")
+                    ("Save", "save\n"),
+                    ("Save as", "saveas\n")
                   ]),
-         ("Edit", [ ("Undo", "undo"),
-                    ("Redo", "redo"),
+         ("Edit", [ ("Undo", "undo\n"),
+                    ("Redo", "redo\n"),
                     "---",
-                    ("Copy", "copy"),
-                    ("Cut", "cut"),
-                    ("Paste", "paste")
+                    ("Copy", "copy\n"),
+                    ("Cut", "cut\n"),
+                    ("Paste", "paste\n")
                   ]),
-         ("Help", "help")
+         ("Help", "help\n")
         ])
-    _config.add_option("popupMenu", default=[ ("Undo", "undo"),
-            ("Redo", "redo"),
+    _config.add_option("popupMenu", default=[ ("Undo", "undo\n"),
+            ("Redo", "redo\n"),
             "---",
-            ("Copy", "copy"),
-            ("Cut", "cut"),
-            ("Paste", "paste")
+            ("Copy", "copy\n"),
+            ("Cut", "cut\n"),
+            ("Paste", "paste\n")
           ])
 
     _config.add_option("start_command", default="open %%config(ARGUMENTS)")

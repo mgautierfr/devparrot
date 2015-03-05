@@ -81,11 +81,24 @@ class Menu(tkinter.Menu):
 
 class MenuEntry:
     def __init__(self, cmd):
-        self.cmd = cmd
+        self.set_command(cmd)
+
+    def set_command(self, command):
+        commands = command.split('\n')
+        self.commands = commands[:-1]
+        self.leftText = commands[-1]
 
     def __call__(self, *args, **kwords):
-        return session.commandLauncher.run_command_nofail(self.cmd)
-        
+        for cmd in self.commands:
+            ret = session.commandLauncher.run_command_nofail(cmd)
+            if not ret:
+                return
+        if self.leftText:
+            session.window.entry.delete("1.0", "end")
+            session.window.entry.insert("1.0", self.leftText)
+            session.window.entry.toClean = False
+            session.window.entry.focus()
+            session.window.entry.mark_set("index", "end")
 
 class MenuBar(Menu):
     def __init__(self):
