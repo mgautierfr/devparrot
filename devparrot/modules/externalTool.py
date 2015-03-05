@@ -123,7 +123,7 @@ class CommandOutput(tkinter.ttk.Frame):
                 tag = 'warning'
             self.textView.tag_add(tag, "{} linestart + {} c".format(index, tagMatch.start()), "{} linestart + {} c".format(index, tagMatch.end()))
 
-        self.textView.see('insert')
+        self.textView.see('end')
 
 @Command(content=Stream())
 def commandOutput(name, content):
