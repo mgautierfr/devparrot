@@ -35,7 +35,7 @@ fileParsing = [re.compile(br"(^|(.* ))(?P<file>[^: ]+):(?P<line>[0-9]+):(?P<pos>
 
 class ExternalTool(BaseModule):
     @staticmethod
-    def update_config(config):
+    def update_config(config, name):
         config.add_option("command", default="make")
 
 class CommandOutput(tkinter.ttk.Frame):

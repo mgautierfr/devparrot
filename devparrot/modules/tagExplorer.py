@@ -65,7 +65,7 @@ class BaseProvider(metaclass=BaseProviderMeta):
 
 class TagExplorer(BaseModule):
     @staticmethod
-    def update_config(config):
+    def update_config(config, name):
         config.add_option("tagProvider", default=None)
 
     def activate(self):

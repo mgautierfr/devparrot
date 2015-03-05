@@ -50,13 +50,13 @@ class BaseModule:
         return self.deactivate()
 
     @staticmethod
-    def update_config(config):
+    def update_config(config, name):
         pass
 
 def update_config(config):
     for entrypoint in pkg_resources.iter_entry_points(group='devparrot.module'):
         module = entrypoint.load()
-        module.update_config(config)
+        module.update_config(config, entrypoint.name)
 
 def load():
     for entrypoint in pkg_resources.iter_entry_points(group='devparrot.module'):

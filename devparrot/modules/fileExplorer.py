@@ -51,7 +51,7 @@ def _generate_all_mime_combination(mimeType):
 
 class FileExplorer(BaseModule):
     @staticmethod
-    def update_config(config):
+    def update_config(config, name):
         config.add_option("iconTheme", default=None)
         config.add_option("showIcon", default=False)
         config.add_option("excludes", default=["*.pyc", "*.pyo", "*.o", "__pycache__", ".git*"])

@@ -42,7 +42,7 @@ class HighlightContext:
 
 class TextHighlight(BaseModule):
     @staticmethod
-    def update_config(config):
+    def update_config(config, name):
         config.add_option("hlstyle", default="default")
 
     def activate(self):
