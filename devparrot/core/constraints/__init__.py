@@ -168,7 +168,7 @@ class Boolean(_Constraint):
             
 class File(_Constraint):
     """Must be a file path"""
-    OPEN, SAVE, NEW = range(3)
+    OPEN, SAVE, NEW, DIR = range(4)
     def __init__(self, mode=OPEN, multiple=False, default=None, help=""):
         try:
             (x for x in mode)
@@ -181,7 +181,10 @@ class File(_Constraint):
     def check(self, _file):
         _file = os.path.abspath(os.path.expanduser(_file))
         if os.path.exists(_file):
-            return True, _file
+            if File.DIR in self.mode:
+                return os.path.isdir(_file), _file
+            else:
+                return os.path.isfile(_file), _file
         d = os.path.dirname(_file)
         if not os.path.exists(d):
             return False, None
@@ -205,7 +208,9 @@ class File(_Constraint):
                 if path:
                     d['initialdir'] = os.path.dirname(path)
 
-        if File.SAVE in self.mode:
+        if File.DIR in self.mode:
+            token = ui.helper.ask_directory(**d)
+        elif File.SAVE in self.mode:
             token = ui.helper.ask_filenameSave(**d)
         else:
             d['multiple'] = self.multiple or self.isVararg
@@ -255,6 +260,54 @@ class File(_Constraint):
 
         completions.extend(self._complete(directory, file_, prefix, create_completion))
         return completions
+
+class Directory(File):
+    def __init__(self, multiple=False, default=None, help=""):
+        File.__init__(self, mode=File.DIR, multiple=multiple, default=default, help=help)
+
+    @staticmethod
+    def ONE_OF(choice_list=['CURRENTPROJECT', 'CURRENTDOC', 'CURRENT']):
+        def function():
+            for choice in choice_list:
+                if choice == 'CURRENTPROJECT':
+                    try:
+                        return Directory.CURRENTPROJECT()
+                    except NoDefault:
+                        pass
+                if choice == 'CURRENTDOC':
+                    try:
+                        return Directory.CURRENTDOC()
+                    except NoDefault:
+                        pass
+                if choice == 'CURRENT':
+                    return os.getcwd()
+            raise NoDefault()
+        return function
+
+
+    @staticmethod
+    def CURRENT():
+        return os.getcwd()
+
+    @staticmethod
+    def CURRENTDOC():
+        document = session.get_currentDocument()
+        path = currentDoc.get_path()
+        if path:
+            return os.path.dirname(path)
+        raise NoDefault()
+
+    @staticmethod
+    def CURRENTPROJECT():
+        from devparrot.core import session
+        document = session.get_currentDocument()
+        try:
+            path = session.config.get('projectdir', keys=document.get_config_keys())
+            if path:
+                return path
+        except KeyError:
+            pass
+        raise NoDefault()
 
 def parse_range_index_text(text):
     from devparrot.core.session import get_documentManager, get_currentDocument
