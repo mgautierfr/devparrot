@@ -20,14 +20,15 @@
 
 
 from devparrot.core.command import Command
-from devparrot.core.constraints import Stream, Default
+from devparrot.core.constraints import Stream, Default, Directory
 
 @Command(
-command = Default(help="The command to launch"),
+command  = Default(help="The command to launch"),
 stdinput = Stream(help="A content to send to the stdinput of the subprocess"),
-args  = Default(help="A list of arguments to use when launching the command")
+cwd      = Directory(help="The directory to use as 'current directory'", default=Directory.CURRENT),
+args     = Default(help="A list of arguments to use when launching the command")
 )
-def shell(command, stdinput, *args):
+def shell(command, stdinput, cwd, *args):
     """
     run a external command
     """
@@ -36,7 +37,7 @@ def shell(command, stdinput, *args):
     master_fd, slave_fd = pty.openpty()
     commands = [command]+['"%s"'%arg for arg in args]
     commands = ' '.join(commands)
-    popen = Popen(commands, bufsize=1024, shell=True, stdin=slave_fd, stdout=slave_fd, stderr=STDOUT, universal_newlines=False, close_fds=True)
+    popen = Popen(commands, bufsize=1024, shell=True, stdin=slave_fd, stdout=slave_fd, stderr=STDOUT, universal_newlines=False, cwd=cwd, close_fds=True)
 
     for line in stdinput:
         line = "{}\n".format(line)
