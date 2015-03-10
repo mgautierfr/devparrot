@@ -314,5 +314,8 @@ class ConfigParser:
 
     def parse(self, in_keys=[], with_dict={}):
         for configFile in self.configFiles:
-            options = configFile.parse(self.config, with_dict)
-            self.config.update(options, in_keys, skip_unknown=True)
+            try:
+                options = configFile.parse(self.config, with_dict)
+                self.config.update(options, in_keys, skip_unknown=True)
+            except FileNotFoundError:
+                print("Config File %s not existing."%configFile.filename)
