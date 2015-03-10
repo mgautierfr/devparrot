@@ -48,6 +48,9 @@ class TextHighlight(BaseModule):
     def activate(self):
         self._create_fonts()
         self._create_styles()
+        for document in session.get_documentManager():
+            self.on_documentAdded(document)
+            self.init_and_highlight(document)
 
     def on_configChanged(self, var, key, old):
         if var.name == "font":
