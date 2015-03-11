@@ -20,19 +20,19 @@
 
 from devparrot.core.command import MasterCommand, SubCommand
 from devparrot.core import session
-from devparrot.core.constraints import Default
+from devparrot.core.constraints import Default, ModuleEntry
 import importlib
 
 class module(MasterCommand):
-    @SubCommand()
+    @SubCommand(module=ModuleEntry())
     def activate(module):
         """activate a module"""
-        session.modules[module]._activate()
+        module._activate()
 
-    @SubCommand()
+    @SubCommand(module=ModuleEntry())
     def deactivate(module):
         """deactivate a module"""
-        session.modules[module]._deactivate()
+        module._deactivate()
 
     @SubCommand(
     name       = Default(help="The name to use for the devparrot module"),

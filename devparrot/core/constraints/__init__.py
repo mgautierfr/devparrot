@@ -510,3 +510,28 @@ class HelpEntry(_Constraint):
 
     def check_direct(self, arg):
         return hasattr(arg, "get_help"), arg
+
+class ModuleEntry(_Constraint):
+    """Must be a existing module name"""
+    def __init(self, *args, **kwords):
+        _Constraint.__init__(self, *args, **kwords)
+
+    def complete(self, token):
+        from devparrot.core import session
+        from devparrot.core.help import HelpSection
+        if token.value is None:
+            return []
+        completionClass = type_to_completion[token.get_type()]
+        create_completion = lambda v : completionClass(token.index, v, True, len(token.value))
+        return [create_completion(v=name) for name in session.modules if name.startswith(token.value)]
+
+    def check(self, token):
+        from devparrot.core import session
+        try:
+            return True, session.modules[token]
+        except KeyError:
+            return False, None
+
+    def check_direct(self, arg):
+        from devparrot.core.modules import BaseModule
+        return isinstance(arg, BaseModule), arg
