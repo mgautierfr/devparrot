@@ -222,7 +222,13 @@ class NotebookContainer(tkinter.ttk.Notebook, ContainerChild):
 
     def select(self, *args):
         if not args:
-            return tkinter.ttk.Notebook.select(self)
+            try:
+                return tkinter.ttk.Notebook.select(self)
+            except TclError:
+                # This can occur when user close a document (middle-click on label)
+                # when tk is working (trying to display long buffer).
+                # After tk working, notebook name is not valid anymore
+                return None
         else:
             selected = tkinter.ttk.Notebook.select(self)
             if selected :
