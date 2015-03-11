@@ -24,6 +24,7 @@ from devparrot.core.constraints import Stream, OpenDocument, Default
 
 from devparrot.core import session
 from devparrot.core.modules import BaseModule
+from devparrot.core import errors
 
 import re, os.path
 
@@ -36,7 +37,8 @@ fileParsing = [re.compile(br"(^|(.* ))(?P<file>[^: ]+):(?P<line>[0-9]+):(?P<pos>
 class ExternalTool(BaseModule):
     @staticmethod
     def update_config(config, name):
-        config.add_option("command", default="make")
+        config.add_option("command")
+        config.add_option("commandName")
 
 class CommandOutput(tkinter.ttk.Frame):
     def __init__(self, parent):
@@ -148,13 +150,18 @@ def commandOutput(name, content):
     output.after(100, read_line)
 
 
-@Alias(document = OpenDocument(default=OpenDocument.CURRENT),
-name=Default(default=lambda:None))
-def runtool(document, name):
-    command = session.config.get("command", document.get_config_keys())
-    if not name:
+@Alias(document = OpenDocument(default=OpenDocument.CURRENT))
+def runtool(document):
+    try:
+        command = session.config.get("command", document.get_config_keys())
+    except KeyError:
+        raise errors.ContextError("There is no command configured")
+    try:
+        name = session.config.get("commandName", document.get_config_keys())
+    except KeyError:
         name = command
     cmd = "shell {0!s} | commandOutput {1!r}".format(command, name)
     return cmd
 
+session.bindings["<Control-F7>"] = "runtool\n"
 
