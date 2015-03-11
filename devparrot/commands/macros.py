@@ -59,3 +59,12 @@ def range(text):
         doc, range_ = result
         return doc.get_model().get(str(range_.first), str(range_.last))
     raise InvalidArgument()
+
+@Macro()
+def directory(*selectors):
+    from devparrot.core.constraints import Directory
+    function = Directory.ONE_OF(selectors)
+    try:
+        return function()
+    except NoDefault:
+        raise InvalidArgument()
