@@ -42,7 +42,15 @@ class Default(_Constraint):
         _Constraint.__init__(self, multiple=multiple, default=default, help=help)
 
 class Keyword(_Constraint):
-    """Must be a particular keyword"""
+    """Must be a particular keyword
+
+       The actual keywords depend of associated command.
+       Please see the command help to get the valid keywords.
+
+       The transformed value is a string equal to one of keywords.
+
+       There is no gui to ask the keyword to the user.
+    """
     def __init__(self, keywords, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
         self.keywords = keywords
@@ -60,6 +68,9 @@ class Keyword(_Constraint):
         create_completion = lambda v: completionClass(token.index, v, True, len(token.value))
         return [create_completion(k) for k in self.keywords if k.startswith(token.value)]
 
+    def get_userHelp(self):
+        return "%s\nThe valid keywords are :\n%s"%(self.help, ", ".join(self.keywords))
+
 booleanMap = {
 'true' : True,
 'on'   : True,
@@ -72,7 +83,14 @@ booleanMap = {
 }
 
 class Boolean(_Constraint):
-    """Must be a boolean"""
+    """Must be a boolean
+
+       The strings 'true', 'on', 'yes' and '1' are converted to the True boolean.
+       The strings 'false', 'off', 'no' and '0' are converted to the False booleand.
+
+       The handling of value is case insensitive.
+
+       There is no gui to ask the boolean to the user."""
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
@@ -91,7 +109,13 @@ class Boolean(_Constraint):
         return False
             
 class File(_Constraint):
-    """Must be a file path"""
+    """Must be a file path
+
+    The file path can be absolute or relative to current directory.
+
+    The transformed value is a absolute path.
+
+    There is a gui to ask the path to the user"""
     OPEN, SAVE, NEW, DIR = range(4)
     def __init__(self, mode=OPEN, multiple=False, default=None, help=""):
         try:
@@ -347,7 +371,11 @@ class Integer(_Constraint):
         return isinstance(arg,int) , arg
 
 class OpenDocument(_Constraint):
-    """Must be a open document"""
+    """Must be a open document
+
+    Documents are addressed by there title.
+
+    The transformed value is a Document object."""
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
@@ -377,7 +405,9 @@ class OpenDocument(_Constraint):
         return session.get_currentDocument()
 
 class ConfigEntry(_Constraint):
-    """Must be a config entry"""
+    """Must be a config entry
+
+    The transformed value is a config Option object."""
     def __init__(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
         
@@ -411,7 +441,9 @@ class ConfigEntry(_Constraint):
 
 
 class HelpEntry(_Constraint):
-    """Must be a command name"""
+    """Must be a help entry.
+
+    The transformed value is a help_entry object."""
     def __init(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
@@ -481,7 +513,9 @@ class HelpEntry(_Constraint):
         return hasattr(arg, "get_help"), arg
 
 class ModuleEntry(_Constraint):
-    """Must be a existing module name"""
+    """Must be a existing module name.
+
+    The transformed value is a Module object."""
     def __init(self, *args, **kwords):
         _Constraint.__init__(self, *args, **kwords)
 
