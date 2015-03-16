@@ -498,8 +498,33 @@ class HelpEntry(_Constraint):
             return []
         completionClass = type_to_completion[token.get_type()]
         create_completion = lambda v,f : completionClass(token.index, v, f, len(token.value))
-        return [create_completion(v=entry.get_name(), f=not isinstance(entry,HelpSection))
-                       for name, entry in session.help_entries.items() if name.startswith(token.value)]
+        sectionNames = token.value.split('.')
+        section = session.help_entries
+        while True:
+            #We advance in help section as far as possible
+            try:
+                sectionName = sectionNames[0]
+            except IndexError:
+                # No more section to found, we have found it
+                break
+            if sectionName == "devparrot":
+                section = session.help_entries
+            else:
+                try:
+                    section = section.entries[sectionName]
+                except KeyError:
+                    break
+            sectionNames = sectionNames[1:]
+        last = ".".join(sectionNames)
+        try:
+            section = section.entries[last]
+            last = ""
+        except KeyError:
+            pass
+
+        # we have found our startSection (section) and a name to complete in it (last)
+        return [create_completion(v=entry.get_helpName(), f=not isinstance(entry,HelpSection))
+                       for name, entry in section.entries.items() if name.startswith(last)]
 
     def check(self, token):
         from devparrot.core import session
