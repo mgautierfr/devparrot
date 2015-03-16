@@ -21,6 +21,13 @@
 
 import collections
 
+toDisplay = {
+'askUser'  : 'will ask to user if not provided',
+'default'  : 'optional',
+'multiple' : 'must be list',
+'isVararg' : 'may be repeated'
+}
+
 class ConstraintInstance:
     def __init__(self, constraint, name):
         self.constraint = constraint
@@ -38,7 +45,9 @@ class ConstraintInstance:
         return '"%s" (of type %s)' % (self.name, self.constraint.__class__.__name__)
 
     def get_help(self):
-        attr_text = ",".join( (attribute for attribute in ("askUser", "default", "multiple", "isVararg") if getattr(self.constraint, attribute) ) )
-        text = " - %(name)s: (%(attr)s)\n      [%(constraintHelp)s]\n     %(userHelp)s"%{'name':self.name, 'attr':attr_text, 'constraintHelp':self.constraint.__class__.__doc__ or "", 'userHelp':self.constraint.get_help()}
-        return text
+        attr_text = ", ".join( (toDisplay[attribute] for attribute in ("default", "askUser", "multiple", "isVararg") if getattr(self.constraint, attribute) ) )
+        return [(None, " - %(name)s: ["%{'name':self.name}),
+                ("autocmd.help '%s'"%self.constraint.get_helpName(), self.constraint.__class__.__name__),
+                (None, "] (%(attr)s)\n     %(userHelp)s"%{'attr':attr_text, 'userHelp':self.constraint.get_userHelp()})
+               ]
                 
