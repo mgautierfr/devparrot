@@ -42,7 +42,6 @@ def create_section(name=None):
     if not name:
         if session.commands is None:
             session.commands = Section(None, None)
-            session.help_entries.add_entry("commands", HelpSection(None, "commands"))
         return session.commands
     else:
         *parents, name = name.split('.')

@@ -61,7 +61,10 @@ def add_helpEntry(name, obj, in_=[]):
         try:
             section = section.entries[sectionName]
         except KeyError:
-            newSection = HelpSection(section, sectionName)
+            if section is session.help_entries:
+                newSection = HelpSection(None, sectionName)
+            else:
+                newSection = HelpSection(section, sectionName)
             section.add_entry(sectionName, newSection)
             section = newSection
     section.add_entry(name, obj)
