@@ -19,64 +19,56 @@
 #    Copyright 2011-2014 Matthieu Gautier
 
 class HelpSection:
-    def __init__(self, name):
+    def __init__(self, section, name, header=None):
+        self.section = section
         self.name = name
+        if header is None:
+            self.header = "%s Section"%name
+        else:
+            self.header = header
         self.entries = {}
+
+    def __str__(self):
+        return "<Section %s>"%self.name
 
     def add_entry(self, name, entry):
         self.entries[name] = entry
 
-    def get_name(self):
-        return self.name
+    def get_helpName(self):
+        if self.section:
+            return "%s.%s"%(self.section.get_helpName(), self.name)
+        else:
+            return "%s"%self.name
 
     def get_help(self):
-        last = "%s Section"%self.name
-        yield last+"\n"
-        yield "="*len(last)+"\n"
+        yield self.header+"\n"
+        yield "="*len(self.header)+"\n"
         yield "\n"
 
         yield "helpEntries:\n"
         yield "------------\n"
         yield "\n"    
 
-        for entry in self.entries:
-            yield [(None, " - "), ("autocmd.help %s"%entry, entry), (None, "\n")]
-
-class DevparrotHelp:
-    def get_name(self):
-        return "devparrot"
-
-    def get_help(self):
-        from devparrot.core import session
-        from devparrot.core.command.section import Section
-        from devparrot.core.command import wrappers
-        yield "Devparrot help\n"
-        yield "==============\n"
-        yield "\n"
-        
-        yield "helpEntries:\n"
-        yield "------------\n"
-        yield "\n"
-
-        for entry in session.help_entries:
-            yield [(None, " - "), ("autocmd.help %s"%entry, entry), (None, "\n")]
+        for entry in sorted(self.entries):
+            yield [(None, " - "), ("autocmd.help '%s'"%self.entries[entry].get_helpName(), entry), (None, "\n")]
 
 def add_helpEntry(name, obj, in_=[]):
     from devparrot.core import session
-    session.help_entries[name] = obj
+    section = session.help_entries
     for sectionName in in_:
         if not sectionName:
             continue
         try:
-            section = session.help_entries[sectionName]
+            section = section.entries[sectionName]
         except KeyError:
-            section = HelpSection(sectionName)
-            session.help_entries[sectionName] = section
-        section.add_entry(name, obj)
+            newSection = HelpSection(section, sectionName)
+            section.add_entry(sectionName, newSection)
+            section = newSection
+    section.add_entry(name, obj)
 
 def help_entry(name, in_=[]):
     def add_to_entries(obj):
-        add_helpEntry(name, obj)
+        add_helpEntry(name, obj, in_)
         return obj
     return add_to_entries
 

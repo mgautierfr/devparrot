@@ -38,7 +38,7 @@ helpEntry = HelpEntry(default= lambda:None)
 def help(helpEntry):
     """The help command"""
     if helpEntry:
-        helpEntryName = helpEntry.get_name()
+        helpEntryName = helpEntry.get_helpName()
     else:
         helpEntryName = "devparrot"
     return "core.help {0!r} | core.buffer 'help {0}'".format(helpEntryName)

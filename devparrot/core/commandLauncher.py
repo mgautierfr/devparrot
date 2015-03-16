@@ -37,15 +37,16 @@ def add_macro(name, command):
 
 def create_section(name=None):
     from devparrot.core.command.section import Section
+    from devparrot.core.help import HelpSection
     from . import session
     if not name:
         if session.commands is None:
             session.commands = Section(None, None)
+            session.help_entries.add_entry("commands", HelpSection(None, "commands"))
         return session.commands
     else:
-        spl = name.split('.')
-        name = spl[-1]
-        parentSection = create_section('.'.join(spl[:-1]))
+        *parents, name = name.split('.')
+        parentSection = create_section('.'.join(parents))
         try:
             return parentSection[name]
         except KeyError:

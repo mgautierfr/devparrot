@@ -153,7 +153,7 @@ class CommandWrapper:
         return self.functionToCall(*args, **kwords)
 
     def get_help(self):
-        last = "%s command:"%self.get_name()
+        last = "%s command:"%str(self)
         yield last+"\n"
         yield "="*len(last)+"\n"
         yield "\n"
@@ -165,25 +165,29 @@ class CommandWrapper:
         yield "----------\n"
         yield "\n"
         for constraint in self._get_all_constraints():
-            yield constraint.get_help()+"\n"
+            yield constraint.get_help()
+            yield "\n\n"
 
         if self.varargName and self.varargName in self.constraints:
             constraint = ConstraintInstance(self._get_constraint(self.varargName), self.varargName)
-            yield constraint.get_help()+"\n\n"
+            yield constraint.get_help()
+            yield "\n\n"
 
         yield " - stream : %s\n"%self.streamName
         if self.streamName:
             constraint = self._get_constraint(self.streamName)
             yield constraint.get_help()
 
-    def get_name(self):
-        if self.section:
-            name =  "%s%s"%(self.section.get_name(), self.commandName)
-        else:
-            name =  self.commandName
+    def __str__(self):
         if self.masterCommand:
-            return "%s%s"%(self.masterCommand.get_name(), name)
-        return name
+            return "%s %s"%(str(self.masterCommand), self.commandName)
+        if self.section:
+            return "%s%s"%(str(self.section), self.commandName)
+
+        return "%s"%self.commandName
+
+    def get_helpName(self):
+        return "commands.%s"%str(self)
 
 class AliasWrapper(CommandWrapper):
     def __init__(self, constraints):
@@ -231,7 +235,7 @@ class MasterCommandWrapper:
         return subCommand.resolve(*args, **kwords)
 
     def get_help(self):
-        last = "%s master command:"%self.get_name()
+        last = "%s master command:"%str(self)
         yield last+"\n"
         yield "="*len(last)+"\n"
         yield "\n"
@@ -243,12 +247,15 @@ class MasterCommandWrapper:
         yield "------------\n"
         yield "\n"
         for subcommand in self.subCommands:
-            yield [(None," - "), ("autocmd.help '%s%s'"%(self.get_name(),subcommand), subcommand), (None, "\n")]
+            yield [(None," - "), ("""autocmd.help '%s %s'"""%(self.get_helpName(),subcommand), subcommand), (None, "\n")]
 
-    def get_name(self):
+    def __str__(self):
         if self.section:
-            return "%s%s "%(self.section.get_name(), self._class.__name__)
-        return "%s "%self._class.__name__
+            return "%s%s"%(str(self.section), self._class.__name__)
+        return self._class.__name__
+
+    def get_helpName(self):
+        return "commands.%s"%str(self)
 
     def __getitem__(self, name):
         return self.subCommands[name]

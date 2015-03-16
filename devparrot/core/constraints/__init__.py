@@ -503,8 +503,28 @@ class HelpEntry(_Constraint):
 
     def check(self, token):
         from devparrot.core import session
+        if token == "devparrot":
+            return True, session.help_entries
+        sectionNames = token.split('.')
+        section = session.help_entries
+        while True:
+            #We advance in help section as far as possible
+            try:
+                sectionName = sectionNames[0]
+            except IndexError:
+                # No more section to found, we have found it
+                return True, section
+            if sectionName == "devparrot":
+                section = session.help_entries
+            else:
+                try:
+                    section = section.entries[sectionName]
+                except KeyError:
+                    break
+            sectionNames = sectionNames[1:]
+        name = ".".join(sectionNames)
         try:
-            return True, session.help_entries[token]
+            return True, section.entries[name]
         except KeyError:
             return False, None
 

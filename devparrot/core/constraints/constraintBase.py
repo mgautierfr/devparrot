@@ -3,6 +3,7 @@ from devparrot.core.completion import BaseCompletion
 from devparrot.core.errors import UserCancel, NoDefault
 from devparrot.core.command.tokens import New
 from functools import reduce
+import inspect
 
 class DoubleStringCompletion(BaseCompletion):
     def __init__(self, startIndex, value, final, already):
@@ -66,8 +67,17 @@ type_to_completion = {
     'New'            : Completion
 }
 
+class ConstraintMeta(type):
+    def __new__(cls, name, bases, dct):
+        if name =="_Constraint":
+            return type.__new__(cls, name, bases, dct)
+        from devparrot.core.help import add_helpEntry
+        _class = type.__new__(cls, name, bases, dct)
+        add_helpEntry(name, _class, ["constraints"])
+        return _class
 
-class _Constraint:
+
+class _Constraint(metaclass=ConstraintMeta):
     class _NoDefault:
         def __call__(self):
             raise NoDefault()
@@ -138,5 +148,19 @@ class _Constraint:
             return [Completion(token.index, token.name, False, len(token.name))]
         return []
 
-    def get_help(self):
+    def get_userHelp(self):
         return self.help
+
+    @classmethod
+    def get_help(cls):
+        last = "%s constraint:"%cls.__name__
+        yield last+"\n"
+        yield "="*len(last)+"\n"
+        yield "\n"
+
+        yield inspect.getdoc(cls) or "no description...\n"
+        yield "\n"
+
+    @classmethod
+    def get_helpName(cls):
+        return "constraints.%s"%cls.__name__

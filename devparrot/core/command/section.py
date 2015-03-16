@@ -30,12 +30,12 @@ class Section(dict):
     def add_command(self, name, wrapper):
         self[name] = wrapper
 
-    def get_name(self):
+    def __str__(self):
         if not self.name:
             return ""
-        if self.parentSection:
-            return "%s%s."%(self.parentSection.get_name(), self.name)
-        return "%s."%self.name
+        if not self.parentSection:
+            return "%s."%self.name
+        return "%s%s."%(self.parentSection, self.name)
 
     def get_constraint(self, *args):
         raise IndexError

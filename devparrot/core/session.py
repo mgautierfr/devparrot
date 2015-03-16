@@ -39,7 +39,7 @@ memories = {}
 controllers = {}
 bindings = None
 completionSystem = None
-help_entries = {'devparrot':help.DevparrotHelp()}
+help_entries = help.HelpSection(None, "devparrot", "Devparrot help")
 
 eventSystem = event.EventSource()
 

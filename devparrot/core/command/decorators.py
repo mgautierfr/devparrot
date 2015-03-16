@@ -53,7 +53,7 @@ class Command:
         self.wrapper._set_section(section)
         self.wrapper._set_function(function, functionName)
         add_command(functionName, self.wrapper, section)
-        add_helpEntry(self.wrapper.get_name(), self.wrapper, [section.get_name()])
+        add_helpEntry(str(self.wrapper), self.wrapper, ["commands"])
         return function
 
 
@@ -74,6 +74,7 @@ class MasterCommandMeta(type):
         if name == "MasterCommand":
             return type.__new__(cls, name, bases, dct)
         from devparrot.core.commandLauncher import add_command, create_section
+        from devparrot.core.help import add_helpEntry
         new_dct = {}
         wrapper = MasterCommandWrapper()
         section = None
@@ -90,6 +91,11 @@ class MasterCommandMeta(type):
         add_command(name, wrapper, section)
         _class = type.__new__(cls, name, bases, new_dct)
         wrapper.set_class(_class)
+        add_helpEntry(str(wrapper), wrapper, ["commands"])
+        # we must add_helpEntry *after* the _class is set
+        for attr in dct.values():
+            if isinstance(attr, CommandWrapper):
+                add_helpEntry(str(attr), attr, ["commands"])
         return _class
 
 
