@@ -43,7 +43,7 @@ setup(name='devparrot',
 
       # pyxdg and pygments are used for file type detection.
       # Maybe we should remove those strong requirements by using custom algorithm.
-      install_requires=['tkinter', 'pyxdg', 'picoparse', 'pygments' 'python-magic','pytest'],
+      install_requires=['pyxdg', 'pygments', 'python-magic','pytest'],
       extras_require = {
          'JEDI'     :   ['jedi'],
          'PYGMENTS' :   ['pygments'],

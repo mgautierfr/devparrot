@@ -1,11 +1,11 @@
 
-from picoparse import string
+from devparrot.picoparse import string
 
-from picoparse import one_of, many, many1, run_parser, optional
-from picoparse import choice, any_token, satisfies
-from picoparse import NoMatch
-from picoparse.text import quoted
-from picoparse import partial, tri, commit, fail, eof
+from devparrot.picoparse import one_of, many, many1, run_parser, optional
+from devparrot.picoparse import choice, any_token, satisfies
+from devparrot.picoparse import NoMatch
+from devparrot.picoparse.text import quoted
+from devparrot.picoparse import partial, tri, commit, fail, eof
 
 from devparrot.core.utils.posrange import *
 

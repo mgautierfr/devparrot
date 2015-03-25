@@ -19,13 +19,13 @@
 #    Copyright 2011-2013 Matthieu Gautier
 
 
-from picoparse import string
+from devparrot.picoparse import string
 
-from picoparse import one_of, many, many1, many_until, not_one_of, run_parser, optional
-from picoparse import choice, peek, eof, is_eof, any_token, satisfies, not_followed_by
-from picoparse import sep, sep1, NoMatch
-from picoparse.text import quote
-from picoparse import partial, tri, commit, fail
+from devparrot.picoparse import one_of, many, many1, many_until, not_one_of, run_parser, optional
+from devparrot.picoparse import choice, peek, eof, is_eof, any_token, satisfies, not_followed_by
+from devparrot.picoparse import sep, sep1, NoMatch
+from devparrot.picoparse.text import quote
+from devparrot.picoparse import partial, tri, commit, fail
 
 from .tokens import *
 
@@ -35,8 +35,8 @@ whitespace = partial(many, whitespace_char)
 whitespace1 = partial(many1, whitespace_char)
 
 def index():
-    import picoparse
-    return picoparse.local_ps.value.index
+    import devparrot.picoparse
+    return devparrot.picoparse.local_ps.value.index
 
 @tri
 def pipe_sep():

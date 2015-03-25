@@ -4,6 +4,7 @@ These functions exist for convenience; they implement common ideas about text sy
 for instance the quote and quoted parsers assume quotes can be ' or "
 """
 # Copyright (c) 2009, Andrew Brehaut, Steven Ashley
+# Copyright (c) 2015, Matthieu Gautier
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -29,9 +30,9 @@ for instance the quote and quoted parsers assume quotes can be ' or "
 
 from string import whitespace as _whitespace_chars
 
-from picoparse import p as partial
-from picoparse import string, one_of, many, many1, many_until, any_token, run_parser
-from picoparse import NoMatch, fail, tri, EndOfFile, optional, compose
+from ..picoparse import p as partial
+from ..picoparse import string, one_of, many, many1, many_until, any_token, run_parser
+from ..picoparse import NoMatch, fail, tri, EndOfFile, optional, compose
 
 def build_string(iterable):
     """A utility function to wrap up the converting a list of characters back into a string.
