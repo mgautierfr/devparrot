@@ -292,7 +292,7 @@ class TextModel(tkinter.Text, ModelInfo):
     def calculate_distance(self, first, second):
         if first.line == second.line:
             return second.col - first.col
-        return self.count(str(first), str(second), "chars")
+        return self.count(str(first), str(second), "chars")[0]
 
     # Overloads
     def mark_set( self, name, index ):
