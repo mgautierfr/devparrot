@@ -41,7 +41,7 @@ def search(searchText, where):
     if not searchText:
         return []
 
-    return [(document, r) for r in document.model.search(searchText, where.first, where.last)]
+    return ((document, r) for r in document.model.search(searchText, where.first, where.last))
 
 
 @Command(
