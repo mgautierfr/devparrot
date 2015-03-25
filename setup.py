@@ -36,7 +36,7 @@ setup(name='devparrot',
                    'Environment ::X11 Applications',
                    'Intended Audience ::Developers'
                   ],
-      packages=find_packages(exclude=['tests'])+['devparrot.commands', 'devparrot.modules'],
+      packages=find_packages(exclude=['tests'])+['devparrot.commands', 'devparrot.commands.core', 'devparrot.modules'],
       package_data= { 'devparrot.core.ui' : [ 'resources/icon48.png' ],
                       'devparrot' : ['icons/*.png'],
                     },
