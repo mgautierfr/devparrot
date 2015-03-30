@@ -341,6 +341,9 @@ class TextModel(tkinter.Text, ModelInfo):
     def delete(self, index1, index2, updateUndo=True):
         index1 = self.index(index1)
         index2 = self.index(index2)
+        if index1 == index2:
+            #We try to delete a null range
+            return
         text = self.get(str(index1), str(index2))
         tkinter.Text.delete(self, str(index1), str(index2))
         ModelInfo.delete(self, index1, index2)
