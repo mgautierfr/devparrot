@@ -47,6 +47,14 @@ class _End(Index):
     def __lt__(self, other):
         return False
 
+    def __ge__(self, other):
+        return True
+
+    def __le__(self, other):
+        if isinstance(other, _End):
+            return True
+        return False
+
 End   = _End(-1, -1)
 
 _str_cache = {End:"end"}
