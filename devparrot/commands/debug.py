@@ -20,9 +20,11 @@
 
 
 from devparrot.core.command import MasterCommand, SubCommand
-from devparrot.core.constraints import File, Integer, Range
+from devparrot.core.constraints import File, Integer, Range, Default
 from pprint import pprint
 import gc
+
+profile = None
 
 def count():
     d = dict()
@@ -78,3 +80,27 @@ class debug(MasterCommand):
             list_.extend(objgraph.by_type(type_))
         #print list_
         objgraph.show_backrefs(list_, max_depth=3, too_many=100, filename="backref.png")
+
+    @SubCommand()
+    def profile_enable():
+        import cProfile
+        global profile
+        profile = cProfile.Profile()
+        profile.enable()
+
+    @SubCommand()
+    def profile_disable():
+        if profile:
+            profile.disable()
+
+    @SubCommand(
+    sortby = Default(default=lambda:"cumulative")
+    )
+    def profile_stats(sortby):
+        import io, pstats
+        s = io.StringIO()
+        ps = pstats.Stats(profile, stream=s)
+        ps.strip_dirs()
+        ps.sort_stats(sortby)
+        ps.print_callees()
+        yield s.getvalue()

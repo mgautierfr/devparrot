@@ -61,10 +61,15 @@ def parse_commandLine(args=sys.argv):
                         dest="load_configrc",
                         action='store_false',
                         help="Do not load rc file")
-    parser.add_argument("--debug",
+    debug_group = parser.add_argument_group("debug", "Option to debug Devparrot itself")
+    debug_group.add_argument("--debug",
                         dest="debug",
                         action='store_true',
                         help="Run in debug mode")
+    debug_group.add_argument("--profile",
+                        dest="profile",
+                        action='store_true',
+                        help="Profile the execution"),
     parser.add_argument("--option", "-o", dest="options",
                         action="append",
                         type=option_split,
@@ -98,4 +103,18 @@ def main():
     cmd_options = parse_commandLine()
     if cmd_options.debug:
         set_signal_handler()
-    return _main(cmd_options)
+    if cmd_options.profile:
+        import cProfile, pstats, io
+        pr = cProfile.Profile()
+        pr.enable()
+        try:
+            ret = _main(cmd_options)
+        finally:
+            pr.disable()
+            s = io.StringIO()
+            sortby = 'cumulative'
+            ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+            ps.print_stats()
+            print(s.getvalue())
+    else:
+        return _main(cmd_options)
