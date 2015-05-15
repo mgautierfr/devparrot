@@ -48,6 +48,8 @@ aka : PathToModule:ObjectEntryPoint"""),
             module = loader.load_module()
         except ImportError:
             raise InvalidArgument("%r is not a valid module path"%modulePath)
+        module_section = session.config.modules.add_section(name)
+        module_section.add_option("activate", default=False)
         creator = getattr(module, creatorName)
         creator.update_config(session.config)
         session.modules[name] = creator(name)
