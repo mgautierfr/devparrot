@@ -24,23 +24,16 @@ from devparrot.core.constraints import Stream, Range, Default
 from devparrot.core import session
 import re
 
-class inner:
-    @staticmethod
-    def replace(pattern, repl, ranges):
-        pattern = re.compile(pattern)
-        for document, rge in ranges:
-            text = document.model.get(str(rge.first), str(rge.last))
-            new = pattern.sub(repl, text)
-            document.model.replace(str(rge.first), str(rge.last), new)
-
-Command(
-_section='core',
-ranges=Stream()
-)(inner.replace)
-
+@Command(_section='core', ranges=Stream)
+def replace(pattern, repl, ranges):
+    pattern = re.compile(pattern)
+    for document, rge in ranges:
+        text = document.model.get(str(rge.first), str(rge.last))
+        new = pattern.sub(repl, text)
+        document.model.replace(str(rge.first), str(rge.last), new)
 
 @Command(
-regex = Default(help="A text (or regex to look for"),
+regex = Default(help="A text (or regex) to look for"),
 subst = Default(help="A substitution expression to use to replace texts found by regex"),
 where = Range(default=Range.DEFAULT('all'), help="The range specifying where to do the replace")
 )
