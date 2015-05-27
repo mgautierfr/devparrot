@@ -441,17 +441,28 @@ class TextModel(tkinter.Text, ModelInfo):
     def search(self, text, start_search="1.0", end_search="end"):
         if not text:
             return
+        _end_search = end_search
         start_search, end_search = str(start_search), str(end_search)
 
         count = tkinter.IntVar()
-        match_start = tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count) 
+        match_start = tkinter.Text.search(self, text, start_search, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count)
+        print(start_search, end_search, match_start, count.get())
         while match_start:
             match_end = "{}+{}c".format(match_start, count.get())
-            yield Range(self.index(match_start), self.index(match_end))
+            match_end = self.index(match_end)
+            if match_end > _end_search:
+                #in case of regex, match_end can be after end_search
+                #double check that regex is still valid
+                found = self.get(match_start, end_search)
+                if re.match(text, found):
+                    yield Range(self.index(match_start), _end_search)
+                #Break anyway, we are after the end
+                break
+            yield Range(self.index(match_start), match_end)
             if not count.get():
                 # avoid infinit loop if regex match 0 len text.
                 break
-            match_start = tkinter.Text.search(self, text, match_end, stopindex=end_search, forwards=True, exact=False, regexp=True, count=count)
+            match_start = tkinter.Text.search(self, text, str(match_end), stopindex=end_search, forwards=True, exact=False, regexp=True, count=count)
 
 class SourceBuffer(TextModel):
     def __init__(self, document):
