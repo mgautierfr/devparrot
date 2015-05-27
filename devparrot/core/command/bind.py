@@ -87,4 +87,4 @@ class Binder:
             except KeyError:
                 pass
         else:
-            getattr(session.config.bindings, accel).set([])
+            getattr(session.config.hook, accel).set([])
