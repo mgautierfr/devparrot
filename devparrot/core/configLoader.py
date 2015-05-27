@@ -96,9 +96,10 @@ def init(cmd_options):
 
     modules.update_config(_config)
 
-    parser = ConfigParser(_config)
-    parser.add_file(cmd_options.configrc)
-    parser.parse(with_dict={"bind":session.bindings})
+    if cmd_options.load_configrc:
+        parser = ConfigParser(_config)
+        parser.add_file(cmd_options.configrc)
+        parser.parse(with_dict={"bind":session.bindings})
 
     for name, value in cmd_options.options:
         _config.get_option(name).set(value)
