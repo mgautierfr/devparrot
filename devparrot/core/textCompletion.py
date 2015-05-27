@@ -115,7 +115,8 @@ class BasicTextCompletor(BaseCompletor):
             self.sourcefunction = globals().get(self.sourcefunction)
 
     def get_completions(self):
-        separators = session.config.get('spacechars')+session.config.get('puncchars')+"\n"
+        document = self.textWidget.document
+        separators = document.get_config('spacechars')+document.get_config('puncchars')+"\n"
         separators = separators.replace("\\", "\\\\")
         separators = separators.replace("]", "\\]")
         regex =  r"[%s]"%separators
