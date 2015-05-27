@@ -83,15 +83,21 @@ class CompletionSystem:
 
         self.label = tkinter.ttk.Label(self.toplevel)
 
-    def _set_position(self):
-        x, y, width, height = self.textWidget.bbox('insert')
+    def _set_position(self, bbox):
+        x, y, width, height = bbox
         xpos = self.textWidget.winfo_rootx() + x
         ypos = self.textWidget.winfo_rooty() + y + height
         self.toplevel.wm_geometry("+%d+%d"% (xpos, ypos))
 
     def _show(self):
+        bbox = self.textWidget.bbox('insert')
+        if bbox is None:
+            # if insert is not visible, bbox will return None.
+            # We handle it here for now.
+            # It should be preferable to not do any completion at all.
+            return
         self.displayed = True
-        self._set_position()
+        self._set_position(bbox)
         self.toplevel.deiconify()
         size = max([len(self.labelText)] + [len(v.description()) for v in self.completions])
         self.listbox.configure(width=size, height=len(self.completions))
