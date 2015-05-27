@@ -110,7 +110,9 @@ class BaseCompletor(metaclass=BaseCompletorMeta):
 class BasicTextCompletor(BaseCompletor):
     def __init__(self, model):
         self.textWidget = model
-        self.sourcefunction = globals().get(self.textWidget.document.get_config('completion_functions'))
+        self.sourcefunction = self.textWidget.document.get_config('completion_functions')
+        if not hasattr(self.sourcefunction, '__call__'):
+            self.sourcefunction = globals().get(self.sourcefunction)
 
     def get_completions(self):
         separators = session.config.get('spacechars')+session.config.get('puncchars')+"\n"
@@ -126,7 +128,10 @@ class BasicTextCompletor(BaseCompletor):
         currentWord = self.textWidget.get(str(start_index), "insert")
         if not currentWord:
             return ("", [])
-        words = self.sourcefunction(currentWord, self.textWidget)
+        try:
+            words = self.sourcefunction(currentWord, self.textWidget)
+        except:
+            return ("", [])
         completion = (Completion(start_index, w, len(currentWord)) for w in words)
         return ("", completion)
 
