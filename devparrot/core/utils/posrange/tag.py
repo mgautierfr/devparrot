@@ -31,7 +31,7 @@ class Tag:
 
     def resolve(self, model):
         if self.tagName == "all":
-            return Range(Start , End)
+            return Range(Start , End.resolve(model))
         try:
             return Range(model.index("%s.first"%self.tagName) , model.index("%s.last"%self.tagName))
         except BadArgument:

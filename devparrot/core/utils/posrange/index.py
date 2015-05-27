@@ -41,6 +41,9 @@ class Index(namedtuple('Index', "line col")):
 Start = Index(1, 0)
 
 class _End(Index):
+    def resolve(self, model):
+        return model.getend()
+
     def __gt__(self, other):
         return True
 
