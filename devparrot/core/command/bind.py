@@ -33,8 +33,6 @@ class BindLauncher:
         from devparrot.core import session
         for cmd in self.commands:
             ret = session.commandLauncher.run_command_nofail(cmd, kwords)
-            if not ret:
-                return "break"
         session.window.entry.delete("1.0", "end")
         session.window.entry.insert("1.0", self.leftText)
         if self.leftText:
