@@ -33,34 +33,47 @@ def shell(command, stdinput, cwd, *args):
     run a external command
     """
     from subprocess import Popen, PIPE, STDOUT
+    import shlex
     import pty, os, select
+    commands = shlex.split(command)
+    commands += ['"%s"'%arg for arg in args]
     master_fd, slave_fd = pty.openpty()
-    commands = [command]+['"%s"'%arg for arg in args]
-    commands = ' '.join(commands)
-    popen = Popen(commands, bufsize=1024, shell=True, stdin=slave_fd, stdout=slave_fd, stderr=STDOUT, universal_newlines=False, cwd=cwd, close_fds=True)
+    popen = Popen(commands, bufsize=0, stdin=PIPE, stdout=slave_fd, stderr=STDOUT, cwd=cwd, close_fds=True)
 
-    for line in stdinput:
-        line = "{}\n".format(line)
-        os.write(master_fd, line.encode())
-
-
+    have_data = True
     left = b""
     closed = False
+    write_list = [popen.stdin]
+    read_list =  [master_fd]
     while True:
-        # master_fd will not be closed by itself.
-        # If we try to read on it, it may (will) hang if subprocess has terminate.
-        # So we need to read only if there is data.
-        # We don't check subprocess termination first to avoid race condition when process terminate between the poll and the read.
-        ready, _, _ = select.select([master_fd], [], [], 0.01)
-        while ready:
-            string = left + os.read(master_fd, 1024)
-            string = string.replace(b"\r\n", b"\n")
-            string = string.replace(b"\r", b"\n")
-            lines = string.split(b'\n')
-            for line in lines[:-1]:
-                yield line+b'\n'
-            left = lines[-1]
-            ready, _, _ = select.select([master_fd], [], [], 0.01)
+        read_ready, write_ready, _ = select.select(read_list, write_list, [], 0.01)
+        while read_ready or write_ready:
+            if have_data and write_ready:
+                try:
+                    line = next(stdinput)
+                except StopIteration:
+                    have_data = False
+                    write_list = []
+                    popen.stdin.close()
+                else:
+                    if line is not None:
+                        try:
+                            popen.stdin.write(line.encode())
+                        except Exception as e:
+                            raise
+
+            if read_ready:
+                string = left + os.read(master_fd, 1024)
+                string = string.replace(b"\r\n", b"\n")
+                string = string.replace(b"\r", b"\n")
+                lines = string.split(b'\n')
+                for line in lines[:-1]:
+                    yield (line+b'\n').decode()
+                left = lines[-1]
+
+            read_ready, write_ready, _ = select.select(read_list, write_list, [], 0.01)
+            if popen.poll() is not None:
+                read_list = []
         if closed:
             break
         elif popen.poll() is not None:
@@ -75,7 +88,7 @@ def shell(command, stdinput, cwd, *args):
     os.close(master_fd)
 
     if left:
-        yield left
+        yield left.decode()
 
 @Command(
 stream =Stream()
